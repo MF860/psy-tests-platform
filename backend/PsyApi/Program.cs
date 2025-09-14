@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PsyApi.Data;
+using PsyApi.Services;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,10 +20,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Add DbContext
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Add DataSeeder service
+builder.Services.AddScoped<DataSeeder>();
 
 var app = builder.Build();
 
@@ -34,6 +38,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Seed data on startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var dataSeeder = services.GetRequiredService<DataSeeder>();
+    await dataSeeder.SeedItemsAsync();
+}
 
 app.Run();
 
