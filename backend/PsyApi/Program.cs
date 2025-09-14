@@ -25,8 +25,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Add DataSeeder service
-builder.Services.AddScoped<DataSeeder>();
+// Add DataSeeder service with Serilog.ILogger
+builder.Services.AddScoped<DataSeeder>(provider => 
+    new DataSeeder(
+        provider.GetRequiredService<AppDbContext>(),
+        Log.ForContext<DataSeeder>()
+    )
+);
 
 var app = builder.Build();
 

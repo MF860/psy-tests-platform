@@ -86,7 +86,7 @@ namespace PsyApi.Controllers
         }
 
         [HttpGet("{id}/next")]
-        public async Task<IActionResult> GetNextQuestion(Guid id)
+        public async Task<IActionResult> GetNextQuestion(int id)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace PsyApi.Controllers
         }
 
         [HttpPost("{id}/answer")]
-        public async Task<IActionResult> SubmitAnswer(Guid id, [FromBody] SubmitAnswerRequest request)
+        public async Task<IActionResult> SubmitAnswer(int id, [FromBody] SubmitAnswerRequest request)
         {
             try
             {
@@ -154,10 +154,16 @@ namespace PsyApi.Controllers
                     return NotFound(new { error = "Session not found or not in progress" });
                 }
 
+                // Parse the item_id to get the integer value
+                if (!int.TryParse(request.ItemId.Replace("I", ""), out var itemIdInt))
+                {
+                    return BadRequest(new { error = "Invalid Item ID format" });
+                }
+
                 // Find the session item
                 var sessionItem = await _context.SessionItems
                     .Include(si => si.Item)
-                    .FirstOrDefaultAsync(si => si.SessionId == id && si.ItemId == request.ItemId);
+                    .FirstOrDefaultAsync(si => si.SessionId == id && si.ItemId == itemIdInt);
 
                 if (sessionItem == null)
                 {
@@ -199,7 +205,7 @@ namespace PsyApi.Controllers
         }
 
         [HttpPost("{id}/submit")]
-        public async Task<IActionResult> SubmitSession(Guid id)
+        public async Task<IActionResult> SubmitSession(int id)
         {
             try
             {
@@ -258,15 +264,15 @@ namespace PsyApi.Controllers
     public class StartSessionRequest
     {
         [Required]
-        public string NationalId { get; set; }
+        public string NationalId { get; set; } = string.Empty;
     }
 
     public class SubmitAnswerRequest
     {
         [Required]
-        public string ItemId { get; set; }
+        public string ItemId { get; set; } = string.Empty;
 
         [Required]
-        public string Answer { get; set; }
+        public string Answer { get; set; } = string.Empty;
     }
 }
