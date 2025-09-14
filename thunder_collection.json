@@ -1,0 +1,212 @@
+{
+  "_id": "psyapi-multi-user-tests",
+  "name": "PsyApi Multi-User Tests",
+  "folder": "",
+  "environments": [],
+  "requests": [
+    {
+      "_id": "start-session-111",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Start Session - User 111",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/start",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"national_id\": \"1111111111\"\n}",
+        "form": []
+      },
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has sessionId', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('sessionId');\n    pm.globals.set('sessionId111', jsonData.sessionId);\n});"
+      ]
+    },
+    {
+      "_id": "get-next-question-111",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Get Next Question - User 111",
+      "method": "GET",
+      "url": "http://localhost:5019/api/sessions/{{sessionId111}}/next",
+      "headers": [],
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has question data', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('id');\n    pm.expect(jsonData).to.have.property('text_ar');\n    pm.globals.set('itemId111', jsonData.id);\n    pm.globals.set('questionText111', jsonData.text_ar);\n});"
+      ]
+    },
+    {
+      "_id": "submit-answer-111",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Submit Answer - User 111",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/{{sessionId111}}/answer",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"item_id\": \"{{itemId111}}\",\n  \"answer\": \"موافق\"\n}",
+        "form": []
+      },
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Answer submitted successfully', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('message');\n    pm.globals.set('answerStatus111', jsonData.message);\n});"
+      ]
+    },
+    {
+      "_id": "submit-test-111",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Submit Test - User 111",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/{{sessionId111}}/submit",
+      "headers": [],
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Test submitted successfully', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('message');\n    pm.globals.set('submitStatus111', jsonData.message);\n});"
+      ]
+    },
+    {
+      "_id": "start-session-222",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Start Session - User 222",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/start",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"national_id\": \"2222222222\"\n}",
+        "form": []
+      },
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has sessionId', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('sessionId');\n    pm.globals.set('sessionId222', jsonData.sessionId);\n});"
+      ]
+    },
+    {
+      "_id": "get-next-question-222",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Get Next Question - User 222",
+      "method": "GET",
+      "url": "http://localhost:5019/api/sessions/{{sessionId222}}/next",
+      "headers": [],
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has question data', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('id');\n    pm.expect(jsonData).to.have.property('text_ar');\n    pm.globals.set('itemId222', jsonData.id);\n    pm.globals.set('questionText222', jsonData.text_ar);\n});"
+      ]
+    },
+    {
+      "_id": "submit-answer-222",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Submit Answer - User 222",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/{{sessionId222}}/answer",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"item_id\": \"{{itemId222}}\",\n  \"answer\": \"موافق\"\n}",
+        "form": []
+      },
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Answer submitted successfully', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('message');\n    pm.globals.set('answerStatus222', jsonData.message);\n});"
+      ]
+    },
+    {
+      "_id": "submit-test-222",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Submit Test - User 222",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/{{sessionId222}}/submit",
+      "headers": [],
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Test submitted successfully', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('message');\n    pm.globals.set('submitStatus222', jsonData.message);\n});"
+      ]
+    },
+    {
+      "_id": "start-session-333",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Start Session - User 333",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/start",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"national_id\": \"3333333333\"\n}",
+        "form": []
+      },
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has sessionId', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('sessionId');\n    pm.globals.set('sessionId333', jsonData.sessionId);\n});"
+      ]
+    },
+    {
+      "_id": "get-next-question-333",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Get Next Question - User 333",
+      "method": "GET",
+      "url": "http://localhost:5019/api/sessions/{{sessionId333}}/next",
+      "headers": [],
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has question data', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('id');\n    pm.expect(jsonData).to.have.property('text_ar');\n    pm.globals.set('itemId333', jsonData.id);\n    pm.globals.set('questionText333', jsonData.text_ar);\n});"
+      ]
+    },
+    {
+      "_id": "submit-answer-333",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Submit Answer - User 333",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/{{sessionId333}}/answer",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"item_id\": \"{{itemId333}}\",\n  \"answer\": \"موافق\"\n}",
+        "form": []
+      },
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Answer submitted successfully', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('message');\n    pm.globals.set('answerStatus333', jsonData.message);\n});"
+      ]
+    },
+    {
+      "_id": "submit-test-333",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Submit Test - User 333",
+      "method": "POST",
+      "url": "http://localhost:5019/api/sessions/{{sessionId333}}/submit",
+      "headers": [],
+      "tests": [
+        "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Test submitted successfully', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.have.property('message');\n    pm.globals.set('submitStatus333', jsonData.message);\n});"
+      ]
+    },
+    {
+      "_id": "summary-report",
+      "colId": "psyapi-multi-user-tests",
+      "name": "Summary Report",
+      "method": "GET",
+      "url": "http://localhost:5019/api/sessions/summary",
+      "headers": [],
+      "tests": [
+        "// Generate summary report\nconsole.log('=== MULTI-USER TEST SUMMARY ===');\nconsole.log('');\nconsole.log('User: 1111111111');\nconsole.log('- SessionId: ' + pm.globals.get('sessionId111'));\nconsole.log('- First Question: ' + pm.globals.get('itemId111') + ' ' + pm.globals.get('questionText111'));\nconsole.log('- Answer Submitted: موافق');\nconsole.log('- Submit Status: ' + pm.globals.get('submitStatus111'));\nconsole.log('');\nconsole.log('User: 2222222222');\nconsole.log('- SessionId: ' + pm.globals.get('sessionId222'));\nconsole.log('- First Question: ' + pm.globals.get('itemId222') + ' ' + pm.globals.get('questionText222'));\nconsole.log('- Answer Submitted: موافق');\nconsole.log('- Submit Status: ' + pm.globals.get('submitStatus222'));\nconsole.log('');\nconsole.log('User: 3333333333');\nconsole.log('- SessionId: ' + pm.globals.get('sessionId333'));\nconsole.log('- First Question: ' + pm.globals.get('itemId333') + ' ' + pm.globals.get('questionText333'));\nconsole.log('- Answer Submitted: موافق');\nconsole.log('- Submit Status: ' + pm.globals.get('submitStatus333'));"
+      ]
+    }
+  ],
+  "activeEnvironment": ""
+}

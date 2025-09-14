@@ -1,8 +1,19 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Landing = () => {
   const [nationalId, setNationalId] = useState('');
+  const navigate = useNavigate();
+
+  const handleStartTest = (e: React.MouseEvent) => {
+    if (!nationalId) {
+      e.preventDefault();
+      return;
+    }
+
+    // Store national ID in localStorage for use in the test page
+    localStorage.setItem('nationalId', nationalId);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center p-4">
@@ -34,11 +45,7 @@ const Landing = () => {
                 ? "bg-indigo-600 hover:bg-indigo-700" 
                 : "bg-gray-400 cursor-not-allowed"
             }`}
-            onClick={(e) => {
-              if (!nationalId) {
-                e.preventDefault();
-              }
-            }}
+            onClick={handleStartTest}
           >
             ابدأ الاختبار
           </Link>
