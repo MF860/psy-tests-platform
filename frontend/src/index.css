@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* RTL support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Arabic font support */
+@font-face {
+  font-family: 'ArabicFont';
+  src: local('Arial'), local('Tahoma'), local('Times New Roman');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFF;
+}
+
+body {
+  font-family: 'ArabicFont', system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
