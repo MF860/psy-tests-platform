@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PsyApi.Data;
 using PsyApi.Models;
+using PsyApi.Services.Scoring;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.ComponentModel.DataAnnotations;
 
 namespace PsyApi.Controllers
@@ -12,11 +15,13 @@ namespace PsyApi.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<SessionsController> _logger;
+        private readonly IScoringService _scoringService;
 
-        public SessionsController(AppDbContext context, ILogger<SessionsController> logger)
+        public SessionsController(AppDbContext context, ILogger<SessionsController> logger, IScoringService scoringService)
         {
             _context = context;
             _logger = logger;
+            _scoringService = scoringService;
         }
 
         [HttpPost("start")]
@@ -228,24 +233,48 @@ namespace PsyApi.Controllers
                 session.EndedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                // Calculate total score
-                var sessionItems = await _context.SessionItems
-                    .Where(si => si.SessionId == id)
-                    .ToListAsync();
+                // Compute scores via scoring service
+                var serviceSummary = await _scoringService.ComputeSessionScores(session.Id);
 
-                var totalScore = sessionItems
-                    .Where(si => si.Score.HasValue)
-                    .Sum(si => si.Score.Value);
-
-                // Insert a record in Results table
-                var result = new Result
+                // Map to Models DTO for consistent API/storage
+                var modelSummary = new PsyApi.Models.ScoreSummary
                 {
-                    SessionId = session.Id,
-                    TotalScore = totalScore,
-                    PdfPath = null, // Will be generated later
-                    CreatedAt = DateTime.UtcNow
+                    Dimensions = serviceSummary.DimensionScores?.Select(ds => new PsyApi.Models.DimensionScore
+                    {
+                        Dimension = ds.Dimension,
+                        Raw = ds.Raw,
+                        Z = ds.Z,
+                        T = ds.T,
+                        Percentile = ds.Percentile
+                    }).ToList() ?? new List<PsyApi.Models.DimensionScore>(),
+                    TotalScore = serviceSummary.TotalScore,
+                    Version = serviceSummary.Version
                 };
-                _context.Results.Add(result);
+
+                // Upsert result
+                var result = await _context.Results.FirstOrDefaultAsync(r => r.SessionId == session.Id);
+                if (result == null)
+                {
+                    result = new Result
+                    {
+                        SessionId = session.Id,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    _context.Results.Add(result);
+                }
+
+                result.TotalScore = modelSummary.TotalScore.HasValue ? (int)System.Math.Round(modelSummary.TotalScore.Value) : 0;
+                result.ScoringModelVersion = modelSummary.Version;
+
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    WriteIndented = false
+                };
+
+                result.DimensionScoresJson = JsonSerializer.Serialize(modelSummary.Dimensions, jsonOptions);
+                result.CompositeScoresJson = JsonSerializer.Serialize(new { TotalScore = modelSummary.TotalScore }, jsonOptions);
+
                 await _context.SaveChangesAsync();
 
                 return Ok(new { message = "submitted", sessionId = session.Id });
