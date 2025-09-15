@@ -7,6 +7,7 @@ using PsyApi.Services;
 using PsyApi.Services.Scoring;
 using PsyApi.Services.Reports;
 using PsyApi.Security;
+using PsyApi.Services.Audit;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IO.Compression;
@@ -73,6 +74,9 @@ builder.Services.AddScoped<IScoringService>(provider =>
 
 // Reports
 builder.Services.AddScoped<IPdfReportService, PdfReportService>();
+
+// Audit
+builder.Services.AddScoped<IAuditService, AuditService>();
 
 // JWT Options
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));

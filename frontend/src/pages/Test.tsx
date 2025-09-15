@@ -5,9 +5,9 @@ import {
   getNextQuestion, 
   submitAnswer, 
   submitTest,
-  QuestionResponse,
-  CompletedResponse
+
 } from '../api/psyApi';
+import type { QuestionResponse } from '../api/psyApi';
 
 const Test = () => {
   const navigate = useNavigate();

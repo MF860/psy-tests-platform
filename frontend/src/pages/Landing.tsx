@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Landing = () => {
   const [nationalId, setNationalId] = useState('');
-  const navigate = useNavigate();
+
 
   const handleStartTest = (e: React.MouseEvent) => {
     if (!nationalId) {

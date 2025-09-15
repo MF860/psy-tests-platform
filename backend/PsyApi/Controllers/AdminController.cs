@@ -8,6 +8,7 @@ using PsyApi.Data;
 using PsyApi.Models;
 using PsyApi.Security;
 using PsyApi.Services.Reports;
+using PsyApi.Services.Audit;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -24,13 +25,15 @@ namespace PsyApi.Controllers
         private readonly ILogger<AdminController> _logger;
         private readonly JwtOptions _jwt;
         private readonly IPdfReportService _pdf;
+        private readonly IAuditService _audit;
 
-        public AdminController(AppDbContext db, ILogger<AdminController> logger, IOptions<JwtOptions> jwt, IPdfReportService pdf)
+        public AdminController(AppDbContext db, ILogger<AdminController> logger, IOptions<JwtOptions> jwt, IPdfReportService pdf, IAuditService audit)
         {
             _db = db;
             _logger = logger;
             _jwt = jwt.Value;
             _pdf = pdf;
+            _audit = audit;
         }
 
         [HttpPost("login")]
@@ -44,6 +47,7 @@ namespace PsyApi.Controllers
                 if (user == null || !PasswordHasher.Verify(req.Password, user.PasswordHash))
                 {
                     _logger.LogWarning("Admin login failed for {User} from {IP}", req.Username, ip);
+                    await _audit.LogAsync(null, "login_fail", $"username={req.Username}", ip);
                     return Unauthorized();
                 }
 
@@ -64,6 +68,7 @@ namespace PsyApi.Controllers
 
                 var jwt = new JwtSecurityTokenHandler().WriteToken(token);
                 _logger.LogInformation("Admin {User} logged in, Trace={Trace}", user.Username, HttpContext.TraceIdentifier);
+                await _audit.LogAsync(user.Id, "login_success", $"username={user.Username}", ip);
                 return Ok(new AdminLoginResponse { Token = jwt, ExpiresAt = expires });
             }
             catch (Exception ex)
@@ -148,6 +153,14 @@ namespace PsyApi.Controllers
             var eTag = Convert.ToBase64String(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(entity.Id + ":" + entity.CreatedAt.Ticks + ":" + (entity.DimensionScoresJson ?? string.Empty))));
             Response.Headers["ETag"] = $"W/\"{eTag}\"";
             _logger.LogInformation("Admin viewed result {ResultId} user={Admin} Trace={Trace}", id, User?.Identity?.Name, HttpContext.TraceIdentifier);
+            try
+            {
+                var sub = User?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                var admin = string.IsNullOrWhiteSpace(sub) ? null : await _db.Admins.AsNoTracking().FirstOrDefaultAsync(a => a.Username == sub);
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _audit.LogAsync(admin?.Id, "view_result", $"resultId={id}", ip);
+            }
+            catch { }
             return Ok(detail);
         }
 
@@ -171,8 +184,63 @@ namespace PsyApi.Controllers
             var bytes = await _pdf.RenderResultPdfAsync(entity, user, dims, ct);
             var filename = $"psy-report-{user.NationalId}-{entity.Id}.pdf";
             _logger.LogInformation("Admin downloaded PDF result {ResultId} user={Admin} Trace={Trace}", id, User?.Identity?.Name, HttpContext.TraceIdentifier);
+            try
+            {
+                var sub = User?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
+                var admin = string.IsNullOrWhiteSpace(sub) ? null : await _db.Admins.AsNoTracking().FirstOrDefaultAsync(a => a.Username == sub, ct);
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                await _audit.LogAsync(admin?.Id, "download_pdf", $"resultId={id}", ip);
+            }
+            catch { }
             return File(bytes, "application/pdf", filename);
+        }
+
+        [HttpGet("audit")]
+        [Authorize(Policy = "Admin")]
+        [EnableRateLimiting("admin")]
+        public async Task<ActionResult<PagedResponse<AuditLogDto>>> GetAudit([FromQuery] AuditQuery q)
+        {
+            q.Page = Math.Max(1, q.Page);
+            q.PageSize = Math.Clamp(q.PageSize, 1, 200);
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var logs = _db.AuditLogs.AsNoTracking();
+
+            if (q.From.HasValue)
+                logs = logs.Where(l => l.CreatedAt >= q.From.Value);
+            if (q.To.HasValue)
+                logs = logs.Where(l => l.CreatedAt <= q.To.Value);
+
+            // Left join to admins by UserId
+            var query = from l in logs
+                        join a in _db.Admins.AsNoTracking() on l.UserId equals a.Id into gj
+                        from a in gj.DefaultIfEmpty()
+                        select new { l, a };
+
+            if (!string.IsNullOrWhiteSpace(q.Search))
+            {
+                var s = q.Search!;
+                query = query.Where(x => x.l.Action.Contains(s) || (x.a != null && x.a.Username.Contains(s)));
+            }
+
+            var total = await query.CountAsync();
+            var data = await query
+                .OrderByDescending(x => x.l.CreatedAt)
+                .Skip((q.Page - 1) * q.PageSize)
+                .Take(q.PageSize)
+                .Select(x => new AuditLogDto
+                {
+                    Id = x.l.Id,
+                    Action = x.l.Action,
+                    AdminUsername = x.a != null ? x.a.Username : string.Empty,
+                    IpAddress = x.l.IpAddress,
+                    Details = x.l.Details,
+                    CreatedAt = x.l.CreatedAt
+                })
+                .ToListAsync();
+
+            _logger.LogInformation("Admin audit list by {Admin} ip={IP} Trace={Trace}", User?.Identity?.Name, ip, HttpContext.TraceIdentifier);
+            return Ok(new PagedResponse<AuditLogDto> { Page = q.Page, PageSize = q.PageSize, Total = total, Data = data });
         }
     }
 }
-

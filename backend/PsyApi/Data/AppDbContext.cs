@@ -128,6 +128,9 @@ namespace PsyApi.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.IpAddress).HasMaxLength(64);
+                entity.Property(e => e.Details).HasColumnType("text");
+                entity.HasIndex(e => e.CreatedAt);
 
                 entity.HasOne(e => e.User)
                     .WithMany()

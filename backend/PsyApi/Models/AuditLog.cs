@@ -12,6 +12,11 @@ namespace PsyApi.Models
 
         public int? UserId { get; set; }
 
+        [StringLength(64)]
+        public string? IpAddress { get; set; }
+
+        public string? Details { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
