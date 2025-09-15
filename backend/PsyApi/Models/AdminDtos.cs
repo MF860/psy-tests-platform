@@ -55,5 +55,15 @@ namespace PsyApi.Models
         public int Total { get; set; }
         public List<T> Data { get; set; } = new();
     }
-}
 
+    public class ChangePasswordRequest
+    {
+        public string OldPassword { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class ChangePasswordResponse
+    {
+        public string Message { get; set; } = string.Empty;
+    }
+}

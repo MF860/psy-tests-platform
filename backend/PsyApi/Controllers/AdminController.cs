@@ -195,6 +195,39 @@ namespace PsyApi.Controllers
             return File(bytes, "application/pdf", filename);
         }
 
+        [HttpPost("change-password")]
+        [Authorize(Policy = "Admin")]
+        [EnableRateLimiting("login")]
+        public async Task<ActionResult<ChangePasswordResponse>> ChangePassword(
+            [FromBody] ChangePasswordRequest req,
+            [FromServices] IAuditService audit,
+            [FromServices] AppDbContext db)
+        {
+            var username = User.FindFirst("sub")?.Value;
+            if (string.IsNullOrEmpty(username))
+                return Unauthorized(new { error = "Invalid token" });
+
+            var admin = await db.Admins.FirstOrDefaultAsync(a => a.Username == username);
+            if (admin == null)
+                return Unauthorized(new { error = "Admin not found" });
+
+            // Verify old password
+            if (!PasswordHasher.Verify(req.OldPassword, admin.PasswordHash))
+            {
+                await audit.LogAsync(admin.Id, "change_password_fail", "wrong old password", HttpContext.Connection.RemoteIpAddress?.ToString());
+                return BadRequest(new { error = "Invalid current password" });
+            }
+
+            // Hash and update new password
+            admin.PasswordHash = PasswordHasher.Hash(req.NewPassword);
+            await db.SaveChangesAsync();
+
+            // Audit log
+            await audit.LogAsync(admin.Id, "change_password", "password changed", HttpContext.Connection.RemoteIpAddress?.ToString());
+
+            return Ok(new ChangePasswordResponse { Message = "Password changed successfully" });
+        }
+
         [HttpGet("audit")]
         [Authorize(Policy = "Admin")]
         [EnableRateLimiting("admin")]
