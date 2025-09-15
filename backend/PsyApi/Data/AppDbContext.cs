@@ -12,6 +12,7 @@ namespace PsyApi.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Item> Items { get; set; }
+        public DbSet<ItemParameters> ItemParameters { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<SessionItem> SessionItems { get; set; }
         public DbSet<Result> Results { get; set; }
@@ -50,6 +51,23 @@ namespace PsyApi.Data
                 entity.Property(e => e.Difficulty).IsRequired();
                 entity.Property(e => e.TimeLimitSeconds).IsRequired();
                 entity.Property(e => e.MaxScore).IsRequired();
+            });
+
+            // Configure ItemParameters entity
+            modelBuilder.Entity<ItemParameters>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.ItemId).IsUnique();
+                entity.Property(e => e.ItemId).IsRequired();
+                entity.Property(e => e.ModelType).IsRequired().HasMaxLength(16);
+                entity.Property(e => e.ThresholdsJson).HasColumnType("text");
+                entity.Property(e => e.PcmStepsJson).HasColumnType("text");
+                entity.Property(e => e.CreatedAt).IsRequired();
+
+                entity.HasOne(e => e.Item)
+                    .WithOne()
+                    .HasForeignKey<ItemParameters>(e => e.ItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configure Session entity
@@ -94,6 +112,9 @@ namespace PsyApi.Data
                 entity.Property(e => e.SessionId).IsRequired();
                 entity.Property(e => e.TotalScore).IsRequired();
                 entity.Property(e => e.PdfPath).HasMaxLength(255);
+                entity.Property(e => e.DimensionScoresJson).HasColumnType("text");
+                entity.Property(e => e.CompositeScoresJson).HasColumnType("text");
+                entity.Property(e => e.ScoringModelVersion).HasMaxLength(32);
 
                 entity.HasOne(e => e.Session)
                     .WithOne(s => s.Result)

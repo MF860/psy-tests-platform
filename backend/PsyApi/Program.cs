@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PsyApi.Data;
 using PsyApi.Services;
+using PsyApi.Services.Scoring;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ builder.Host.UseSerilog();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 
 // Add DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -33,6 +35,14 @@ builder.Services.AddScoped<DataSeeder>(provider =>
     )
 );
 
+// Add ScoringService as scoped
+builder.Services.AddScoped<IScoringService>(provider =>
+    new ScoringService(
+        provider.GetRequiredService<AppDbContext>(),
+        Log.ForContext<ScoringService>()
+    )
+);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -43,6 +53,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
 
 // Seed data on startup
 using (var scope = app.Services.CreateScope())
@@ -50,6 +62,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var dataSeeder = services.GetRequiredService<DataSeeder>();
     await dataSeeder.SeedItemsAsync();
+    await dataSeeder.SeedItemParametersAsync();
 }
 
 app.Run();

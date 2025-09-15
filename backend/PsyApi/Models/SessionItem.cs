@@ -18,6 +18,10 @@ namespace PsyApi.Models
 
         public DateTime? AnsweredAt { get; set; }
 
+        public int? ResponseTimeMs { get; set; }
+
+        public bool? RawCorrect { get; set; }
+
         // Navigation properties
         public Session Session { get; set; } = null!;
         public Item Item { get; set; } = null!;

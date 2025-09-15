@@ -173,6 +173,11 @@ namespace PsyApi.Controllers
                 // Update the answer
                 sessionItem.Answer = request.Answer;
                 sessionItem.AnsweredAt = DateTime.UtcNow;
+                if (request.ResponseTimeMs.HasValue)
+                {
+                    sessionItem.ResponseTimeMs = request.ResponseTimeMs;
+                }
+                _logger.LogDebug("Session {SessionId}, Item {ItemId}, ResponseTimeMs: {ResponseTimeMs}ms", id, request.ItemId, request.ResponseTimeMs);
 
                 // Calculate score if possible
                 if (sessionItem.Item.Type == "MCQ" && sessionItem.Item.CorrectAnswer == request.Answer)
@@ -274,5 +279,7 @@ namespace PsyApi.Controllers
 
         [Required]
         public string Answer { get; set; } = string.Empty;
+
+        public int? ResponseTimeMs { get; set; }
     }
 }

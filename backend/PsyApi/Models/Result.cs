@@ -15,6 +15,13 @@ namespace PsyApi.Models
         [StringLength(255)]
         public string? PdfPath { get; set; }
 
+        public string? DimensionScoresJson { get; set; }
+
+        public string? CompositeScoresJson { get; set; }
+
+        [StringLength(32)]
+        public string? ScoringModelVersion { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties

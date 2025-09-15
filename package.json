@@ -1,0 +1,12 @@
+{
+  "name": "psyapi-simulation",
+  "version": "1.0.0",
+  "description": "Simulation script for PsyApi",
+  "main": "tools/run-sim.js",
+  "scripts": {
+    "start": "node tools/run-sim.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  }
+}

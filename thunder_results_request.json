@@ -1,0 +1,11 @@
+{
+  "_id": "get-results",
+  "colId": "",
+  "name": "Get Results",
+  "method": "GET",
+  "url": "http://localhost:5019/api/results?adminKey=StrongAdmin!23",
+  "headers": [],
+  "tests": [
+    "pm.test('Status code is 200', function () {\n    pm.response.to.have.status(200);\n});\n\npm.test('Response has results array', function () {\n    const jsonData = pm.response.json();\n    pm.expect(jsonData).to.be.an('array');\n});\n\n// Print response body in summary format\nconst jsonData = pm.response.json();\nconsole.log('=== RESULTS SUMMARY ===');\n\nif (jsonData.length === 0) {\n    console.log('No results found');\n} else {\n    jsonData.forEach(result => {\n        console.log('---');\n        console.log('result_id: ' + result.resultId);\n        console.log('session_id: ' + result.sessionId);\n        console.log('total_score: ' + result.totalScore);\n        console.log('created_at: ' + result.createdAt);\n        console.log('national_id: ' + result.nationalId);\n        console.log('full_name: ' + result.fullName);\n    });\n}"
+  ]
+}
