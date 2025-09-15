@@ -115,6 +115,7 @@ namespace PsyApi.Data
                 entity.Property(e => e.DimensionScoresJson).HasColumnType("text");
                 entity.Property(e => e.CompositeScoresJson).HasColumnType("text");
                 entity.Property(e => e.ScoringModelVersion).HasMaxLength(32);
+                entity.HasIndex(e => e.CreatedAt);
 
                 entity.HasOne(e => e.Session)
                     .WithOne(s => s.Result)
