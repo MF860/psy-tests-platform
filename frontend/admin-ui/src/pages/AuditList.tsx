@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react'
-import { AdminApi, AuditItem } from '../api/psyAdmin'
+import { useState, useEffect } from 'react'
+import { AdminApi, type AuditItem } from '../lib/apiAdmin'
 import dayjs from 'dayjs'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Input } from '../components/ui/input'
+import { Button } from '../components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table'
 
 export default function AuditList(){
   const [data,setData]=useState<AuditItem[]>([])
@@ -24,63 +28,69 @@ export default function AuditList(){
   useEffect(()=>{ load(1,pageSize) },[])
 
   return (
-    <div className="container py-6">
-      <div className="flex flex-wrap items-end gap-3 mb-4">
-        <div>
-          <label className="block mb-1">بحث (action أو المستخدم)</label>
-          <input className="rounded-lg bg-white/10 border border-white/20 p-2" value={search} onChange={e=>setSearch(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">من</label>
-          <input type="date" className="rounded-lg bg-white/10 border border-white/20 p-2" value={from} onChange={e=>setFrom(e.target.value)} />
-        </div>
-        <div>
-          <label className="block mb-1">إلى</label>
-          <input type="date" className="rounded-lg bg-white/10 border border-white/20 p-2" value={to} onChange={e=>setTo(e.target.value)} />
-        </div>
-        <button onClick={()=>load(1,pageSize)} className="rounded-lg bg-blue-600/90 hover:bg-blue-600 px-4 py-2">تحديث</button>
-      </div>
+    <div className="container mx-auto p-6 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>سجل العمليات</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap items-end gap-3 mb-4">
+            <div>
+              <div className="mb-1 text-sm">بحث (action أو المستخدم)</div>
+              <Input value={search} onChange={e=>setSearch(e.target.value)} />
+            </div>
+            <div>
+              <div className="mb-1 text-sm">من</div>
+              <Input type="date" value={from} onChange={e=>setFrom(e.target.value)} />
+            </div>
+            <div>
+              <div className="mb-1 text-sm">إلى</div>
+              <Input type="date" value={to} onChange={e=>setTo(e.target.value)} />
+            </div>
+            <Button onClick={()=>load(1,pageSize)}>تحديث</Button>
+          </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/10">
-        <table className="min-w-full">
-          <thead className="bg-white/5">
-            <tr>
-              <th className="p-3 text-right">#</th>
-              <th className="p-3 text-right">العملية</th>
-              <th className="p-3 text-right">المستخدم</th>
-              <th className="p-3 text-right">IP</th>
-              <th className="p-3 text-right">التفاصيل</th>
-              <th className="p-3 text-right">التاريخ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td className="p-4" colSpan={6}>جاري التحميل...</td></tr>
-            ) : data.length===0 ? (
-              <tr><td className="p-4" colSpan={6}>لا توجد سجلات</td></tr>
-            ) : data.map((a)=>(
-              <tr key={a.id} className="border-t border-white/10">
-                <td className="p-3">{a.id}</td>
-                <td className="p-3">{a.action}</td>
-                <td className="p-3">{a.adminUsername}</td>
-                <td className="p-3">{a.ipAddress || '-'}</td>
-                <td className="p-3">{a.details || '-'}</td>
-                <td className="p-3">{dayjs(a.createdAt).format('YYYY/MM/DD HH:mm')}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead>
+                  <TableHead>العملية</TableHead>
+                  <TableHead>المستخدم</TableHead>
+                  <TableHead>IP</TableHead>
+                  <TableHead>التفاصيل</TableHead>
+                  <TableHead>التاريخ</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow><TableCell colSpan={6}>جاري التحميل...</TableCell></TableRow>
+                ) : data.length===0 ? (
+                  <TableRow><TableCell colSpan={6}>لا توجد سجلات</TableCell></TableRow>
+                ) : data.map((a)=>(
+                  <TableRow key={a.id}>
+                    <TableCell>{a.id}</TableCell>
+                    <TableCell>{a.action}</TableCell>
+                    <TableCell>{a.adminUsername}</TableCell>
+                    <TableCell>{a.ipAddress || '-'}</TableCell>
+                    <TableCell>{a.details || '-'}</TableCell>
+                    <TableCell>{dayjs(a.createdAt).format('YYYY/MM/DD HH:mm')}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-      <div className="flex items-center justify-between mt-4">
-        <div>إجمالي: {total}</div>
-        <div className="flex items-center gap-2">
-          <button disabled={page<=1} onClick={()=>{setPage(p=>p-1); load(page-1,pageSize)}} className="px-3 py-1 rounded bg-white/10 disabled:opacity-40">السابق</button>
-          <div>{page} / {pages}</div>
-          <button disabled={page>=pages} onClick={()=>{setPage(p=>p+1); load(page+1,pageSize)}} className="px-3 py-1 rounded bg-white/10 disabled:opacity-40">التالي</button>
-        </div>
-      </div>
+          <div className="flex items-center justify-between mt-4">
+            <div>إجمالي: {total}</div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" disabled={page<=1} onClick={()=>{setPage(p=>p-1); load(page-1,pageSize)}}>السابق</Button>
+              <div>{page} / {pages}</div>
+              <Button variant="outline" disabled={page>=pages} onClick={()=>{setPage(p=>p+1); load(page+1,pageSize)}}>التالي</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
-

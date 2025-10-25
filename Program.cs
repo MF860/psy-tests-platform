@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using psy_tests_platform.Data;
 using psy_tests_platform.Services.Scoring;
 
@@ -9,7 +10,7 @@ builder.Services.AddControllersWithViews();
 
 // Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Register ScoringService as Scoped
 builder.Services.AddScoped<IScoringService, ScoringService>();

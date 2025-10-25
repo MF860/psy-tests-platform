@@ -1,0 +1,89 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '../store/user';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { apiFetchJson, ApiError } from '../lib/api';
+
+export default function NationalId() {
+  const [nationalId, setNationalId] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { setNationalId: saveNationalId, setSessionId, setTotalQuestions, setProfile } = useUserStore();
+
+  const validateNationalId = (id: string) => /^\d{10}$/.test(id);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateNationalId(nationalId)) {
+      setError('الرقم الوطني غير صالح. يجب أن يكون 10 أرقام.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      // Try the new user-login endpoint first
+      const resp = await apiFetchJson<{ sessionId: number; totalQuestions?: number; user: any }>(
+        '/public/user-login',
+        { method: 'POST', body: JSON.stringify({ nationalId }) }
+      );
+      saveNationalId(nationalId);
+      setSessionId(String(resp.sessionId));
+      setTotalQuestions(resp.totalQuestions ?? 0);
+      setProfile({ nationalId, ...resp.user });
+      navigate('/privacy');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        // Fallback: proceed to privacy to start a new session
+        saveNationalId(nationalId);
+        setProfile({ nationalId });
+        navigate('/privacy');
+      } else if (err instanceof ApiError) {
+        setError(err.message || 'حدث خطأ في الخادم.');
+      } else {
+        setError('حدث خطأ غير متوقع.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">اختبار الشخصية</CardTitle>
+          <CardDescription>أدخل الرقم الوطني للبدء</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nationalId">الرقم الوطني</Label>
+              <Input
+                id="nationalId"
+                type="text"
+                value={nationalId}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setNationalId(value);
+                  if (error) setError('');
+                }}
+                placeholder="أدخل الرقم الوطني (10 أرقام)"
+                className="text-center text-lg"
+                maxLength={10}
+                inputMode="numeric"
+              />
+              {error && <p className="text-destructive text-sm">{error}</p>}
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'جاري التحميل...' : 'تسجيل الدخول'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

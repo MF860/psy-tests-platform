@@ -1,0 +1,149 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '../store/user';
+import { apiFetchJson, ApiError } from '../lib/api';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Checkbox } from '../components/ui/checkbox';
+import { Label } from '../components/ui/label';
+
+export default function PrivacyPolicy() {
+  const [agreed, setAgreed] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { nationalId, setSessionId, setTotalQuestions } = useUserStore();
+
+  const handleContinue = async () => {
+    if (isStarting) {
+      return;
+    }
+
+    if (!nationalId) {
+      navigate('/');
+      return;
+    }
+
+    if (!agreed) {
+      return;
+    }
+
+    setIsStarting(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await apiFetchJson<{
+        sessionId?: number;
+        session_id?: number;
+        id?: number;
+        totalQuestions?: number;
+        total_questions?: number;
+      }>('/sessions/start', {
+        method: 'POST',
+        body: JSON.stringify({ nationalId }),
+      });
+
+      const sessionId = response.sessionId ?? response.session_id ?? response.id;
+      if (typeof sessionId !== 'number') {
+        setErrorMessage('حدث خطأ في الخادم. يرجى المحاولة مرة أخرى.');
+        return;
+      }
+
+      const total = response.totalQuestions ?? response.total_questions ?? 0;
+      setSessionId(sessionId);
+      setTotalQuestions(total);
+    navigate('/exam');
+  } catch (error) {
+    if (error instanceof ApiError) {
+      setErrorMessage(error.message);
+    } else {
+      setErrorMessage('حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+    }
+  } finally {
+    setIsStarting(false);
+  }
+};
+
+  // If national ID is not set, redirect to home
+  if (!nationalId) {
+    navigate('/');
+    return null;
+  }
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+      <Card className="w-full max-w-2xl h-[80vh] flex flex-col">
+        <CardHeader>
+          <CardTitle className="text-xl text-center">سياسة الخصوصية</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-grow flex flex-col">
+          <div className="mb-4 flex-grow overflow-y-auto p-4 border rounded-md bg-muted/50">
+            <h3 className="font-bold mb-2">مقدمة</h3>
+            <p className="mb-4">
+              يلتزم نظام الاختبارات النفسية بحماية خصوصيتك وسرية بياناتك الشخصية. توضح هذه السياسة كيفية جمعنا واستخدامنا وحماية معلوماتك عند استخدامك لخدماتنا.
+            </p>
+
+            <h3 className="font-bold mb-2">جمع المعلومات</h3>
+            <p className="mb-4">
+              نقوم بجمع الرقم الوطني لأغراض التعريف فقط، ولا نستخدمه لأي أغراض أخرى دون موافقتك الصريحة. كما نقوم بجمع إجاباتك على الاختبارات النفسية لأغراض تقييمية وتحليلية.
+            </p>
+
+            <h3 className="font-bold mb-2">استخدام المعلومات</h3>
+            <p className="mb-4">
+              نستخدم المعلومات التي نجمعها لتقديم الاختبارات النفسية وتحليل النتائج وتقديم التقارير المناسبة. لا نشارك معلوماتك الشخصية مع أطراف ثالثة دون موافقتك.
+            </p>
+
+            <h3 className="font-bold mb-2">حماية المعلومات</h3>
+            <p className="mb-4">
+              نتخذ إجراءات أمنية مناسبة لحماية بياناتك من الوصول غير المصرح به أو الاستخدام أو الإفصاح أو التعديل. نستخدم تقنيات التشفير والبروتوكولات الأمنية الحديثة لضمان سرية معلوماتك.
+            </p>
+
+            <h3 className="font-bold mb-2">الاحتفاظ بالمعلومات</h3>
+            <p className="mb-4">
+              نحتفظ بمعلوماتك الشخصية فقط للمدة اللازمة لتحقيق الأغراض التي تم جمعها من أجلها، ما لم يكن هناك متطلبات قانونية توجبنا بالاحتفاظ بها لفترة أطول.
+            </p>
+
+            <h3 className="font-bold mb-2">حقوقك</h3>
+            <p className="mb-4">
+              لديك الحق في الوصول إلى معلوماتك الشخصية وتصحيحها أو حذفها. كما لديك الحق في الاعتراض على معالجة بياناتك أو طلب تقييد معالجتها.
+            </p>
+
+            <h3 className="font-bold mb-2">التغييرات على سياسة الخصوصية</h3>
+            <p className="mb-4">
+              قد نقوم بتحديث سياسة الخصوصية هذه من وقت لآخر. سننشر أي تغييرات على هذه الصفحة ونشجعك على مراجعة سياسة الخصوصية بانتظام.
+            </p>
+
+            <h3 className="font-bold mb-2">اتصل بنا</h3>
+            <p>
+              إذا كان لديك أي أسئلة أو استفسارات حول سياسة الخصوصية هذه، يرجى الاتصال بنا عبر البريد الإلكتروني: privacy@example.com
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 space-x-reverse">
+              <Checkbox
+                id="agreement"
+                checked={agreed}
+                onCheckedChange={(checked) => setAgreed(checked as boolean)}
+              />
+              <Label htmlFor="agreement" className="text-sm">
+                أوافق على سياسة الخصوصية
+              </Label>
+            </div>
+
+            <Button
+              onClick={handleContinue}
+              disabled={!agreed || isStarting}
+              className="w-full"
+            >
+              {isStarting ? 'جاري بدء الاختبار...' : 'ابدأ الاختبار'}
+            </Button>
+            {errorMessage && (
+              <p className="text-destructive text-sm text-center">{errorMessage}</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

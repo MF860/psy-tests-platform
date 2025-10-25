@@ -1,10 +1,10 @@
-using PsyApi.Services.Scoring.Models;
+using PsyApi.Models;
 
 namespace PsyApi.Services.Scoring
 {
     public interface IScoringService
     {
-        Task<ScoreSummary> ComputeSessionScores(int sessionId);
+        Task<EnhancedScoreSummary> ComputeSessionScores(int sessionId);
     }
 }
 

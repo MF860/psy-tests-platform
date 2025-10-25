@@ -1,0 +1,371 @@
+﻿using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using PsyApi.Models;
+using PsyApi.Services.Scoring;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+
+namespace PsyApi.Services.Reports
+{
+    using DimensionScoreDto = PsyApi.Models.DimensionScore;
+
+    public class PdfReportService : IPdfReportService
+    {
+        private static bool _fontsRegistered;
+        private static readonly object _lock = new();
+
+        public PdfReportService()
+        {
+            EnsureFonts();
+        }
+
+        public Task<byte[]> RenderResultPdfAsync(Result result, User user, IEnumerable<DimensionScoreDto> dimensions, CancellationToken ct = default)
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+            var dim = dimensions?.ToList() ?? new List<DimensionScoreDto>();
+            
+            // Map to Birkman axes
+            var birkmanAxes = BirkmanMapper.MapToBirkmanAxes(dim);
+            
+            // Generate recommendations
+            var strengths = dim.Where(d => d.T > 60).Select(d => d.Dimension).ToList();
+            var risks = dim.Where(d => d.T < 40).Select(d => d.Dimension).ToList();
+            var recommendations = BirkmanMapper.GenerateRecommendations(birkmanAxes, strengths, risks);
+            
+            // Suggest courses
+            var courses = BirkmanMapper.SuggestCourses(birkmanAxes);
+
+            byte[] bytes = Document.Create(container =>
+            {
+                // Page 1: Cover
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontFamily("Noto Naskh Arabic").FontSize(12).FontColor(Colors.Black));
+
+                    // Header with logo
+                    page.Header().Row(row =>
+                    {
+                        row.RelativeItem().Column(col =>
+                        {
+                            col.Item().Text("تقرير بيركمان").FontSize(24).Bold().AlignRight();
+                            col.Item().Text("منصة الاختبارات النفسية").FontSize(18).AlignRight();
+                            col.Item().PaddingTop(20).Text($"الرقم الوطني: {user.NationalId}").FontSize(14).AlignRight();
+                            col.Item().Text($"الاسم: {user.FullName ?? "N/A"}").FontSize(14).AlignRight();
+                            col.Item().Text($"رقم الجلسة: {result.SessionId}").FontSize(14).AlignRight();
+                            col.Item().Text($"التاريخ: {DateTime.Now:yyyy-MM-dd}").FontSize(14).AlignRight();
+                        });
+                        
+                        var logoPath = Path.Combine(AppContext.BaseDirectory, "Resources", "branding", "logo.png");
+                        if (File.Exists(logoPath))
+                        {
+                            row.ConstantItem(100).Column(col =>
+                            {
+                                col.Item().Height(100).Image(logoPath, ImageScaling.FitArea);
+                                col.Item().PaddingTop(10).AlignCenter().Text("ØªÙ‚Ø±ÙŠØ± Ø¨ÙŠØ±ÙƒÙ…Ø§Ù†").FontSize(12).Bold();
+                            });
+                        }
+                    });
+                    
+                    // Footer
+                    page.Footer().AlignCenter().Text($"© {DateTime.Now.Year} - منصة الاختبارات النفسية").FontSize(10);
+                });
+                
+                // Page 2: Summary and Birkman Axes
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontFamily("Noto Naskh Arabic").FontSize(12).FontColor(Colors.Black));
+
+                    // Header
+                    page.Header().Text("ملخص النتائج").FontSize(18).Bold().AlignRight();
+                    
+                    // Content
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        col.Spacing(10);
+                        
+                        // Summary
+                        col.Item().Column(summaryCol =>
+                        {
+                            summaryCol.Item().Text("المؤشرات العامة").Bold().FontSize(14).AlignRight();
+                            summaryCol.Item().Row(row =>
+                            {
+                                row.RelativeItem().Text($"Ø§Ù„Ø¯Ø±Ø¬Ø©: {result.TotalScore}").AlignRight();
+                                row.RelativeItem().Text($"الدرجة الكلية: {result.TotalScore}").AlignRight();
+                                row.RelativeItem().Text($"متوسط T-Score: {(dim.Any() ? dim.Average(d => d.T).ToString("0.0") : "N/A")}").AlignRight();
+                                row.RelativeItem().Text($"متوسط النسبة المئوية: {(dim.Any() ? dim.Average(d => d.Percentile).ToString("0.0") : "N/A")}%").AlignRight();
+                        });
+                        
+                        // Birkman Axes Chart
+                        // Birkman Axes Chart
+                        col.Item().Text("محاور بيركمان").Bold().FontSize(14).AlignRight();
+                        col.Item().Height(200).Column(chartCol =>
+                        {
+                            // العلاقات
+                            chartCol.Item().Row(row =>
+                            {
+                                row.RelativeItem(0.2f).Text("العلاقات").AlignLeft();
+                                row.RelativeItem(0.6f).Column(barCol =>
+                                {
+                                    barCol.Item().Height(40).Row(barRow =>
+                                    {
+                                        barRow.RelativeItem(0.4f).Background(Colors.Grey.Lighten3);
+                                        barRow.RelativeItem(0.6f).Background(Colors.Blue.Lighten2).Width((float)(birkmanAxes.Relation / 100.0));
+                                    });
+                                    barCol.Item().AlignRight().Text($"{birkmanAxes.Relation.ToString("0")}");
+                                });
+                            });
+                            // المهام
+                            chartCol.Item().Row(row =>
+                            {
+                                row.RelativeItem(0.2f).Text("المهام").AlignLeft();
+                                row.RelativeItem(0.6f).Column(barCol =>
+                                {
+                                    barCol.Item().Height(40).Row(barRow =>
+                                    {
+                                        barRow.RelativeItem(0.4f).Background(Colors.Grey.Lighten3);
+                                        barRow.RelativeItem(0.6f).Background(Colors.Green.Lighten2).Width((float)(birkmanAxes.Task / 100.0));
+                                    });
+                                    barCol.Item().AlignRight().Text($"{birkmanAxes.Task.ToString("0")}");
+                                });
+                            });
+                            // الضغط
+                            chartCol.Item().Row(row =>
+                            {
+                                row.RelativeItem(0.2f).Text("الضغط").AlignLeft();
+                                row.RelativeItem(0.6f).Column(barCol =>
+                                {
+                                    barCol.Item().Height(40).Row(barRow =>
+                                    {
+                                        barRow.RelativeItem(0.4f).Background(Colors.Grey.Lighten3);
+                                        barRow.RelativeItem(0.6f).Background(Colors.Red.Lighten2).Width((float)(birkmanAxes.Stress / 100.0));
+                                    });
+                                    barCol.Item().AlignRight().Text($"{birkmanAxes.Stress.ToString("0")}");
+                                });
+                            });
+                            // الطاقة
+                            chartCol.Item().Row(row =>
+                            {
+                                row.RelativeItem(0.2f).Text("الطاقة").AlignLeft();
+                                row.RelativeItem(0.6f).Column(barCol =>
+                                {
+                                    barCol.Item().Height(40).Row(barRow =>
+                                    {
+                                        barRow.RelativeItem(0.4f).Background(Colors.Grey.Lighten3);
+                                        barRow.RelativeItem(0.6f).Background(Colors.Yellow.Lighten2).Width((float)(birkmanAxes.Energy / 100.0));
+                                    });
+                                    barCol.Item().AlignRight().Text($"{birkmanAxes.Energy.ToString("0")}");
+                                });
+                            });
+                        });
+                        // Legend
+                        col.Item().Row(legendRow =>
+                        {
+                            legendRow.RelativeItem().Text("0").AlignLeft();
+                            legendRow.RelativeItem().Text("50").AlignCenter();
+                            legendRow.RelativeItem().Text("100").AlignRight();
+                        });
+                    });
+                    
+                    // Footer
+                    page.Footer().AlignRight().Text($"ØµÙØ­Ø© 2 - Ù†Ø³Ø®Ø© Ø§Ù„Ù†Ù…ÙˆØ°Ø¬: {result.ScoringModelVersion ?? "n/a"}").FontSize(9);
+                });
+                
+                // Page 3: Dimensions Table
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontFamily("Noto Naskh Arabic").FontSize(12).FontColor(Colors.Black));
+
+                    // Header
+                    page.Header().Text("جدول الأبعاد").FontSize(18).Bold().AlignRight();
+                    
+                    // Content
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(4);
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(2);
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Element(CellStyle).Text("Ø§Ù„Ø¨Ø¹Ø¯").Bold();
+                                header.Cell().Element(CellStyle).Text("البعد").Bold();
+                                header.Cell().Element(CellStyle).Text("الدرجة الخام").Bold();
+                                header.Cell().Element(CellStyle).Text("Ø§Ù„Ù†Ø³Ø¨Ø© Ø§Ù„Ù…Ø¦ÙˆÙŠØ©").Bold();
+                                header.Cell().Element(CellStyle).Text("النسبة المئوية").Bold();
+                                static IContainer CellStyle(IContainer c) => c.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
+                            });
+
+                            foreach (var d in dim)
+                            {
+                                table.Cell().Element(CellStyle).Text(d.Dimension).AlignRight();
+                                table.Cell().Element(CellStyle).Text(d.Raw.ToString("0.###"));
+                                table.Cell().Element(CellStyle).Text(d.T.ToString("0.0"));
+                                table.Cell().Element(CellStyle).Text(d.Percentile.ToString("0.0"));
+
+                                static IContainer CellStyle(IContainer c) => c.PaddingVertical(2).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
+                            }
+                        });
+                    });
+                    
+                    // Footer
+                    page.Footer().AlignRight().Text($"صفحة 3 - نموذج القياس: {result.ScoringModelVersion ?? "n/a"}").FontSize(9);
+                });
+                
+                // Page 4: Recommendations
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontFamily("Noto Naskh Arabic").FontSize(12).FontColor(Colors.Black));
+
+                    // Header
+                    page.Header().Text("Ø§Ù„ØªÙˆØµÙŠØ§Øª Ø§Ù„Ø´Ø®ØµÙŠØ©").FontSize(18).Bold().AlignRight();
+                    page.Header().Text("التوصيات").FontSize(18).Bold().AlignRight();
+                    // Content
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        col.Spacing(10);
+                        
+                        // Strengths
+                        if (strengths.Any())
+                        {
+                            col.Item().Text("Ù†Ù‚Ø§Ø· Ø§Ù„Ù‚ÙˆØ©:").Bold().FontSize(14).AlignRight();
+                            col.Item().Column(strengthsCol =>
+                            {
+                                foreach (var strength in strengths)
+                                {
+                                    strengthsCol.Item().Text($"â€¢ {strength}").AlignRight();
+                                }
+                            });
+                        }
+                        
+                        // Risks
+                        if (risks.Any())
+                        {
+                            col.Item().Text("Ù†Ù‚Ø§Ø· Ø§Ù„Ø¶Ø¹Ù:").Bold().FontSize(14).AlignRight();
+                            col.Item().Column(risksCol =>
+                            {
+                                foreach (var risk in risks)
+                                {
+                                    risksCol.Item().Text($"â€¢ {risk}").AlignRight();
+                                }
+                            });
+                        }
+                        
+                        // Recommendations
+                        col.Item().Text("Ø§Ù„ØªÙˆØµÙŠØ§Øª:").Bold().FontSize(14).AlignRight();
+                        col.Item().Column(recsCol =>
+                        {
+                            foreach (var rec in recommendations)
+                            {
+                                recsCol.Item().Text($"â€¢ {rec}").AlignRight();
+                            }
+                        });
+                    });
+                    
+                    // Footer
+                    page.Footer().AlignRight().Text($"ØµÙØ­Ø© 4 - Ù†Ø³Ø®Ø© Ø§Ù„Ù†Ù…ÙˆØ°Ø¬: {result.ScoringModelVersion ?? "n/a"}").FontSize(9);
+                });
+                
+                // Page 5: Courses
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontFamily("Noto Naskh Arabic").FontSize(12).FontColor(Colors.Black));
+
+                    // Header
+                    page.Header().Text("الدورات التدريبية المقترحة").FontSize(18).Bold().AlignRight();
+                    
+                    // Content
+                    page.Content().PaddingVertical(10).Column(col =>
+                    {
+                        col.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(3);
+                                columns.RelativeColumn(4);
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(2);
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Element(CellStyle).Text("Ø§Ù„Ø¯ÙˆØ±Ø©").Bold();
+                                header.Cell().Element(CellStyle).Text("الدورة").Bold();
+                                header.Cell().Element(CellStyle).Text("الوصف").Bold();
+                                header.Cell().Element(CellStyle).Text("المستوى").Bold();
+                                header.Cell().Element(CellStyle).Text("المدة").Bold();
+                                static IContainer CellStyle(IContainer c) => c.PaddingVertical(4).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
+                            });
+
+                            foreach (var course in courses)
+                            {
+                                table.Cell().Element(CellStyle).Text(course.Title).AlignRight();
+                                table.Cell().Element(CellStyle).Text(course.Description).AlignRight();
+                                table.Cell().Element(CellStyle).Text(course.Level).AlignRight();
+                                table.Cell().Element(CellStyle).Text(course.Duration).AlignRight();
+
+                                static IContainer CellStyle(IContainer c) => c.PaddingVertical(2).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
+                            }
+                        });
+                    });
+                    
+                    // Footer
+                    // Footer
+                    page.Footer().AlignRight().Text($"صفحة 5 - نموذج القياس: {result.ScoringModelVersion ?? "n/a"}").FontSize(9);
+                });
+            }).GeneratePdf();
+            return Task.FromResult(bytes);
+        }
+
+                        private static void EnsureFonts()
+        {
+            if (_fontsRegistered) return;
+            lock (_lock)
+            {
+                if (_fontsRegistered) return;
+                try
+                {
+                    var baseDir = AppContext.BaseDirectory;
+                    var fontsDir = Path.Combine(baseDir, "Resources", "Fonts");
+                    var regular = Path.Combine(fontsDir, "NotoNaskhArabic-Regular.ttf");
+                    var bold = Path.Combine(fontsDir, "NotoNaskhArabic-Bold.ttf");
+                    if (File.Exists(regular))
+                    {
+                        using var fs = File.OpenRead(regular);
+                        FontManager.RegisterFont(fs);
+                    }
+                    if (File.Exists(bold))
+                    {
+                        using var fsb = File.OpenRead(bold);
+                        FontManager.RegisterFont(fsb);
+                    }
+                }
+                catch { }
+                _fontsRegistered = true;
+            }
+        }
+    }
+}
+
+

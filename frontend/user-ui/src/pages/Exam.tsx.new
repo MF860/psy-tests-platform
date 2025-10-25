@@ -1,0 +1,366 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUserStore } from '../store/user';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Clock, CheckCircle } from 'lucide-react';
+
+// Mock questions data - in a real app, this would come from the API
+const mockQuestions = [
+  {
+    id: '1',
+    text: 'أشعر بالراحة عند التحدث مع أشخاص جدد',
+    type: 'likert',
+    options: ['غير موافق بشدة', 'غير موافق', 'محايد', 'موافق', 'موافق بشدة']
+  },
+  {
+    id: '2',
+    text: 'أفضل العمل ضمن فريق بدلاً من العمل الفردي',
+    type: 'likert',
+    options: ['غير موافق بشدة', 'غير موافق', 'محايد', 'موافق', 'موافق بشدة']
+  },
+  {
+    id: '3',
+    text: 'ما هي أولوياتك في الحياة المهنية؟',
+    type: 'mcq',
+    options: ['الاستقرار المالي', 'التطوير المهني', 'التوازن بين العمل والحياة', 'الإبداع والابتكار']
+  },
+  {
+    id: '4',
+    text: 'كم عدد المشاريع التي قمت بإدارتها في السنوات الخمس الماضية؟',
+    type: 'timed-numeric',
+    timeLimit: 30 // seconds
+  },
+  {
+    id: '5',
+    text: 'رتب العوامل التالية حسب أهميتها بالنسبة لك في بيئة العمل',
+    type: 'ordering',
+    options: ['الراتب', 'التطوير المهني', 'بيئة العمل', 'المرونة في ساعات العمل', 'فرص القيادة']
+  },
+  {
+    id: '6',
+    text: 'صف تجربة عمل مؤثرة شكلت شخصيتك المهنية',
+    type: 'text',
+    minChars: 50
+  },
+  {
+    id: '7',
+    text: 'أشعر بالتوتر عند مواجهة المواقف الجديدة',
+    type: 'likert',
+    options: ['غير موافق بشدة', 'غير موافق', 'محايد', 'موافق', 'موافق بشدة']
+  },
+  {
+    id: '8',
+    text: 'أفضل حل المشكلات بشكل منهجي',
+    type: 'likert',
+    options: ['غير موافق بشدة', 'غير موافق', 'محايد', 'موافق', 'موافق بشدة']
+  }
+];
+
+export default function Exam() {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string | boolean>>({});
+  const [timeLeft, setTimeLeft] = useState(30 * 60); // 30 minutes in seconds
+  const [isLoading, setIsLoading] = useState(false);
+  const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
+  const [timedQuestionTimeLeft, setTimedQuestionTimeLeft] = useState<number | null>(null);
+  const [orderedItems, setOrderedItems] = useState<string[]>([]);
+  const navigate = useNavigate();
+  const { nationalId, sessionToken, resetAnswers } = useUserStore();
+
+  // If national ID is not set, redirect to home
+  if (!nationalId) {
+    navigate('/');
+    return null;
+  }
+
+  // Timer effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  // Timed question effect
+  useEffect(() => {
+    const currentQuestion = mockQuestions[currentQuestionIndex];
+    if (currentQuestion.type === 'timed-numeric' && currentQuestion.timeLimit) {
+      setTimedQuestionTimeLeft(currentQuestion.timeLimit);
+      setQuestionStartTime(Date.now());
+
+      const timer = setInterval(() => {
+        setTimedQuestionTimeLeft((prev) => {
+          if (prev !== null && prev <= 1) {
+            clearInterval(timer);
+            // Auto-advance to next question when time runs out
+            if (currentQuestionIndex < mockQuestions.length - 1) {
+              handleNext();
+            }
+            return 0;
+          }
+          return prev !== null ? prev - 1 : null;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    } else {
+      setTimedQuestionTimeLeft(null);
+      setQuestionStartTime(Date.now());
+    }
+  }, [currentQuestionIndex]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleAnswerChange = (value: string | boolean) => {
+    const currentQuestion = mockQuestions[currentQuestionIndex];
+    setAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: value
+    }));
+  };
+
+  const handleOrderChange = (items: string[]) => {
+    setOrderedItems(items);
+    const currentQuestion = mockQuestions[currentQuestionIndex];
+    setAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: items.join(',')
+    }));
+  };
+
+  const handleNext = () => {
+    if (currentQuestionIndex < mockQuestions.length - 1) {
+      // Save response time for current question
+      if (questionStartTime) {
+        const responseTime = Date.now() - questionStartTime;
+        // In a real app, this would be sent to the API
+        console.log(`Question ${mockQuestions[currentQuestionIndex].id} response time: ${responseTime}ms`);
+      }
+
+      setCurrentQuestionIndex(prev => prev + 1);
+      setQuestionStartTime(Date.now());
+      setTimedQuestionTimeLeft(null);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+      setQuestionStartTime(Date.now());
+      setTimedQuestionTimeLeft(null);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+
+    try {
+      // Save response time for last question
+      if (questionStartTime) {
+        const responseTime = Date.now() - questionStartTime;
+        // In a real app, this would be sent to the API
+        console.log(`Question ${mockQuestions[currentQuestionIndex].id} response time: ${responseTime}ms`);
+      }
+
+      // In a real app, this would be an API call
+      // await axios.post('/api/exam/submit', {
+      //   nationalId,
+      //   sessionToken,
+      //   answers
+      // });
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Reset answers in store
+      resetAnswers();
+
+      // Navigate to thank you page
+      navigate('/thankyou');
+    } catch (error) {
+      console.error('Error submitting exam:', error);
+      // Handle error (show message, etc.)
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const currentQuestion = mockQuestions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === mockQuestions.length - 1;
+  const currentAnswer = answers[currentQuestion.id];
+
+  return (
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Header with timer and progress */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Clock className="h-5 w-5" />
+            <span className="font-medium">{formatTime(timeLeft)}</span>
+          </div>
+          <div className="text-sm font-medium">
+            السؤال {currentQuestionIndex + 1} من {mockQuestions.length}
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="w-full bg-muted rounded-full h-2.5 mb-8">
+          <div
+            className="bg-primary h-2.5 rounded-full"
+            style={{ width: `${((currentQuestionIndex + 1) / mockQuestions.length) * 100}%` }}
+          ></div>
+        </div>
+
+        {/* Question card */}
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-xl">{currentQuestion.text}</CardTitle>
+              {timedQuestionTimeLeft !== null && (
+                <div className="flex items-center space-x-2 space-x-reverse bg-red-50 text-red-700 px-3 py-1 rounded-full">
+                  <Clock className="h-4 w-4" />
+                  <span className="font-medium">{timedQuestionTimeLeft}ث</span>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {currentQuestion.type === 'likert' && (
+              <RadioGroup
+                value={currentAnswer?.toString() || ''}
+                onValueChange={handleAnswerChange}
+                className="space-y-3"
+              >
+                {currentQuestion.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2 space-x-reverse">
+                    <RadioGroupItem value={option} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+
+            {currentQuestion.type === 'mcq' && (
+              <RadioGroup
+                value={currentAnswer?.toString() || ''}
+                onValueChange={handleAnswerChange}
+                className="space-y-3"
+              >
+                {currentQuestion.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2 space-x-reverse">
+                    <RadioGroupItem value={option} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            )}
+
+            {currentQuestion.type === 'timed-numeric' && (
+              <div className="space-y-4">
+                <input
+                  type="number"
+                  value={currentAnswer?.toString() || ''}
+                  onChange={(e) => handleAnswerChange(e.target.value)}
+                  className="w-full p-3 border border-input rounded-md"
+                  placeholder="أدخل الرقم..."
+                />
+                {timedQuestionTimeLeft !== null && (
+                  <div className="text-sm text-muted-foreground">
+                    لديك {timedQuestionTimeLeft} ثانية للإجابة
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentQuestion.type === 'ordering' && (
+              <div className="space-y-3">
+                <div className="text-sm text-muted-foreground">
+                  اسحب وأفلت العناصر لترتيبها حسب الأهمية
+                </div>
+                <div className="space-y-2">
+                  {currentQuestion.options.map((option, index) => (
+                    <div
+                      key={index}
+                      className="p-3 bg-muted rounded-md cursor-move"
+                      draggable
+                    >
+                      {option}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentQuestion.type === 'text' && (
+              <Textarea
+                value={currentAnswer?.toString() || ''}
+                onChange={(e) => handleAnswerChange(e.target.value)}
+                placeholder="اكتب إجابتك هنا..."
+                className="min-h-[120px]"
+                minLength={currentQuestion.minChars}
+              />
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Navigation buttons */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentQuestionIndex === 0}
+          >
+            السابق
+          </Button>
+
+          {isLastQuestion ? (
+            <Button
+              onClick={handleSubmit}
+              disabled={!currentAnswer || isLoading}
+              className="flex items-center space-x-2 space-x-reverse"
+            >
+              {isLoading ? (
+                <>
+                  <span>جارٍ الإرسال...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  <span>إرسال الإجابات</span>
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={!currentAnswer}
+            >
+              التالي
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

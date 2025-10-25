@@ -6,22 +6,46 @@
   "scripts": {
     "dev": "vite --port 5173",
     "build": "vite build",
-    "preview": "vite preview --port 5174"
+    "build:analyze": "vite build --mode analyze && npx vite-bundle-analyzer dist",
+    "preview": "vite preview --port 5174",
+    "type-check": "tsc --noEmit",
+    "performance": "npm run build && npm run performance:lighthouse",
+    "performance:lighthouse": "npx lighthouse http://localhost:5174 --output=html --output-path=./lighthouse-report.html --chrome-flags=\"--headless\" --view || echo 'Run preview server first with: npm run preview'"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.9.0",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-avatar": "^1.0.4",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-dropdown-menu": "^2.0.6",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-separator": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@radix-ui/react-tabs": "^1.0.4",
+    "@radix-ui/react-tooltip": "^1.0.7",
+    "@tanstack/react-query": "^5.59.0",
+    "apexcharts": "^4.2.0",
     "axios": "^1.7.7",
-    "dayjs": "^1.11.13",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.2",
-    "recharts": "^2.12.7",
-    "zustand": "^4.5.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
+    "framer-motion": "^11.0.3",
+    "lottie-react": "^2.4.0",
+    "lucide-react": "^0.462.0",
+    "react": "^18.3.1",
+    "react-apexcharts": "^1.7.0",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.1",
+    "react-router-dom": "^6.26.2",
+    "recharts": "^2.15.4",
+    "sonner": "^1.4.0",
     "tailwind-merge": "^2.5.2",
-    "lucide-react": "^0.462.0"
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.9",
     "@types/node": "^20.12.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -29,9 +53,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
-    "@tailwindcss/forms": "^0.5.9",
     "typescript": "^5.6.2",
     "vite": "^5.4.8"
   }
 }
-

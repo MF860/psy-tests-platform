@@ -18,6 +18,7 @@ namespace PsyApi.Data
         public DbSet<Result> Results { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<AIJob> AIJobs { get; set; }
+        public DbSet<AiChatSession> AiChatSessions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,11 +47,12 @@ namespace PsyApi.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.TextAr).IsRequired();
-                entity.Property(e => e.Type).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Type).IsRequired().HasMaxLength(30);
                 entity.Property(e => e.DimensionTags).IsRequired();
                 entity.Property(e => e.Difficulty).IsRequired();
                 entity.Property(e => e.TimeLimitSeconds).IsRequired();
                 entity.Property(e => e.MaxScore).IsRequired();
+                entity.Property(e => e.Options).IsRequired(false);
             });
 
             // Configure ItemParameters entity
@@ -149,6 +151,29 @@ namespace PsyApi.Data
                     .WithMany(r => r.AIJobs)
                     .HasForeignKey(e => e.ResultId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure AiChatSession entity
+            modelBuilder.Entity<AiChatSession>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.SessionId).IsRequired().HasMaxLength(36);
+                entity.Property(e => e.Title).HasMaxLength(200);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(20).HasDefaultValue("Active");
+                entity.Property(e => e.MessagesJson).HasColumnType("text").IsRequired();
+                entity.HasIndex(e => e.SessionId).IsUnique();
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => e.LastActivityAt);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(e => e.Result)
+                    .WithMany()
+                    .HasForeignKey(e => e.ResultId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

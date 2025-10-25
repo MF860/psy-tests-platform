@@ -1,7 +1,7 @@
 /// tools/run-sim.js
 const axios = require('axios');
 const BASE_URL = 'http://localhost:5019/api';
-const NationalId = '5555555555'; // ثابت وموحد
+const NationalId = '1000000001'; // Mock user ID
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -37,7 +37,7 @@ async function run() {
       console.log('Get next question response:', r.data);
       if (r.data && r.data.message === 'completed') return { completed: true };
 
-      const itemId = pick(r.data, ['itemId', 'id', 'item_id']);
+      const itemId = pick(r.data, ['item_id', 'itemId', 'id']);
       const text = pick(r.data, ['text_ar', 'textAr', 'text']);
       if (!itemId || !text) {
         throw new Error('Could not extract item ID or text from response');
@@ -52,7 +52,7 @@ async function run() {
     console.log('Submitting answer for Q1...');
     await api.post(`/sessions/${sessionId}/answer`, {
       ItemId: q1.itemId.toString(),
-      Answer: 'موافق',
+      Answer: 'أوافق',
     });
 
     // Q2
@@ -62,7 +62,7 @@ async function run() {
     console.log('Submitting answer for Q2...');
     await api.post(`/sessions/${sessionId}/answer`, {
       ItemId: q2.itemId.toString(),
-      Answer: 'غير موافق',
+      Answer: 'الإنجاز',
     });
 
     // Submit test

@@ -1,0 +1,462 @@
+[
+  {
+    "resultId": 1001,
+    "sessionId": "session-001",
+    "nationalId": "1234567890",
+    "fullName": "أحمد محمد عبدالله",
+    "totalScore": 85.5,
+    "createdAt": "2024-12-07T10:30:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 42,
+        "z": 1.2,
+        "t": 62,
+        "percentile": 88
+      },
+      {
+        "dimension": "الاستقرار العاطفي", 
+        "raw": 38,
+        "z": 0.8,
+        "t": 58,
+        "percentile": 79
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 45,
+        "z": 1.5,
+        "t": 65,
+        "percentile": 93
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 40,
+        "z": 1.0,
+        "t": 60,
+        "percentile": 84
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 35,
+        "z": 0.5,
+        "t": 55,
+        "percentile": 69
+      }
+    ]
+  },
+  {
+    "resultId": 1002,
+    "sessionId": "session-002",
+    "nationalId": "2345678901",
+    "fullName": "فاطمة أحمد علي",
+    "totalScore": 78.3,
+    "createdAt": "2024-12-07T11:15:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 40,
+        "z": 0.9,
+        "t": 59,
+        "percentile": 82
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 43,
+        "z": 1.3,
+        "t": 63,
+        "percentile": 90
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 37,
+        "z": 0.6,
+        "t": 56,
+        "percentile": 73
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 44,
+        "z": 1.4,
+        "t": 64,
+        "percentile": 92
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 32,
+        "z": 0.2,
+        "t": 52,
+        "percentile": 58
+      }
+    ]
+  },
+  {
+    "resultId": 1003,
+    "sessionId": "session-003",
+    "nationalId": "3456789012",
+    "fullName": "محمد سعد إبراهيم",
+    "totalScore": 92.1,
+    "createdAt": "2024-12-07T12:00:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 47,
+        "z": 1.8,
+        "t": 68,
+        "percentile": 96
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 41,
+        "z": 1.1,
+        "t": 61,
+        "percentile": 86
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 46,
+        "z": 1.6,
+        "t": 66,
+        "percentile": 95
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 45,
+        "z": 1.5,
+        "t": 65,
+        "percentile": 93
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 39,
+        "z": 0.8,
+        "t": 58,
+        "percentile": 79
+      }
+    ]
+  },
+  {
+    "resultId": 1004,
+    "sessionId": "session-004",
+    "nationalId": "4567890123",
+    "fullName": "نورا خالد حسن",
+    "totalScore": 73.8,
+    "createdAt": "2024-12-07T13:30:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 36,
+        "z": 0.4,
+        "t": 54,
+        "percentile": 66
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 39,
+        "z": 0.9,
+        "t": 59,
+        "percentile": 82
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 41,
+        "z": 1.1,
+        "t": 61,
+        "percentile": 86
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 38,
+        "z": 0.7,
+        "t": 57,
+        "percentile": 76
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 37,
+        "z": 0.6,
+        "t": 56,
+        "percentile": 73
+      }
+    ]
+  },
+  {
+    "resultId": 1005,
+    "sessionId": "session-005",
+    "nationalId": "5678901234",
+    "fullName": "عمر يوسف محمود",
+    "totalScore": 88.7,
+    "createdAt": "2024-12-07T14:45:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 44,
+        "z": 1.4,
+        "t": 64,
+        "percentile": 92
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 40,
+        "z": 1.0,
+        "t": 60,
+        "percentile": 84
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 43,
+        "z": 1.3,
+        "t": 63,
+        "percentile": 90
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 41,
+        "z": 1.1,
+        "t": 61,
+        "percentile": 86
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 40,
+        "z": 1.0,
+        "t": 60,
+        "percentile": 84
+      }
+    ]
+  },
+  {
+    "resultId": 1006,
+    "sessionId": "session-006",
+    "nationalId": "6789012345",
+    "fullName": "ريم طارق عبدالرحمن",
+    "totalScore": 81.2,
+    "createdAt": "2024-12-07T15:20:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 41,
+        "z": 1.1,
+        "t": 61,
+        "percentile": 86
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 37,
+        "z": 0.6,
+        "t": 56,
+        "percentile": 73
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 42,
+        "z": 1.2,
+        "t": 62,
+        "percentile": 88
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 43,
+        "z": 1.3,
+        "t": 63,
+        "percentile": 90
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 34,
+        "z": 0.3,
+        "t": 53,
+        "percentile": 62
+      }
+    ]
+  },
+  {
+    "resultId": 1007,
+    "sessionId": "session-007",
+    "nationalId": "7890123456",
+    "fullName": "سارة عبدالله صالح",
+    "totalScore": 75.6,
+    "createdAt": "2024-12-07T16:10:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 38,
+        "z": 0.7,
+        "t": 57,
+        "percentile": 76
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 42,
+        "z": 1.2,
+        "t": 62,
+        "percentile": 88
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 35,
+        "z": 0.4,
+        "t": 54,
+        "percentile": 66
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 39,
+        "z": 0.8,
+        "t": 58,
+        "percentile": 79
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 36,
+        "z": 0.5,
+        "t": 55,
+        "percentile": 69
+      }
+    ]
+  },
+  {
+    "resultId": 1008,
+    "sessionId": "session-008",
+    "nationalId": "8901234567",
+    "fullName": "يوسف منير أحمد",
+    "totalScore": 69.4,
+    "createdAt": "2024-12-07T17:30:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 33,
+        "z": 0.1,
+        "t": 51,
+        "percentile": 54
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 35,
+        "z": 0.4,
+        "t": 54,
+        "percentile": 66
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 38,
+        "z": 0.7,
+        "t": 57,
+        "percentile": 76
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 34,
+        "z": 0.2,
+        "t": 52,
+        "percentile": 58
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 33,
+        "z": 0.1,
+        "t": 51,
+        "percentile": 54
+      }
+    ]
+  },
+  {
+    "resultId": 1009,
+    "sessionId": "session-009",
+    "nationalId": "9012345678",
+    "fullName": "لينا حسام الدين",
+    "totalScore": 94.3,
+    "createdAt": "2024-12-07T18:15:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 48,
+        "z": 1.9,
+        "t": 69,
+        "percentile": 97
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 44,
+        "z": 1.4,
+        "t": 64,
+        "percentile": 92
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 47,
+        "z": 1.7,
+        "t": 67,
+        "percentile": 95
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 46,
+        "z": 1.6,
+        "t": 66,
+        "percentile": 95
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 42,
+        "z": 1.2,
+        "t": 62,
+        "percentile": 88
+      }
+    ]
+  },
+  {
+    "resultId": 1010,
+    "sessionId": "session-010",
+    "nationalId": "0123456789",
+    "fullName": "كريم عادل نصر",
+    "totalScore": 77.9,
+    "createdAt": "2024-12-07T19:00:00Z",
+    "scoringModelVersion": "v2.1",
+    "dimensions": [
+      {
+        "dimension": "الذكاء العام",
+        "raw": 39,
+        "z": 0.8,
+        "t": 58,
+        "percentile": 79
+      },
+      {
+        "dimension": "الاستقرار العاطفي",
+        "raw": 36,
+        "z": 0.5,
+        "t": 55,
+        "percentile": 69
+      },
+      {
+        "dimension": "الانفتاح على التجارب",
+        "raw": 40,
+        "z": 0.9,
+        "t": 59,
+        "percentile": 82
+      },
+      {
+        "dimension": "الضمير الحي",
+        "raw": 42,
+        "z": 1.2,
+        "t": 62,
+        "percentile": 88
+      },
+      {
+        "dimension": "الانبساطية",
+        "raw": 38,
+        "z": 0.7,
+        "t": 57,
+        "percentile": 76
+      }
+    ]
+  }
+]

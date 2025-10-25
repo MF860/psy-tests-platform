@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap');
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "./styles/mobile.css";
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * { 
+    border-color: hsl(var(--border));
+  }
+  
+  html {
+    direction: rtl;
+    font-family: 'Noto Naskh Arabic', 'Times New Roman', serif;
+  }
+  
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    min-height: 100vh;
+    font-family: inherit;
+    line-height: 1.6;
+    /* Safe area support for iOS */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* RTL-specific utilities */
+  .text-start { text-align: right; }
+  .text-end { text-align: left; }
+  
+  /* Ensure proper spacing in RTL */
+  .space-x-reverse > * + * {
+    --tw-space-x-reverse: 1;
+  }
+  
+  /* Custom RTL button and form spacing */
+  .btn-group-rtl > * + * {
+    margin-inline-end: 0.5rem;
+    margin-inline-start: 0;
+  }
+  
+  /* Standardized spacing scale classes */
+  .space-xs { gap: 0.25rem; }
+  .space-sm { gap: 0.5rem; }
+  .space-md { gap: 0.75rem; }
+  .space-lg { gap: 1rem; }
+  .space-xl { gap: 1.25rem; }
+  .space-2xl { gap: 1.5rem; }
+  .space-3xl { gap: 2rem; }
+  .space-4xl { gap: 2.5rem; }
+  .space-5xl { gap: 3rem; }
+  
+  /* Focus management for accessibility */
+  .focus-visible-rtl:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Minimum touch targets for accessibility */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Z-index management */
+  .z-dropdown { z-index: 10; }
+  .z-sticky { z-index: 20; }
+  .z-modal { z-index: 30; }
+  .z-popover { z-index: 40; }
+  .z-toast { z-index: 50; }
+  .z-tooltip { z-index: 60; }
+  
+  /* Common layout patterns */
+  .section-spacing { 
+    padding-top: 1.5rem; 
+    padding-bottom: 1.5rem; 
+  }
+  
+  .container-responsive {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .container-responsive {
+      max-width: 640px;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .container-responsive {
+      max-width: 768px;
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container-responsive {
+      max-width: 1024px;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .container-responsive {
+      max-width: 1280px;
+    }
+  }
+  
+  /* Accessibility enhancements */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    z-index: 999;
+    padding: 8px 16px;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  
+  .skip-link:focus {
+    left: 6px;
+    top: 6px;
+  }
+  
+  /* Enhanced focus indicators */
+  .focus-enhanced:focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px hsl(var(--background)), 0 0 0 6px hsl(var(--ring));
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .contrast-enhanced {
+      border: 2px solid;
+      font-weight: 600;
+    }
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+  
+  /* Dark mode accessibility */
+  @media (prefers-color-scheme: dark) {
+    .dark-mode-enhanced {
+      filter: contrast(1.1) brightness(0.9);
+    }
+  }
+  
+  /* Touch-friendly interactions */
+  .touch-enhanced {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+  }
+  
+  /* RTL-specific enhancements */
+  [dir="rtl"] .rtl-enhanced {
+    transform: scaleX(-1);
+  }
+  
+  [dir="rtl"] .rtl-text {
+    text-align: right;
+    direction: rtl;
+  }
+}

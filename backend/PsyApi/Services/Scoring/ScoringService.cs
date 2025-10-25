@@ -1,20 +1,24 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PsyApi.Data;
 using PsyApi.Models;
-using PsyApi.Services.Scoring.Models;
-using SScoreSummary = PsyApi.Services.Scoring.Models.ScoreSummary;
-using SDimensionScore = PsyApi.Services.Scoring.Models.DimensionScore;
 
 namespace PsyApi.Services.Scoring
 {
-    public class ScoringService : IScoringService
+
+public class ScoringService : IScoringService
     {
         private readonly AppDbContext _db;
         private readonly Serilog.ILogger _log;
+        private static readonly object _weightsLock = new();
+        private static Dictionary<string, double>? _dimWeights; // loaded from env JSON: { "dim": weight }
 
         public ScoringService(AppDbContext db, Serilog.ILogger logger)
         {
@@ -22,7 +26,7 @@ namespace PsyApi.Services.Scoring
             _log = logger;
         }
 
-        public async Task<SScoreSummary> ComputeSessionScores(int sessionId)
+        public async Task<EnhancedScoreSummary> ComputeSessionScores(int sessionId)
         {
             var session = await _db.Sessions
                 .Include(s => s.SessionItems)
@@ -34,11 +38,17 @@ namespace PsyApi.Services.Scoring
                 throw new InvalidOperationException($"Session {sessionId} not found");
             }
 
+            var summary = new EnhancedScoreSummary();
+
             var itemIds = session.SessionItems.Select(si => si.ItemId).Distinct().ToList();
             var paramByItem = await _db.ItemParameters
                 .Where(p => itemIds.Contains(p.ItemId))
                 .ToDictionaryAsync(p => p.ItemId, p => p);
-
+            
+            // First validate response patterns
+            var validity = new ResponseValidityScore();
+            summary.Validity = validity;
+            
             // Score each item
             foreach (var si in session.SessionItems)
             {
@@ -74,6 +84,8 @@ namespace PsyApi.Services.Scoring
                             break;
                         }
                         case "LIKERT":
+                        case "LIKERTAGREEMENT":
+                        case "FREQUENCY":
                         {
                             if (!int.TryParse((si.Answer ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
                             {
@@ -108,12 +120,20 @@ namespace PsyApi.Services.Scoring
 
             await _db.SaveChangesAsync();
 
-            var summary = await AggregateByDimension(session.SessionItems.ToList());
+            // Add cognitive load analysis
+            var cogLoad = Scoring.CognitiveLoadAnalyzer.AnalyzeCognitiveLoad(session.SessionItems.ToList());
+            summary.CognitiveLoadMetrics = cogLoad.DetailedMetrics;
+            summary.CognitiveLoadObservations = cogLoad.Observations;
 
-            // Persist/update Result for the session (optional weighted total)
-            var total = session.SessionItems.Where(x => x.Score.HasValue).Sum(x => (double)x.Score!.Value);
-            summary.TotalScore = total;
+            // Update scores by dimension
+            summary = await AggregateByDimension(session.SessionItems.ToList());
+            
+            // Update version and total score
+            var totalScore = session.SessionItems.Where(x => x.Score.HasValue).Sum(x => (double)x.Score!.Value);
+            summary.TotalScore = totalScore;
+            summary.Version = "v1.1";
 
+            // Persist result
             var existingResult = await _db.Results.FirstOrDefaultAsync(r => r.SessionId == sessionId);
             var summaryJson = JsonSerializer.Serialize(summary);
             if (existingResult == null)
@@ -121,7 +141,7 @@ namespace PsyApi.Services.Scoring
                 existingResult = new Result
                 {
                     SessionId = sessionId,
-                    TotalScore = (int)Math.Round(total),
+                    TotalScore = (int)Math.Round(totalScore),
                     DimensionScoresJson = summaryJson,
                     ScoringModelVersion = summary.Version
                 };
@@ -129,7 +149,7 @@ namespace PsyApi.Services.Scoring
             }
             else
             {
-                existingResult.TotalScore = (int)Math.Round(total);
+                existingResult.TotalScore = (int)Math.Round(totalScore);
                 existingResult.DimensionScoresJson = summaryJson;
                 existingResult.ScoringModelVersion = summary.Version;
             }
@@ -299,9 +319,11 @@ namespace PsyApi.Services.Scoring
         }
 
         // Aggregate by dimension; compute Z, T, percentile
-        public async Task<SScoreSummary> AggregateByDimension(IList<SessionItem> sessionItems)
+        private async Task<EnhancedScoreSummary> AggregateByDimension(IList<SessionItem> sessionItems)
         {
             var dimScoresRaw = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
+            var dimItemCount = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var dimMaxRaw = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
 
             foreach (var si in sessionItems)
             {
@@ -309,8 +331,13 @@ namespace PsyApi.Services.Scoring
                 var dims = SplitDimensions(si.Item.DimensionTags);
                 foreach (var d in dims)
                 {
+                    var w = GetDimensionWeight(d);
                     if (!dimScoresRaw.ContainsKey(d)) dimScoresRaw[d] = 0.0;
-                    dimScoresRaw[d] += score;
+                    dimScoresRaw[d] += score * w;
+                    if (!dimItemCount.ContainsKey(d)) dimItemCount[d] = 0;
+                    dimItemCount[d] += 1;
+                    if (!dimMaxRaw.ContainsKey(d)) dimMaxRaw[d] = 0.0;
+                    dimMaxRaw[d] += Math.Max(0, si.Item.MaxScore) * w;
                 }
             }
 
@@ -325,7 +352,7 @@ namespace PsyApi.Services.Scoring
             {
                 try
                 {
-                    var ss = JsonSerializer.Deserialize<SScoreSummary>(json);
+                    var ss = JsonSerializer.Deserialize<EnhancedScoreSummary>(json);
                     if (ss?.DimensionScores == null) continue;
                     foreach (var ds in ss.DimensionScores)
                     {
@@ -340,7 +367,7 @@ namespace PsyApi.Services.Scoring
                 catch { }
             }
 
-            var summary = new SScoreSummary();
+            var summary = new EnhancedScoreSummary();
             foreach (var (dim, raw) in dimScoresRaw)
             {
                 var values = empirical.TryGetValue(dim, out var list) ? list : null;
@@ -353,13 +380,34 @@ namespace PsyApi.Services.Scoring
                 }
                 else
                 {
-                    // bootstrap neutral if norms absent
-                    mean = raw; // center on current raw
-                    sd = Math.Max(Math.Abs(raw) * 0.1, 1.0); // avoid zero sd
+                    // Data-sparse fallback: adjust for knowledge-heavy dimensions
+                    var maxRaw = dimMaxRaw.TryGetValue(dim, out var mr) ? mr : Math.Max(10.0, Math.Abs(raw));
+                    var weight = GetDimensionWeight(dim);
+                    
+                    // For knowledge dimensions (weight >= 1.5), assume lower baseline performance
+                    if (weight >= 1.5)
+                    {
+                        mean = 0.3 * maxRaw; // lower mean for knowledge tests
+                        sd = 0.3 * maxRaw;   // wider spread
+                    }
+                    else
+                    {
+                        mean = 0.5 * maxRaw; // standard mean for subjective measures
+                        sd = 0.2 * maxRaw;   // narrower spread
+                    }
+                    sd = Math.Max(sd, 1.0);
                 }
-
                 var z = (raw - mean) / sd;
-                var t = 50.0 + 10.0 * z;
+                // Reduced shrinkage for better T-score distribution
+                var n = dimItemCount.TryGetValue(dim, out var cnt) ? cnt : 0;
+                var k = 2.0; // reduced stabilizer for less aggressive shrinkage
+                var shrink = n > 0 ? (n / (n + k)) : 0.0;
+                
+                // Apply minimum shrinkage to preserve high scores
+                shrink = Math.Max(shrink, 0.7); // minimum 70% of original z-score
+                
+                var zPrime = z * shrink;
+                var t = 50.0 + 10.0 * zPrime;
 
                 double percentile;
                 if (values != null && values.Count > 0)
@@ -370,20 +418,65 @@ namespace PsyApi.Services.Scoring
                 }
                 else
                 {
-                    percentile = 50.0; // neutral
+                    // Data-sparse: approximate percentile via Normal CDF of shrunken Z
+                    percentile = 100.0 * NormalCdf(zPrime);
                 }
 
-                summary.DimensionScores.Add(new SDimensionScore
+                var ds = new DimensionScore
                 {
                     Dimension = dim,
                     Raw = Math.Round(raw, 3),
-                    Z = Math.Round(z, 3),
-                    T = Math.Round(t, 1),
+                    Z = Math.Round(zPrime, 3),
+                    T = Math.Round(Math.Clamp(t, 20.0, 80.0), 1),
                     Percentile = Math.Round(percentile, 1)
-                });
+                };
+                summary.DimensionScores.Add(ds);
             }
 
             return summary;
+        }
+
+        // Standard normal CDF approximation (Hart, 1968-inspired)
+        private static double NormalCdf(double x)
+        {
+            // Abramowitz-Stegun approximation for Phi(x)
+            var sign = x < 0 ? -1.0 : 1.0;
+            x = Math.Abs(x) / Math.Sqrt(2.0);
+            double t = 1.0 / (1.0 + 0.3275911 * x);
+            // Coefficients
+            double a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+            double erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.Exp(-x * x);
+            double phi = 0.5 * (1.0 + sign * erf);
+            return Math.Clamp(phi, 0.0, 1.0);
+        }
+
+        private static double GetDimensionWeight(string dim)
+        {
+            try
+            {
+                if (_dimWeights != null && _dimWeights.Count > 0)
+                {
+                    if (_dimWeights.TryGetValue(dim, out var w)) return w;
+                }
+                lock (_weightsLock)
+                {
+                    if (_dimWeights == null)
+                    {
+                        var json = Environment.GetEnvironmentVariable("SCORING_DIM_WEIGHTS");
+                        if (!string.IsNullOrWhiteSpace(json))
+                        {
+                            try
+                            {
+                                _dimWeights = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, double>>(json) ?? new();
+                            }
+                            catch { _dimWeights = new(); }
+                        }
+                        else _dimWeights = new();
+                    }
+                }
+            }
+            catch { }
+            return 1.0; // default
         }
 
         // Helpers

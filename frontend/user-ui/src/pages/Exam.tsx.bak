@@ -1,0 +1,384 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../store/user";
+import { apiFetchJson, ApiError } from "../lib/api";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
+import { Input } from "../components/ui/input";
+import { Clock, CheckCircle } from "lucide-react";
+
+type QuestionOption = {
+  value: string;
+  label: string;
+};
+
+type ApiQuestion = {
+  id: number;
+  item_id?: string;
+  text_ar: string;
+  type: string;
+  dimension_tags?: string;
+  difficulty?: number;
+  time_limit_seconds: number;
+  max_score: number;
+  options?: QuestionOption[] | null;
+};
+
+type CompletedResponse = {
+  message: string;
+};
+
+type Question = {
+  id: number;
+  itemId: string;
+  text: string;
+  type: string;
+  options: QuestionOption[];
+  timeLimitSeconds: number;
+};
+
+const LIKERT_FALLBACK_OPTIONS: QuestionOption[] = [
+  { value: "1", label: "????? ????" },
+  { value: "2", label: "?????" },
+  { value: "3", label: "?????" },
+  { value: "4", label: "?????" },
+  { value: "5", label: "????? ????" }
+];
+
+const ORDERING_PLACEHOLDER = "???? ??????? ???????? ?????? ?????? (????: 3,1,2)";
+
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
+const normalizeQuestion = (apiQuestion: ApiQuestion): Question => {
+  const normalizedType = apiQuestion.type?.trim().toUpperCase() ?? "";
+  const options = Array.isArray(apiQuestion.options)
+    ? apiQuestion.options
+    : [];
+
+  return {
+    id: apiQuestion.id,
+    itemId: apiQuestion.item_id ?? `I${apiQuestion.id.toString().padStart(3, "0")}`,
+    text: apiQuestion.text_ar,
+    type: normalizedType,
+    options,
+    timeLimitSeconds: Math.max(0, apiQuestion.time_limit_seconds ?? 0)
+  };
+};
+
+export default function Exam() {
+  const navigate = useNavigate();
+  const { nationalId, sessionId, totalQuestions, reset } = useUserStore();
+
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [answer, setAnswer] = useState("");
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const questionStartRef = useRef<number | null>(null);
+
+  const finalizeSession = useCallback(async () => {
+    if (!sessionId) {
+      return;
+    }
+
+    try {
+      await apiFetchJson(`/sessions/${sessionId}/submit`, {
+        method: "POST"
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("Failed to submit session:", error.message);
+      } else {
+        console.error("Failed to submit session.");
+      }
+    } finally {
+      reset();
+      navigate("/thankyou");
+    }
+  }, [navigate, reset, sessionId]);
+
+  const loadNextQuestion = useCallback(async () => {
+    if (!sessionId) {
+      return;
+    }
+
+    setIsLoadingQuestion(true);
+    setErrorMessage(null);
+
+    try {
+      const data = await apiFetchJson<ApiQuestion | CompletedResponse>(
+        `/sessions/${sessionId}/next`
+      );
+
+      if ((data as CompletedResponse).message === "completed") {
+        await finalizeSession();
+        return;
+      }
+
+      const normalized = normalizeQuestion(data as ApiQuestion);
+      setQuestion(normalized);
+      setAnswer("");
+      questionStartRef.current = Date.now();
+      setTimeLeft(normalized.timeLimitSeconds > 0 ? normalized.timeLimitSeconds : null);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("??? ??? ????? ????? ??????. ???? ??? ????.");
+      }
+    } finally {
+      setIsLoadingQuestion(false);
+    }
+  }, [finalizeSession, sessionId]);
+
+  useEffect(() => {
+    if (!nationalId) {
+      navigate("/");
+      return;
+    }
+
+    if (!sessionId) {
+      navigate("/privacy");
+      return;
+    }
+
+    loadNextQuestion();
+  }, [loadNextQuestion, navigate, nationalId, sessionId]);
+
+  useEffect(() => {
+    if (timeLeft === null) {
+      return;
+    }
+
+    if (timeLeft <= 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => (prev !== null && prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeft]);
+
+  const handleSubmitAnswer = async () => {
+    if (!sessionId || !question) {
+      return;
+    }
+
+    const trimmed = answer.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      const payload: Record<string, unknown> = {
+        ItemId: question.id.toString(),
+        Answer: trimmed
+      };
+
+      if (questionStartRef.current) {
+        payload.ResponseTimeMs = Date.now() - questionStartRef.current;
+      }
+
+      await apiFetchJson(`/sessions/${sessionId}/answer`, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      setAnsweredCount((count) => count + 1);
+      await loadNextQuestion();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("???? ??? ???????. ???? ??? ????.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAnswerChange = (value: string) => {
+    setAnswer(value);
+  };
+
+  const handleTextChange = (value: string) => {
+    setAnswer(value);
+  };
+
+  const renderQuestionInput = () => {
+    if (!question) {
+      return null;
+    }
+
+    const normalizedType = question.type;
+
+    if (normalizedType === "LIKERT") {
+      const options = question.options.length > 0 ? question.options : LIKERT_FALLBACK_OPTIONS;
+      return (
+        <RadioGroup value={answer} onValueChange={handleAnswerChange} className="space-y-3">
+          {options.map((option) => (
+            <div key={option.value} className="flex items-center space-x-2 space-x-reverse">
+              <RadioGroupItem value={option.value} id={`option-${option.value}`} />
+              <Label htmlFor={`option-${option.value}`} className="cursor-pointer">
+                {option.label}
+              </Label>
+            </div>
+          ))}
+        </RadioGroup>
+      );
+    }
+
+    if (normalizedType === "MCQ") {
+      if (question.options.length > 0) {
+        return (
+          <RadioGroup value={answer} onValueChange={handleAnswerChange} className="space-y-3">
+            {question.options.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2 space-x-reverse">
+                <RadioGroupItem value={option.value} id={`option-${option.value}`} />
+                <Label htmlFor={`option-${option.value}`} className="cursor-pointer">
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+        );
+      }
+
+      return (
+        <Textarea
+          value={answer}
+          onChange={(event) => handleTextChange(event.target.value)}
+          placeholder="???? ?????? ???"
+          className="min-h-[120px]"
+        />
+      );
+    }
+
+    if (normalizedType === "TIMED_NUMERIC") {
+      return (
+        <Input
+          type="number"
+          value={answer}
+          onChange={(event) => handleTextChange(event.target.value)}
+          placeholder="???? ??????? ???????"
+        />
+      );
+    }
+
+    if (normalizedType === "ORDERING") {
+      return (
+        <Textarea
+          value={answer}
+          onChange={(event) => handleTextChange(event.target.value)}
+          placeholder={ORDERING_PLACEHOLDER}
+          className="min-h-[120px]"
+        />
+      );
+    }
+
+    return (
+      <Textarea
+        value={answer}
+        onChange={(event) => handleTextChange(event.target.value)}
+        placeholder="???? ??????"
+        className="min-h-[120px]"
+      />
+    );
+  };
+
+  if (!nationalId || !sessionId) {
+    return null;
+  }
+
+  if (isLoadingQuestion && !question) {
+    return (
+      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
+        <Card className="w-full max-w-2xl">
+          <CardContent className="py-8 text-center text-muted-foreground">
+            ???? ????? ??????...
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const trimmedAnswer = answer.trim();
+  const canSubmit = trimmedAnswer.length > 0 && !isSubmitting;
+  const currentQuestionNumber = answeredCount + (question ? 1 : 0);
+  const totalCount = totalQuestions || 0;
+  const progressPercent = totalCount > 0 ? Math.min((currentQuestionNumber / totalCount) * 100, 100) : 0;
+  const isLastQuestion = totalCount > 0 && currentQuestionNumber === totalCount;
+  const formattedTime = timeLeft !== null ? formatTime(Math.max(timeLeft, 0)) : "--:--";
+
+  return (
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Clock className="h-5 w-5" />
+            <span className="font-medium">{formattedTime}</span>
+          </div>
+          <div className="text-sm font-medium">
+            ?????? {currentQuestionNumber} ?? {totalCount || "—"}
+          </div>
+        </div>
+
+        <div className="w-full bg-muted rounded-full h-2.5 mb-8">
+          <div
+            className="bg-primary h-2.5 rounded-full"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-start gap-3">
+              <CardTitle className="text-xl leading-8">
+                {question?.text ?? ""}
+              </CardTitle>
+              {timeLeft !== null && (
+                <div className="flex items-center space-x-2 space-x-reverse bg-red-50 text-red-700 px-3 py-1 rounded-full">
+                  <Clock className="h-4 w-4" />
+                  <span className="font-medium">{timeLeft}s</span>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {renderQuestionInput()}
+            {errorMessage && (
+              <p className="text-destructive text-sm">{errorMessage}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+          <Button onClick={handleSubmitAnswer} disabled={!canSubmit} className="flex items-center space-x-2 space-x-reverse">
+            {isSubmitting ? (
+              <span>???? ?????...</span>
+            ) : (
+              <>
+                {isLastQuestion && <CheckCircle className="h-4 w-4" />}
+                <span>{isLastQuestion ? "????? ????????" : "?????? ??????"}</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

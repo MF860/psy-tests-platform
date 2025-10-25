@@ -9,11 +9,14 @@ using PsyApi.Models;
 using PsyApi.Security;
 using PsyApi.Services.Reports;
 using PsyApi.Services.Audit;
+using PsyApi.Services;
+using PsyApi.Services.Testing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace PsyApi.Controllers
 {
@@ -23,17 +26,28 @@ namespace PsyApi.Controllers
     {
         private readonly AppDbContext _db;
         private readonly ILogger<AdminController> _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly JwtOptions _jwt;
         private readonly IPdfReportService _pdf;
         private readonly IAuditService _audit;
+        private readonly SessionPersistenceTester _persistenceTester;
 
-        public AdminController(AppDbContext db, ILogger<AdminController> logger, IOptions<JwtOptions> jwt, IPdfReportService pdf, IAuditService audit)
+        public AdminController(
+            AppDbContext db, 
+            ILogger<AdminController> logger, 
+            ILoggerFactory loggerFactory, 
+            IOptions<JwtOptions> jwt, 
+            IPdfReportService pdf, 
+            IAuditService audit,
+            SessionPersistenceTester persistenceTester)
         {
             _db = db;
             _logger = logger;
+            _loggerFactory = loggerFactory;
             _jwt = jwt.Value;
             _pdf = pdf;
             _audit = audit;
+            _persistenceTester = persistenceTester;
         }
 
         [HttpPost("login")]
@@ -47,7 +61,7 @@ namespace PsyApi.Controllers
                 if (user == null || !PasswordHasher.Verify(req.Password, user.PasswordHash))
                 {
                     _logger.LogWarning("Admin login failed for {User} from {IP}", req.Username, ip);
-                    await _audit.LogAsync(null, "login_fail", $"username={req.Username}", ip);
+                    // await _audit.LogAsync(null, "login_fail", $"username={req.Username}", ip);
                     return Unauthorized();
                 }
 
@@ -68,7 +82,7 @@ namespace PsyApi.Controllers
 
                 var jwt = new JwtSecurityTokenHandler().WriteToken(token);
                 _logger.LogInformation("Admin {User} logged in, Trace={Trace}", user.Username, HttpContext.TraceIdentifier);
-                await _audit.LogAsync(user.Id, "login_success", $"username={user.Username}", ip);
+                // await _audit.LogAsync(user.Id, "login_success", $"username={user.Username}", ip);
                 return Ok(new AdminLoginResponse { Token = jwt, ExpiresAt = expires });
             }
             catch (Exception ex)
@@ -109,6 +123,7 @@ namespace PsyApi.Controllers
                 {
                     ResultId = x.r.Id,
                     SessionId = x.r.SessionId,
+                    SessionGuid = x.s.SessionId,
                     NationalId = x.u.NationalId,
                     FullName = x.u.FullName,
                     TotalScore = x.r.TotalScore,
@@ -142,6 +157,7 @@ namespace PsyApi.Controllers
             {
                 ResultId = entity.Id,
                 SessionId = entity.SessionId,
+                SessionGuid = session.SessionId,
                 NationalId = user.NationalId,
                 FullName = user.FullName ?? "N/A",
                 TotalScore = entity.TotalScore,
@@ -167,6 +183,7 @@ namespace PsyApi.Controllers
         [HttpGet("results/{id:int}/pdf")]
         [Authorize(Policy = "Admin")]
         [EnableRateLimiting("admin")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any, NoStore = false)]
         public async Task<IActionResult> GetResultPdf(int id, CancellationToken ct)
         {
             var entity = await _db.Results.AsNoTracking().FirstOrDefaultAsync(r => r.Id == id, ct);
@@ -181,6 +198,18 @@ namespace PsyApi.Controllers
                 ? new List<DimensionScore>()
                 : (JsonSerializer.Deserialize<List<DimensionScore>>(entity.DimensionScoresJson, opts) ?? new List<DimensionScore>());
 
+            // Compute weak ETag from payload signature
+            var sigSource = $"{entity.Id}:{entity.SessionId}:{entity.TotalScore}:{entity.ScoringModelVersion}:{entity.DimensionScoresJson?.Length ?? 0}:{entity.CreatedAt.Ticks}";
+            var sigBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(sigSource));
+            var etag = "W/\"" + Convert.ToBase64String(sigBytes)[..16] + "\"";
+
+            var ifNoneMatch = Request.Headers["If-None-Match"].ToString();
+            if (!string.IsNullOrEmpty(ifNoneMatch) && string.Equals(ifNoneMatch, etag, StringComparison.Ordinal))
+            {
+                Response.Headers["ETag"] = etag;
+                return StatusCode(304);
+            }
+
             var bytes = await _pdf.RenderResultPdfAsync(entity, user, dims, ct);
             var filename = $"psy-report-{user.NationalId}-{entity.Id}.pdf";
             _logger.LogInformation("Admin downloaded PDF result {ResultId} user={Admin} Trace={Trace}", id, User?.Identity?.Name, HttpContext.TraceIdentifier);
@@ -192,7 +221,47 @@ namespace PsyApi.Controllers
                 await _audit.LogAsync(admin?.Id, "download_pdf", $"resultId={id}", ip);
             }
             catch { }
+            Response.Headers["ETag"] = etag;
+            Response.Headers["Cache-Control"] = "public, max-age=300";
             return File(bytes, "application/pdf", filename);
+        }
+
+        [HttpGet("questions/validate")]
+        [Authorize(Policy = "Admin")]
+        [EnableRateLimiting("admin")]
+        public async Task<IActionResult> ValidateQuestions()
+        {
+            var validator = new QuestionValidatorService(_db, _loggerFactory.CreateLogger<QuestionValidatorService>());
+            var result = await validator.ValidateAllQuestionsAsync();
+            
+            var violations = result.InvalidQuestions.Select(q => new {
+                itemId = q.ItemId,
+                type = q.CurrentType,
+                expectedType = q.ExpectedType,
+                messages = q.Issues
+            }).ToList();
+            
+            return Ok(new { 
+                ok = result.InvalidQuestions.Count == 0, 
+                count = result.TotalQuestions, 
+                validCount = result.ValidQuestions,
+                violations = violations 
+            });
+        }
+        
+        [HttpPost("questions/fix")]
+        [Authorize(Policy = "Admin")]
+        [EnableRateLimiting("admin")]
+        public async Task<IActionResult> FixQuestions()
+        {
+            var validator = new QuestionValidatorService(_db, _loggerFactory.CreateLogger<QuestionValidatorService>());
+            var result = await validator.FixAllQuestionsAsync();
+            
+            return Ok(new { 
+                totalQuestions = result.TotalQuestions, 
+                fixedCount = result.FixedQuestions,
+                details = result.FixedQuestionDetails
+            });
         }
 
         [HttpPost("change-password")]
@@ -228,9 +297,135 @@ namespace PsyApi.Controllers
             return Ok(new ChangePasswordResponse { Message = "Password changed successfully" });
         }
 
-        [HttpGet("audit")]
+        [HttpGet("test/session-persistence/{sessionId:int}")]
         [Authorize(Policy = "Admin")]
         [EnableRateLimiting("admin")]
+        public async Task<ActionResult<Dictionary<string, bool>>> ValidateSessionPersistence(int sessionId)
+        {
+            try
+            {
+                var results = await _persistenceTester.ValidateSessionPersistence(sessionId);
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error validating session persistence for session {SessionId}", sessionId);
+                return StatusCode(500, new { error = "Validation error" });
+            }
+        }
+
+        [HttpPost("results/{id:int}/recommendations")]
+        [Authorize(Policy = "Admin")]
+        [EnableRateLimiting("admin")]
+        public async Task<ActionResult<RecommendationsResponse>> GetRecommendations(
+            int id, 
+            [FromBody] GetRecommendationsRequest? request = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                // Get the result and validate it exists
+                var result = await _db.Results.AsNoTracking()
+                    .Include(r => r.Session)
+                    .ThenInclude(s => s.User)
+                    .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+                if (result == null)
+                {
+                    return NotFound(new { error = "Result not found" });
+                }
+
+                // Parse dimension scores
+                var dimensionScores = new List<DimensionScore>();
+                if (!string.IsNullOrWhiteSpace(result.DimensionScoresJson))
+                {
+                    try
+                    {
+                        var opts = new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+                        dimensionScores = JsonSerializer.Deserialize<List<DimensionScore>>(result.DimensionScoresJson, opts) 
+                            ?? new List<DimensionScore>();
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse dimension scores for result {ResultId}", id);
+                    }
+                }
+
+                if (!dimensionScores.Any())
+                {
+                    return BadRequest(new { error = "No dimension scores available for recommendations" });
+                }
+
+                // Get OpenAI recommendations service
+                var openAIService = HttpContext.RequestServices.GetService<PsyApi.Services.AI.IOpenAIRecommendationsService>();
+                if (openAIService == null)
+                {
+                    _logger.LogWarning("OpenAI recommendations service not configured");
+                    return StatusCode(503, new { error = "AI recommendations service unavailable" });
+                }
+
+                // Generate recommendations
+                var participantId = result.Session?.User?.NationalId ?? $"user_{result.Session?.UserId}";
+                var recommendations = await openAIService.GenerateRecommendationsAsync(
+                    resultId: id,
+                    participantId: participantId,
+                    dimensions: dimensionScores,
+                    totalScore: result.TotalScore,
+                    context: request?.Context,
+                    forceRegenerate: request?.ForceRegenerate ?? false,
+                    cancellationToken: cancellationToken);
+
+                // Log the action for audit
+                var adminUsername = User?.Identity?.Name ?? "Unknown";
+                var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
+                _logger.LogInformation(
+                    "Admin {Admin} generated AI recommendations for result {ResultId} (IP: {IP})", 
+                    adminUsername, id, ip);
+
+                return Ok(recommendations);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Recommendations request cancelled for result {ResultId}", id);
+                return StatusCode(408, new { error = "Request timeout" });
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "OpenAI API error for result {ResultId}", id);
+                return StatusCode(502, new { error = "External AI service error", details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating recommendations for result {ResultId}", id);
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        [HttpGet("recommendations/usage")]
+        [Authorize(Policy = "Admin")]
+        [EnableRateLimiting("admin")]
+        public async Task<ActionResult<OpenAIUsageMetrics>> GetRecommendationsUsage()
+        {
+            try
+            {
+                var openAIService = HttpContext.RequestServices.GetService<PsyApi.Services.AI.IOpenAIRecommendationsService>();
+                if (openAIService == null)
+                {
+                    return StatusCode(503, new { error = "AI recommendations service unavailable" });
+                }
+
+                var usage = await openAIService.GetUsageMetricsAsync();
+                return Ok(usage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OpenAI usage metrics");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
+        }
+
+        [HttpGet("audit")]
+        [Authorize(Policy = "Admin")]
         public async Task<ActionResult<PagedResponse<AuditLogDto>>> GetAudit([FromQuery] AuditQuery q)
         {
             q.Page = Math.Max(1, q.Page);
@@ -266,8 +461,8 @@ namespace PsyApi.Controllers
                     Id = x.l.Id,
                     Action = x.l.Action,
                     AdminUsername = x.a != null ? x.a.Username : string.Empty,
-                    IpAddress = x.l.IpAddress,
-                    Details = x.l.Details,
+                    IpAddress = x.l.IpAddress ?? string.Empty,
+                    Details = x.l.Details ?? string.Empty,
                     CreatedAt = x.l.CreatedAt
                 })
                 .ToListAsync();
@@ -275,5 +470,7 @@ namespace PsyApi.Controllers
             _logger.LogInformation("Admin audit list by {Admin} ip={IP} Trace={Trace}", User?.Identity?.Name, ip, HttpContext.TraceIdentifier);
             return Ok(new PagedResponse<AuditLogDto> { Page = q.Page, PageSize = q.PageSize, Total = total, Data = data });
         }
+
+
     }
 }

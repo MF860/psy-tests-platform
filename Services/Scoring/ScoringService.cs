@@ -26,26 +26,27 @@ namespace psy_tests_platform.Services.Scoring
             _logger = logger;
         }
 
-        public async Task<ScoreSummary> ComputeSessionScores(int sessionId)
+    public async Task<ScoreSummary> ComputeSessionScores(int sessionId)
+    {
+        // Get all session items with answers
+        var sessionItems = await _context.SessionItems
+            .Where(si => si.SessionId == sessionId)
+            .Include(si => si.TestItem)
+            .Include(si => si.Answer)
+            .ToListAsync();
+
+        if (sessionItems == null || !sessionItems.Any())
         {
-            // Get all session items with answers
-            var sessionItems = await _context.SessionItems
-                .Where(si => si.SessionId == sessionId)
-                .Include(si => si.TestItem)
-                .Include(si => si.Answer)
-                .ToListAsync();
+            throw new ArgumentException($"No session items found for session ID: {sessionId}");
+        }
 
-            if (sessionItems == null || !sessionItems.Any())
-            {
-                throw new ArgumentException($"No session items found for session ID: {sessionId}");
-            }
+        // Analyze cognitive load first
+        var cognitiveLoadMetrics = CognitiveLoadAnalyzer.AnalyzeCognitiveLoad(sessionItems);
 
-            // Process each item
-            var dimensionScores = new ConcurrentDictionary<string, List<double>>();
-            var totalRawScore = 0.0;
-            var maxPossibleScore = 0.0;
-
-            foreach (var sessionItem in sessionItems)
+        // Process each item
+        var dimensionScores = new ConcurrentDictionary<string, List<double>>();
+        var totalRawScore = 0.0;
+        var maxPossibleScore = 0.0;            foreach (var sessionItem in sessionItems)
             {
                 var item = sessionItem.TestItem;
                 var answer = sessionItem.Answer;
@@ -111,7 +112,15 @@ namespace psy_tests_platform.Services.Scoring
                     MaxPossible = maxPossibleScore,
                     Percentage = maxPossibleScore > 0 ? (totalRawScore / maxPossibleScore) * 100 : 0
                 },
-                Version = "v1.0"
+                CognitiveLoadMetrics = new Dictionary<string, double>
+                {
+                    { "cognitiveLoadScore", cognitiveLoadMetrics.CognitiveLoadScore },
+                    { "consistencyScore", cognitiveLoadMetrics.ConsistencyScore },
+                    { "engagementScore", cognitiveLoadMetrics.EngagementScore }
+                },
+                CognitiveLoadObservations = cognitiveLoadMetrics.Observations,
+                DetailedMetrics = cognitiveLoadMetrics.DetailedMetrics,
+                Version = "v1.1"
             };
 
             return scoreSummary;

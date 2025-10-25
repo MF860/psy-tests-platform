@@ -1,0 +1,1153 @@
+[
+  {
+    "id": 1,
+    "item_id": "Q001",
+    "text_ar": "ما هو لونك المفضل؟",
+    "type": "MCQ",
+    "dimension_tags": "personality",
+    "difficulty": 1,
+    "time_limit_seconds": 30,
+    "max_score": 10,
+    "options": [
+      {"value": "أحمر", "text": "أحمر", "correct": true},
+      {"value": "أزرق", "text": "أزرق", "correct": false},
+      {"value": "أخضر", "text": "أخضر", "correct": false},
+      {"value": "أصفر", "text": "أصفر", "correct": false}
+    ]
+  },
+  {
+    "id": 2,
+    "item_id": "Q002",
+    "text_ar": "كم عدد الكواكب في النظام الشمسي؟",
+    "type": "MCQ",
+    "dimension_tags": "knowledge",
+    "difficulty": 2,
+    "time_limit_seconds": 45,
+    "max_score": 15,
+    "options": [
+      {"value": "7", "text": "سبعة", "correct": false},
+      {"value": "8", "text": "ثمانية", "correct": true},
+      {"value": "9", "text": "تسعة", "correct": false},
+      {"value": "10", "text": "عشرة", "correct": false}
+    ]
+  },
+  {
+    "id": 3,
+    "item_id": "Q003",
+    "text_ar": "أشعر بالسعادة معظم الوقت",
+    "type": "LikertAgreement",
+    "dimension_tags": "emotional_stability",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 4,
+    "item_id": "Q004",
+    "text_ar": "كم مرة تقرأ الكتب؟",
+    "type": "Frequency",
+    "dimension_tags": "learning",
+    "difficulty": 1,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 5,
+    "item_id": "Q005",
+    "text_ar": "رتب الأولويات التالية حسب أهميتها بالنسبة لك",
+    "type": "ORDERING",
+    "dimension_tags": "values",
+    "difficulty": 2,
+    "time_limit_seconds": 60,
+    "max_score": 20,
+    "orderingChoices": ["family", "career", "health", "money"],
+    "orderingLabels": ["العائلة", "المهنة", "الصحة", "المال"]
+  },
+  {
+    "id": 6,
+    "item_id": "Q006",
+    "text_ar": "كم هو حاصل ضرب 15 × 23؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "cognitive_speed",
+    "difficulty": 3,
+    "time_limit_seconds": 20,
+    "max_score": 25,
+    "correctAnswer": 345
+  },
+  {
+    "id": 7,
+    "item_id": "Q007",
+    "text_ar": "صف أهدافك المستقبلية في جملتين",
+    "type": "Text",
+    "dimension_tags": "planning",
+    "difficulty": 1,
+    "time_limit_seconds": 120,
+    "max_score": 10
+  },
+  {
+    "id": 8,
+    "item_id": "Q008",
+    "text_ar": "أستطيع التحكم في مشاعري بسهولة",
+    "type": "LikertAgreement",
+    "dimension_tags": "emotional_regulation",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 9,
+    "item_id": "Q009",
+    "text_ar": "ما هي عاصمة فرنسا؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 10,
+    "options": [
+      {"value": "باريس", "text": "باريس", "correct": true},
+      {"value": "لندن", "text": "لندن", "correct": false},
+      {"value": "برلين", "text": "برلين", "correct": false},
+      {"value": "روما", "text": "روما", "correct": false}
+    ]
+  },
+  {
+    "id": 10,
+    "item_id": "Q010",
+    "text_ar": "كم مرة تمارس الرياضة في الأسبوع؟",
+    "type": "Frequency",
+    "dimension_tags": "health",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "once", "text": "مرة واحدة"},
+      {"value": "2-3", "text": "2-3 مرات"},
+      {"value": "4-5", "text": "4-5 مرات"},
+      {"value": "daily", "text": "يومياً"}
+    ]
+  },
+  {
+    "id": 11,
+    "item_id": "Q011",
+    "text_ar": "أحب العمل في فريق أكثر من العمل منفرداً",
+    "type": "LikertAgreement",
+    "dimension_tags": "social_preference",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 12,
+    "item_id": "Q012",
+    "text_ar": "رتب الأنشطة التالية حسب تفضيلك",
+    "type": "ORDERING",
+    "dimension_tags": "interests",
+    "difficulty": 1,
+    "time_limit_seconds": 45,
+    "max_score": 15,
+    "orderingChoices": ["reading", "sports", "music", "travel"],
+    "orderingLabels": ["القراءة", "الرياضة", "الموسيقى", "السفر"]
+  },
+  {
+    "id": 13,
+    "item_id": "Q013",
+    "text_ar": "كم هو حاصل جمع 789 + 456؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "arithmetic",
+    "difficulty": 2,
+    "time_limit_seconds": 15,
+    "max_score": 15,
+    "correctAnswer": 1245
+  },
+  {
+    "id": 14,
+    "item_id": "Q014",
+    "text_ar": "اذكر ثلاث صفات تميزك عن الآخرين",
+    "type": "Text",
+    "dimension_tags": "self_awareness",
+    "difficulty": 2,
+    "time_limit_seconds": 90,
+    "max_score": 15
+  },
+  {
+    "id": 15,
+    "item_id": "Q015",
+    "text_ar": "أعتبر نفسي شخصاً منظماً",
+    "type": "LikertAgreement",
+    "dimension_tags": "conscientiousness",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 16,
+    "item_id": "Q016",
+    "text_ar": "ما هي نتيجة 12 × 12؟",
+    "type": "MCQ",
+    "dimension_tags": "arithmetic",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 10,
+    "options": [
+      {"value": "144", "text": "144", "correct": true},
+      {"value": "124", "text": "124", "correct": false},
+      {"value": "164", "text": "164", "correct": false},
+      {"value": "134", "text": "134", "correct": false}
+    ]
+  },
+  {
+    "id": 17,
+    "item_id": "Q017",
+    "text_ar": "كم مرة تشعر بالتوتر؟",
+    "type": "Frequency",
+    "dimension_tags": "stress_management",
+    "difficulty": 1,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 18,
+    "item_id": "Q018",
+    "text_ar": "أحب تجربة أشياء جديدة",
+    "type": "LikertAgreement",
+    "dimension_tags": "openness",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 19,
+    "item_id": "Q019",
+    "text_ar": "رتب وسائل التواصل حسب استخدامك لها",
+    "type": "ORDERING",
+    "dimension_tags": "communication",
+    "difficulty": 1,
+    "time_limit_seconds": 40,
+    "max_score": 15,
+    "orderingChoices": ["phone", "email", "social_media", "face_to_face"],
+    "orderingLabels": ["الهاتف", "البريد الإلكتروني", "وسائل التواصل الاجتماعي", "وجهاً لوجه"]
+  },
+  {
+    "id": 20,
+    "item_id": "Q020",
+    "text_ar": "كم هو الجذر التربيعي لـ 64؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "mathematics",
+    "difficulty": 2,
+    "time_limit_seconds": 15,
+    "max_score": 15,
+    "correctAnswer": 8
+  },
+  {
+    "id": 21,
+    "item_id": "Q021",
+    "text_ar": "أشعر بالثقة عند التحدث أمام الجمهور",
+    "type": "LikertAgreement",
+    "dimension_tags": "confidence",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 22,
+    "item_id": "Q022",
+    "text_ar": "ما أول حرف في الكلمة العربية؟",
+    "type": "MCQ",
+    "dimension_tags": "language",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 5,
+    "options": [
+      {"value": "الألف", "text": "الألف", "correct": true},
+      {"value": "الباء", "text": "الباء", "correct": false},
+      {"value": "التاء", "text": "التاء", "correct": false},
+      {"value": "الثاء", "text": "الثاء", "correct": false}
+    ]
+  },
+  {
+    "id": 23,
+    "item_id": "Q023",
+    "text_ar": "كم مرة تخطط لمستقبلك؟",
+    "type": "Frequency",
+    "dimension_tags": "planning",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 24,
+    "item_id": "Q024",
+    "text_ar": "رتب المهارات التالية حسب أهميتها في العمل",
+    "type": "ORDERING",
+    "dimension_tags": "professional_skills",
+    "difficulty": 2,
+    "time_limit_seconds": 50,
+    "max_score": 20,
+    "orderingChoices": ["communication", "leadership", "technical", "creativity"],
+    "orderingLabels": ["التواصل", "القيادة", "المهارات التقنية", "الإبداع"]
+  },
+  {
+    "id": 25,
+    "item_id": "Q025",
+    "text_ar": "كم هو 25% من 200؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "percentage",
+    "difficulty": 2,
+    "time_limit_seconds": 20,
+    "max_score": 15,
+    "correctAnswer": 50
+  },
+  {
+    "id": 26,
+    "item_id": "Q026",
+    "text_ar": "وصف أسلوب تعاملك مع المشاكل",
+    "type": "Text",
+    "dimension_tags": "problem_solving",
+    "difficulty": 2,
+    "time_limit_seconds": 100,
+    "max_score": 15
+  },
+  {
+    "id": 27,
+    "item_id": "Q027",
+    "text_ar": "أفضل العمل تحت الضغط",
+    "type": "LikertAgreement",
+    "dimension_tags": "stress_tolerance",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 28,
+    "item_id": "Q028",
+    "text_ar": "أين تقع الأهرامات؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 5,
+    "options": [
+      {"value": "مصر", "text": "مصر", "correct": true},
+      {"value": "السودان", "text": "السودان", "correct": false},
+      {"value": "العراق", "text": "العراق", "correct": false},
+      {"value": "سوريا", "text": "سوريا", "correct": false}
+    ]
+  },
+  {
+    "id": 29,
+    "item_id": "Q029",
+    "text_ar": "كم مرة تأخذ استراحة أثناء العمل؟",
+    "type": "Frequency",
+    "dimension_tags": "work_habits",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 30,
+    "item_id": "Q030",
+    "text_ar": "أشعر بالراحة مع التغييرات الجديدة",
+    "type": "LikertAgreement",
+    "dimension_tags": "adaptability",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 31,
+    "item_id": "Q031",
+    "text_ar": "رتب الأولويات في حياتك الشخصية",
+    "type": "ORDERING",
+    "dimension_tags": "life_priorities",
+    "difficulty": 2,
+    "time_limit_seconds": 60,
+    "max_score": 20,
+    "orderingChoices": ["happiness", "success", "relationships", "security"],
+    "orderingLabels": ["السعادة", "النجاح", "العلاقات", "الأمان"]
+  },
+  {
+    "id": 32,
+    "item_id": "Q032",
+    "text_ar": "كم هو 144 ÷ 12؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "division",
+    "difficulty": 2,
+    "time_limit_seconds": 15,
+    "max_score": 15,
+    "correctAnswer": 12
+  },
+  {
+    "id": 33,
+    "item_id": "Q033",
+    "text_ar": "اذكر أهم إنجاز حققته في العام الماضي",
+    "type": "Text",
+    "dimension_tags": "achievements",
+    "difficulty": 2,
+    "time_limit_seconds": 90,
+    "max_score": 15
+  },
+  {
+    "id": 34,
+    "item_id": "Q034",
+    "text_ar": "أستطيع التركيز لفترات طويلة",
+    "type": "LikertAgreement",
+    "dimension_tags": "concentration",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 35,
+    "item_id": "Q035",
+    "text_ar": "كم عدد أيام الأسبوع؟",
+    "type": "MCQ",
+    "dimension_tags": "basic_knowledge",
+    "difficulty": 1,
+    "time_limit_seconds": 10,
+    "max_score": 5,
+    "options": [
+      {"value": "6", "text": "ستة", "correct": false},
+      {"value": "7", "text": "سبعة", "correct": true},
+      {"value": "8", "text": "ثمانية", "correct": false},
+      {"value": "5", "text": "خمسة", "correct": false}
+    ]
+  },
+  {
+    "id": 36,
+    "item_id": "Q036",
+    "text_ar": "كم مرة تساعد الآخرين؟",
+    "type": "Frequency",
+    "dimension_tags": "helping_behavior",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 37,
+    "item_id": "Q037",
+    "text_ar": "أميل إلى اتخاذ قرارات سريعة",
+    "type": "LikertAgreement",
+    "dimension_tags": "decision_making",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 38,
+    "item_id": "Q038",
+    "text_ar": "رتب الأشهر التالية حسب تفضيلك",
+    "type": "ORDERING",
+    "dimension_tags": "seasonal_preference",
+    "difficulty": 1,
+    "time_limit_seconds": 40,
+    "max_score": 15,
+    "orderingChoices": ["spring", "summer", "autumn", "winter"],
+    "orderingLabels": ["الربيع", "الصيف", "الخريف", "الشتاء"]
+  },
+  {
+    "id": 39,
+    "item_id": "Q039",
+    "text_ar": "كم هو 30% من 150؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "percentage",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 15,
+    "correctAnswer": 45
+  },
+  {
+    "id": 40,
+    "item_id": "Q040",
+    "text_ar": "ما هي خططك للتطوير المهني؟",
+    "type": "Text",
+    "dimension_tags": "career_development",
+    "difficulty": 2,
+    "time_limit_seconds": 120,
+    "max_score": 15
+  },
+  {
+    "id": 41,
+    "item_id": "Q041",
+    "text_ar": "أحب المخاطرة المحسوبة",
+    "type": "LikertAgreement",
+    "dimension_tags": "risk_taking",
+    "difficulty": 2,
+    "time_limit_seconds": 30,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 42,
+    "item_id": "Q042",
+    "text_ar": "ما هو أطول نهر في العالم؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 2,
+    "time_limit_seconds": 20,
+    "max_score": 10,
+    "options": [
+      {"value": "النيل", "text": "النيل", "correct": true},
+      {"value": "الأمازون", "text": "الأمازون", "correct": false},
+      {"value": "المسيسيبي", "text": "المسيسيبي", "correct": false},
+      {"value": "اليانغتسي", "text": "اليانغتسي", "correct": false}
+    ]
+  },
+  {
+    "id": 43,
+    "item_id": "Q043",
+    "text_ar": "كم مرة تشعر بالإحباط؟",
+    "type": "Frequency",
+    "dimension_tags": "emotional_stability",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 44,
+    "item_id": "Q044",
+    "text_ar": "أستمتع بتعلم مهارات جديدة",
+    "type": "LikertAgreement",
+    "dimension_tags": "learning_motivation",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 45,
+    "item_id": "Q045",
+    "text_ar": "رتب وسائل الاتصال حسب فعاليتها",
+    "type": "ORDERING",
+    "dimension_tags": "communication_effectiveness",
+    "difficulty": 2,
+    "time_limit_seconds": 45,
+    "max_score": 20,
+    "orderingChoices": ["video_call", "phone", "email", "text"],
+    "orderingLabels": ["مكالمة فيديو", "مكالمة صوتية", "بريد إلكتروني", "رسالة نصية"]
+  },
+  {
+    "id": 46,
+    "item_id": "Q046",
+    "text_ar": "كم هو 7 × 8 × 2؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "multiplication",
+    "difficulty": 3,
+    "time_limit_seconds": 20,
+    "max_score": 20,
+    "correctAnswer": 112
+  },
+  {
+    "id": 47,
+    "item_id": "Q047",
+    "text_ar": "صف استراتيجيتك لحل المشاكل المعقدة",
+    "type": "Text",
+    "dimension_tags": "complex_problem_solving",
+    "difficulty": 3,
+    "time_limit_seconds": 150,
+    "max_score": 20
+  },
+  {
+    "id": 48,
+    "item_id": "Q048",
+    "text_ar": "أفضل الأعمال التي تتطلب تفكيراً إبداعياً",
+    "type": "LikertAgreement",
+    "dimension_tags": "creativity",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 49,
+    "item_id": "Q049",
+    "text_ar": "في أي قارة تقع أستراليا؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 5,
+    "options": [
+      {"value": "أوقيانوسيا", "text": "أوقيانوسيا", "correct": true},
+      {"value": "آسيا", "text": "آسيا", "correct": false},
+      {"value": "أفريقيا", "text": "أفريقيا", "correct": false},
+      {"value": "أوروبا", "text": "أوروبا", "correct": false}
+    ]
+  },
+  {
+    "id": 50,
+    "item_id": "Q050",
+    "text_ar": "كم مرة تراجع أهدافك؟",
+    "type": "Frequency",
+    "dimension_tags": "goal_monitoring",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "yearly", "text": "سنوياً"},
+      {"value": "quarterly", "text": "ربع سنوي"},
+      {"value": "monthly", "text": "شهرياً"},
+      {"value": "weekly", "text": "أسبوعياً"}
+    ]
+  },
+  {
+    "id": 51,
+    "item_id": "Q051",
+    "text_ar": "أتقبل النقد البناء بسهولة",
+    "type": "LikertAgreement",
+    "dimension_tags": "feedback_acceptance",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 52,
+    "item_id": "Q052",
+    "text_ar": "رتب المهام التالية حسب صعوبتها بالنسبة لك",
+    "type": "ORDERING",
+    "dimension_tags": "task_difficulty",
+    "difficulty": 2,
+    "time_limit_seconds": 50,
+    "max_score": 20,
+    "orderingChoices": ["planning", "execution", "monitoring", "evaluation"],
+    "orderingLabels": ["التخطيط", "التنفيذ", "المتابعة", "التقييم"]
+  },
+  {
+    "id": 53,
+    "item_id": "Q053",
+    "text_ar": "كم هو 5³ (5 أس 3)؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "exponents",
+    "difficulty": 3,
+    "time_limit_seconds": 25,
+    "max_score": 20,
+    "correctAnswer": 125
+  },
+  {
+    "id": 54,
+    "item_id": "Q054",
+    "text_ar": "اكتب عن أهمية التعلم المستمر في تطوير الذات",
+    "type": "Text",
+    "dimension_tags": "continuous_learning",
+    "difficulty": 3,
+    "time_limit_seconds": 180,
+    "max_score": 25
+  },
+  {
+    "id": 55,
+    "item_id": "Q055",
+    "text_ar": "أشعر بالراحة عندما أقود فريق عمل",
+    "type": "LikertAgreement",
+    "dimension_tags": "leadership_comfort",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 56,
+    "item_id": "Q056",
+    "text_ar": "ما هي عاصمة اليابان؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 5,
+    "options": [
+      {"value": "طوكيو", "text": "طوكيو", "correct": true},
+      {"value": "كيوتو", "text": "كيوتو", "correct": false},
+      {"value": "أوساكا", "text": "أوساكا", "correct": false},
+      {"value": "يوكوهاما", "text": "يوكوهاما", "correct": false}
+    ]
+  },
+  {
+    "id": 57,
+    "item_id": "Q057",
+    "text_ar": "كم مرة تطلب المساعدة عند الحاجة؟",
+    "type": "Frequency",
+    "dimension_tags": "help_seeking",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 58,
+    "item_id": "Q058",
+    "text_ar": "أستطيع التكيف مع البيئات الجديدة بسرعة",
+    "type": "LikertAgreement",
+    "dimension_tags": "environmental_adaptability",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 59,
+    "item_id": "Q059",
+    "text_ar": "رتب طرق التعلم التالية حسب فعاليتها لك",
+    "type": "ORDERING",
+    "dimension_tags": "learning_styles",
+    "difficulty": 2,
+    "time_limit_seconds": 45,
+    "max_score": 20,
+    "orderingChoices": ["visual", "auditory", "kinesthetic", "reading"],
+    "orderingLabels": ["البصري", "السمعي", "الحركي", "القراءة"]
+  },
+  {
+    "id": 60,
+    "item_id": "Q060",
+    "text_ar": "كم هو الجذر التكعيبي لـ 27؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "cube_roots",
+    "difficulty": 3,
+    "time_limit_seconds": 20,
+    "max_score": 20,
+    "correctAnswer": 3
+  },
+  {
+    "id": 61,
+    "item_id": "Q061",
+    "text_ar": "وضح كيف تتعامل مع الضغوط في العمل",
+    "type": "Text",
+    "dimension_tags": "stress_management_strategies",
+    "difficulty": 3,
+    "time_limit_seconds": 120,
+    "max_score": 20
+  },
+  {
+    "id": 62,
+    "item_id": "Q062",
+    "text_ar": "أحب التفاصيل الدقيقة في عملي",
+    "type": "LikertAgreement",
+    "dimension_tags": "attention_to_detail",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 63,
+    "item_id": "Q063",
+    "text_ar": "كم عدد قارات العالم؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 5,
+    "options": [
+      {"value": "6", "text": "ستة", "correct": false},
+      {"value": "7", "text": "سبعة", "correct": true},
+      {"value": "8", "text": "ثمانية", "correct": false},
+      {"value": "5", "text": "خمسة", "correct": false}
+    ]
+  },
+  {
+    "id": 64,
+    "item_id": "Q064",
+    "text_ar": "كم مرة تقيم أداءك الذاتي؟",
+    "type": "Frequency",
+    "dimension_tags": "self_evaluation",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 65,
+    "item_id": "Q065",
+    "text_ar": "أتحمل المسؤولية عن أخطائي",
+    "type": "LikertAgreement",
+    "dimension_tags": "accountability",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 66,
+    "item_id": "Q066",
+    "text_ar": "رتب العوامل التالية حسب تأثيرها على سعادتك",
+    "type": "ORDERING",
+    "dimension_tags": "happiness_factors",
+    "difficulty": 2,
+    "time_limit_seconds": 60,
+    "max_score": 20,
+    "orderingChoices": ["health", "relationships", "achievement", "freedom"],
+    "orderingLabels": ["الصحة", "العلاقات", "الإنجاز", "الحرية"]
+  },
+  {
+    "id": 67,
+    "item_id": "Q067",
+    "text_ar": "كم هو 15% من 400؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "percentage",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 15,
+    "correctAnswer": 60
+  },
+  {
+    "id": 68,
+    "item_id": "Q068",
+    "text_ar": "اشرح أهمية التوازن بين العمل والحياة الشخصية",
+    "type": "Text",
+    "dimension_tags": "work_life_balance",
+    "difficulty": 3,
+    "time_limit_seconds": 150,
+    "max_score": 25
+  },
+  {
+    "id": 69,
+    "item_id": "Q069",
+    "text_ar": "أستمتع بالعمل في بيئة تنافسية",
+    "type": "LikertAgreement",
+    "dimension_tags": "competitiveness",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 70,
+    "item_id": "Q070",
+    "text_ar": "ما هو أكبر محيط في العالم؟",
+    "type": "MCQ",
+    "dimension_tags": "geography",
+    "difficulty": 2,
+    "time_limit_seconds": 20,
+    "max_score": 10,
+    "options": [
+      {"value": "الهادئ", "text": "المحيط الهادئ", "correct": true},
+      {"value": "الأطلسي", "text": "المحيط الأطلسي", "correct": false},
+      {"value": "الهندي", "text": "المحيط الهندي", "correct": false},
+      {"value": "المتجمد الشمالي", "text": "المحيط المتجمد الشمالي", "correct": false}
+    ]
+  },
+  {
+    "id": 71,
+    "item_id": "Q071",
+    "text_ar": "كم مرة تشارك أفكارك مع الآخرين؟",
+    "type": "Frequency",
+    "dimension_tags": "idea_sharing",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 72,
+    "item_id": "Q072",
+    "text_ar": "أتطلع دائماً لتحسين طريقة عملي",
+    "type": "LikertAgreement",
+    "dimension_tags": "continuous_improvement",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 73,
+    "item_id": "Q073",
+    "text_ar": "رتب مراحل حل المشاكل حسب أهميتها",
+    "type": "ORDERING",
+    "dimension_tags": "problem_solving_process",
+    "difficulty": 3,
+    "time_limit_seconds": 60,
+    "max_score": 25,
+    "orderingChoices": ["identify", "analyze", "generate", "implement"],
+    "orderingLabels": ["تحديد المشكلة", "تحليل المشكلة", "توليد الحلول", "تنفيذ الحل"]
+  },
+  {
+    "id": 74,
+    "item_id": "Q074",
+    "text_ar": "كم هو ناتج القسمة 240 ÷ 15؟",
+    "type": "TIMED_NUMERIC",
+    "dimension_tags": "division",
+    "difficulty": 3,
+    "time_limit_seconds": 25,
+    "max_score": 20,
+    "correctAnswer": 16
+  },
+  {
+    "id": 75,
+    "item_id": "Q075",
+    "text_ar": "اكتب خطة عمل مبسطة لتحقيق هدف شخصي مهم لك",
+    "type": "Text",
+    "dimension_tags": "personal_goal_planning",
+    "difficulty": 3,
+    "time_limit_seconds": 200,
+    "max_score": 30
+  },
+  {
+    "id": 76,
+    "item_id": "Q076",
+    "text_ar": "أشعر بالحماس عندما أواجه تحدياً جديداً",
+    "type": "LikertAgreement",
+    "dimension_tags": "challenge_enthusiasm",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 77,
+    "item_id": "Q077",
+    "text_ar": "كم عدد الحروف في الأبجدية العربية؟",
+    "type": "MCQ",
+    "dimension_tags": "language_knowledge",
+    "difficulty": 1,
+    "time_limit_seconds": 15,
+    "max_score": 5,
+    "options": [
+      {"value": "26", "text": "26", "correct": false},
+      {"value": "28", "text": "28", "correct": true},
+      {"value": "30", "text": "30", "correct": false},
+      {"value": "32", "text": "32", "correct": false}
+    ]
+  },
+  {
+    "id": 78,
+    "item_id": "Q078",
+    "text_ar": "كم مرة تعيد تنظيم مساحة عملك؟",
+    "type": "Frequency",
+    "dimension_tags": "workspace_organization",
+    "difficulty": 1,
+    "time_limit_seconds": 20,
+    "max_score": 5,
+    "options": [
+      {"value": "never", "text": "أبداً"},
+      {"value": "rarely", "text": "نادراً"},
+      {"value": "sometimes", "text": "أحياناً"},
+      {"value": "often", "text": "غالباً"},
+      {"value": "always", "text": "دائماً"}
+    ]
+  },
+  {
+    "id": 79,
+    "item_id": "Q079",
+    "text_ar": "أستطيع الحفاظ على هدوئي تحت الضغط",
+    "type": "LikertAgreement",
+    "dimension_tags": "composure_under_pressure",
+    "difficulty": 2,
+    "time_limit_seconds": 25,
+    "max_score": 5,
+    "options": [
+      {"value": "1", "text": "أعارض بشدة"},
+      {"value": "2", "text": "أعارض"},
+      {"value": "3", "text": "محايد"},
+      {"value": "4", "text": "أوافق"},
+      {"value": "5", "text": "أوافق بشدة"}
+    ]
+  },
+  {
+    "id": 80,
+    "item_id": "Q080",
+    "text_ar": "رتب الصفات التالية حسب أهميتها في القائد الناجح",
+    "type": "ORDERING",
+    "dimension_tags": "leadership_qualities",
+    "difficulty": 3,
+    "time_limit_seconds": 60,
+    "max_score": 25,
+    "orderingChoices": ["vision", "integrity", "empathy", "decisiveness"],
+    "orderingLabels": ["الرؤية", "النزاهة", "التعاطف", "الحسم"]
+  }
+]

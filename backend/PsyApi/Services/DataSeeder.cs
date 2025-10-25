@@ -11,6 +11,15 @@ namespace PsyApi.Services
 {
     public class DataSeeder
     {
+        // Canonical types used across BE/FE
+        private static readonly HashSet<string> CanonicalTypes = new(StringComparer.Ordinal)
+        {
+            "MCQ", "Text", "ORDERING", "TIMED_NUMERIC", "LikertAgreement", "Frequency"
+        };
+
+        private const string LikertAgreementOptions = "لا أوافق بشدة|لا أوافق|محايد|أوافق|أوافق بشدة";
+        private const string FrequencyOptions = "أبدًا|نادرًا|أحيانًا|غالبًا|دائمًا";
+
         private readonly AppDbContext _context;
         private readonly Serilog.ILogger _logger;
 
@@ -20,89 +29,322 @@ namespace PsyApi.Services
             _logger = logger;
         }
 
-        public async Task SeedItemsAsync()
+        public async Task SeedItemsAsync(bool forceReseed = false)
         {
-            // Check if Items table is empty
-            if (await _context.Items.AnyAsync())
+            if (await _context.Items.AnyAsync() && !forceReseed)
             {
                 _logger.Information("Items table already contains data. Skipping seeding.");
                 return;
             }
 
-            var items = new List<Item>();
-            var originalCsvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "seed", "items_100.csv");
-            var cleanCsvPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "seed", "items_100_clean.csv");
+            if (forceReseed && await _context.Items.AnyAsync())
+            {
+                _logger.Information("Force reseeding: Clearing existing Items data.");
+                _context.Items.RemoveRange(await _context.Items.ToListAsync());
+                await _context.SaveChangesAsync();
+            }
 
-            // Use the clean CSV if it exists, otherwise use the original
-            var csvPath = File.Exists(cleanCsvPath) ? cleanCsvPath : originalCsvPath;
-            _logger.Information("Using CSV file: {CsvPath}", csvPath);
+            var items = new List<Item>();
+            var rejected = new List<(string ItemId, string Reason)>();
+            var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            
+            // SDJ Feature Flag: USE_SDJ=1 to load SDJ CSV
+            var useSdj = Environment.GetEnvironmentVariable("USE_SDJ") == "1";
+            var csvFileName = useSdj 
+                ? "questions_sdj_ar.csv"
+                : "questions_fixed_extended_plus_personality.csv";
+            var csvPath = Path.Combine(Directory.GetCurrentDirectory(), "Resources", "Questions", csvFileName);
+            _logger.Information("[{Mode}] Using CSV file: {CsvPath}", useSdj ? "SDJ" : "LEGACY", csvPath);
 
             try
             {
-                // Configure CSV reader with specified settings
-                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+                if (!File.Exists(csvPath))
                 {
-                    Delimiter = ",",
+                    _logger.Warning("CSV file {CsvPath} was not found.", csvPath);
+                    return;
+                }
+
+                // Verify UTF-8 (no BOM) and comma delimiter via header
+                var bytes = await File.ReadAllBytesAsync(csvPath);
+                var hasBom = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+                var lines = await File.ReadAllLinesAsync(csvPath, new UTF8Encoding(false));
+                if (lines.Length == 0)
+                {
+                    _logger.Warning("CSV file {CsvPath} is empty.", csvPath);
+                    return;
+                }
+                var header = lines[0];
+                _logger.Information("CSV header: {Header}", header);
+                _logger.Information("CSV total lines (incl header): {Lines}; Encoding BOM: {BOM}", lines.Length, hasBom ? "present" : "absent");
+                if (!header.Contains(','))
+                {
+                    _logger.Warning("CSV header does not appear to be comma-delimited.");
+                }
+
+                var cfg = new CsvConfiguration(CultureInfo.InvariantCulture)
+                {
                     HasHeaderRecord = true,
-                    DetectDelimiter = false,
-                    BadDataFound = null,
-                    MissingFieldFound = null,
-                    TrimOptions = TrimOptions.Trim
+                    TrimOptions = TrimOptions.Trim,
+                    IgnoreBlankLines = true,
+                    BadDataFound = args => { try { _logger.Warning("Bad CSV data: {Raw}", args.RawRecord); } catch { } },
+                    MissingFieldFound = args => { try { _logger.Warning("Missing field at row {Row}. Index={Index} Headers={Headers}", args.Context?.Parser?.Row, args.Index, string.Join(',', args.HeaderNames ?? Array.Empty<string>())); } catch { } }
                 };
 
-                using var reader = new StreamReader(csvPath, Encoding.UTF8);
-                using var csv = new CsvReader(reader, config);
-
-                // Read header
-                csv.Read();
-                csv.ReadHeader();
-
-                while (csv.Read())
+                int parsedRows = 0;
+                using (var reader = new StreamReader(csvPath, new UTF8Encoding(false)))
+                using (var csv = new CsvReader(reader, cfg))
                 {
-                    try
+                    if (useSdj)
                     {
-                        // Check for required fields
-                        if (string.IsNullOrWhiteSpace(csv.GetField<string>("item_id")) ||
-                            string.IsNullOrWhiteSpace(csv.GetField<string>("text_ar")) ||
-                            string.IsNullOrWhiteSpace(csv.GetField<string>("type")))
+                        // Parse SDJ CSV format
+                        var records = csv.GetRecords<CsvSdjRow>();
+                        foreach (var r in records)
                         {
-                            _logger.Warning("Skipping row with missing core fields: {Row}", csv.Parser.RawRecord);
+                            parsedRows++;
+                            var id = (r.item_code ?? string.Empty).Trim();
+                            if (string.IsNullOrWhiteSpace(id)) { rejected.Add(("<missing>", "item_code missing")); continue; }
+                            if (!seenIds.Add(id)) { rejected.Add((id, "duplicate item_code")); continue; }
+
+                            var textAr = (r.text_ar ?? string.Empty).Trim();
+                            if (string.IsNullOrWhiteSpace(textAr)) { rejected.Add((id, "text_ar missing")); continue; }
+
+                            var type = NormalizeType((r.type ?? string.Empty).Trim());
+                            if (!CanonicalTypes.Contains(type)) { rejected.Add((id, $"unsupported type '{r.type}'")); continue; }
+
+                            var dimension = (r.dimension ?? string.Empty).Trim();
+                            var subDimension = (r.sub_dimension ?? string.Empty).Trim();
+                            if (string.IsNullOrWhiteSpace(dimension) || string.IsNullOrWhiteSpace(subDimension))
+                            {
+                                rejected.Add((id, "dimension or sub_dimension missing"));
+                                continue;
+                            }
+
+                            if (!int.TryParse((r.difficulty ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var difficulty) || difficulty < 1 || difficulty > 5)
+                            {
+                                _logger.Warning("Row {ItemId}: difficulty invalid '{Diff}', defaulting to 3", id, r.difficulty);
+                                difficulty = 3;
+                            }
+
+                            if (!int.TryParse((r.time_limit_seconds ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var timeLimit) || timeLimit <= 0)
+                            {
+                                _logger.Warning("Row {ItemId}: time_limit_seconds invalid '{Sec}', defaulting to 45", id, r.time_limit_seconds);
+                                timeLimit = 45;
+                            }
+
+                            if (!int.TryParse((r.max_score ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var maxScore) || maxScore <= 0)
+                            {
+                                _logger.Warning("Row {ItemId}: max_score invalid '{Max}', defaulting to 5", id, r.max_score);
+                                maxScore = 5;
+                            }
+
+                            var reverseStr = (r.reverse ?? "0").Trim();
+                            var reverse = reverseStr == "1" || string.Equals(reverseStr, "true", StringComparison.OrdinalIgnoreCase);
+
+                            var anchorsAr = (r.anchors_ar ?? string.Empty).Trim();
+                            string? optionsStr = null;
+
+                            switch (type)
+                            {
+                                case "LikertAgreement":
+                                    optionsStr = !string.IsNullOrWhiteSpace(anchorsAr) ? anchorsAr : LikertAgreementOptions;
+                                    break;
+                                case "Frequency":
+                                    optionsStr = !string.IsNullOrWhiteSpace(anchorsAr) ? anchorsAr : FrequencyOptions;
+                                    break;
+                                default:
+                                    optionsStr = anchorsAr;
+                                    break;
+                            }
+
+                            items.Add(new Item
+                            {
+                                ItemCode = id,
+                                TextAr = textAr,
+                                Type = type,
+                                DimensionTags = $"{dimension} > {subDimension}", // Maintain legacy field for compatibility
+                                Dimension = dimension,
+                                SubDimension = subDimension,
+                                Reverse = reverse,
+                                Difficulty = difficulty,
+                                TimeLimitSeconds = timeLimit,
+                                MaxScore = maxScore,
+                                CorrectAnswer = null,
+                                Options = optionsStr
+                            });
+                        }
+                    }
+                    else
+                    {
+                        // Parse legacy CSV format
+                        var records = csv.GetRecords<CsvQuestionRow>();
+                    foreach (var r in records)
+                    {
+                        parsedRows++;
+                        var id = (r.item_id ?? string.Empty).Trim();
+                        if (string.IsNullOrWhiteSpace(id)) { rejected.Add(("<missing>", "item_id missing")); continue; }
+                        if (!seenIds.Add(id)) { rejected.Add((id, "duplicate item_id")); continue; }
+                        
+                        // Validate id format - should be "I" followed by numbers, or just numbers that we can convert
+                        if (!id.StartsWith("I", StringComparison.OrdinalIgnoreCase) && !int.TryParse(id, out _))
+                        {
+                            rejected.Add((id, "item_id must start with 'I' followed by numbers, or be a number")); 
                             continue;
                         }
 
-                        // Get text_ar and handle unquoted commas
-                        var textAr = csv.GetField<string>("text_ar") ?? string.Empty;
-                        if (textAr.Contains(",") && !textAr.StartsWith("\""))
+                        var textAr = (r.text_ar ?? string.Empty).Trim();
+                        if (string.IsNullOrWhiteSpace(textAr)) { rejected.Add((id, "text_ar missing")); continue; }
+
+                        var type = NormalizeType((r.type ?? string.Empty).Trim());
+                        if (!CanonicalTypes.Contains(type)) { rejected.Add((id, $"unsupported type '{r.type}'")); continue; }
+
+                        var dimensionTags = (r.dimension_tags ?? string.Empty).Trim();
+                        if (string.IsNullOrWhiteSpace(dimensionTags)) { rejected.Add((id, "dimension_tags missing")); continue; }
+
+                        if (!int.TryParse((r.difficulty ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var difficulty) || difficulty < 1 || difficulty > 5)
                         {
-                            // Wrap with quotes if it contains a comma and is not already quoted
-                            textAr = """ + textAr + """;
+                            _logger.Warning("Row {ItemId}: difficulty invalid '{Diff}', defaulting to 3", id, r.difficulty);
+                            difficulty = 3;
                         }
 
-                        // Create item with mapped fields
-                        var item = new Item
+                        if (!int.TryParse((r.time_limit_seconds ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var timeLimit) || timeLimit <= 0)
                         {
-                            TextAr = textAr,
-                            Type = csv.GetField<string>("type") ?? string.Empty,
-                            DimensionTags = csv.GetField<string>("dimension_tags") ?? string.Empty,
-                            Difficulty = csv.GetField<int>("difficulty"),
-                            TimeLimitSeconds = csv.GetField<int>("time_limit_seconds"),
-                            MaxScore = csv.GetField<int>("max_score"),
-                            CorrectAnswer = csv.GetField<string?>("correct_answer")
-                        };
+                            _logger.Warning("Row {ItemId}: time_limit_seconds invalid '{Sec}', defaulting to 45", id, r.time_limit_seconds);
+                            timeLimit = 45;
+                        }
 
-                        items.Add(item);
+                        if (!int.TryParse((r.max_score ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var maxScore) || maxScore <= 0)
+                        {
+                            _logger.Warning("Row {ItemId}: max_score invalid '{Max}', defaulting to 5", id, r.max_score);
+                            maxScore = 5;
+                        }
+
+                        var correct = (r.correct_answer ?? string.Empty).Trim();
+                        var optionsRaw = (r.options ?? string.Empty).Trim();
+                        string? optionsStr = null; string? correctAnswer = null;
+                        var rng = new Random(42);
+
+                        switch (type)
+                        {
+                            case "LikertAgreement":
+                                optionsStr = LikertAgreementOptions; correctAnswer = null; break;
+                            case "Frequency":
+                                optionsStr = FrequencyOptions; correctAnswer = null; break;
+                            case "MCQ":
+                            {
+                                var tokens = SplitOptions(correct);
+                                if (tokens.Count >= 2)
+                                {
+                                    correctAnswer = tokens[0];
+                                    optionsStr = string.Join('|', tokens.OrderBy(_ => rng.Next()));
+                                }
+                                else if (!string.IsNullOrWhiteSpace(correct))
+                                {
+                                    var minimal = new List<string> { correct, "خيار آخر 1", "خيار آخر 2", "خيار آخر 3" };
+                                    optionsStr = string.Join('|', minimal.OrderBy(_ => rng.Next()));
+                                    correctAnswer = correct;
+                                }
+                                else { rejected.Add((id, "MCQ missing correct_answer")); continue; }
+                                break;
+                            }
+                            case "ORDERING":
+                                correctAnswer = correct; break;
+                            case "TIMED_NUMERIC":
+                                if (!double.TryParse(correct, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _)) { rejected.Add((id, "TIMED_NUMERIC correct_answer must be numeric")); continue; }
+                                correctAnswer = correct; break;
+                            case "Text":
+                                correctAnswer = null; break;
+                        }
+
+                        // Enforce MCQ to use CSV options column and validate correct_answer
+                        if (type == "MCQ")
+                        {
+                            var optionList = SplitOptions(optionsRaw);
+                            if (optionList.Count < 2)
+                            {
+                                rejected.Add((id, "MCQ requires at least two options"));
+                                continue;
+                            }
+                            if (string.IsNullOrWhiteSpace(correct))
+                            {
+                                rejected.Add((id, "MCQ missing correct_answer"));
+                                continue;
+                            }
+                            if (!optionList.Any(o => string.Equals(o, correct, StringComparison.Ordinal)))
+                            {
+                                rejected.Add((id, "MCQ correct_answer not in options"));
+                                continue;
+                            }
+                            optionsStr = string.Join('|', optionList);
+                            correctAnswer = correct;
+                        }
+
+                        // Format ItemCode as "I001", "I002" etc.
+                        // Extract numeric portion from item_id or use current count + 1
+                        var numericId = int.TryParse(id.Replace("I", "").Trim(), out var n) ? n : items.Count + 1;
+                        var itemCode = $"I{numericId:D03}"; // Ensures 3 digits with leading zeros
+
+                        items.Add(new Item
+                        {
+                            ItemCode = itemCode,
+                            TextAr = textAr,
+                            Type = type,
+                            DimensionTags = dimensionTags,
+                            Difficulty = difficulty,
+                            TimeLimitSeconds = timeLimit,
+                            MaxScore = maxScore,
+                            CorrectAnswer = correctAnswer,
+                            Options = optionsStr
+                        });
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.Warning(ex, "Error processing row: {Row}", csv.Parser.RawRecord);
-                        continue;
-                    }
+                    } // End of else block for legacy CSV
+                }
+
+                _logger.Information("Total rows parsed (excluding header): {Count}", parsedRows);
+
+                // SDJ has 120 items, legacy has 200
+                var expectedCount = useSdj ? 120 : 200;
+                if (items.Count > expectedCount)
+                {
+                    var skipped = items.Count - expectedCount;
+                    _logger.Warning("Parsed {Parsed} valid items; limiting to {Expected}. Skipping {Skipped} items from tail.", 
+                        items.Count, expectedCount, skipped);
+                    items = items.Take(expectedCount).ToList();
+                }
+
+                if (items.Count == 0)
+                {
+                    _logger.Warning("No valid rows were parsed from CSV file {CsvPath}.", csvPath);
+                    return;
                 }
 
                 await _context.Items.AddRangeAsync(items);
                 await _context.SaveChangesAsync();
 
-                _logger.Information("Successfully seeded {Count} items into the database.", items.Count);
+                var total = await _context.Items.CountAsync();
+                var byType = await _context.Items.GroupBy(i => i.Type).Select(g => new { Type = g.Key, Count = g.Count() }).ToListAsync();
+                _logger.Information("Seeded Items count: {Count}", total);
+                foreach (var t in byType) _logger.Information("Type {Type}: {Count}", t.Type, t.Count);
+
+                if (total != expectedCount)
+                {
+                    _logger.Error("Post-seed verification failed. Expected {Expected} items, found {Count}", expectedCount, total);
+                    foreach (var r in rejected.Take(50)) _logger.Warning("Rejected item {ItemId}: {Reason}", r.ItemId, r.Reason);
+                }
+                else
+                {
+                    _logger.Information("Post-seed verification passed: {Count} items.", expectedCount);
+                    if (useSdj)
+                    {
+                        // SDJ-specific validation: log dimension distribution
+                        var byDimension = await _context.Items
+                            .Where(i => i.Dimension != null)
+                            .GroupBy(i => i.Dimension)
+                            .Select(g => new { Dimension = g.Key, Count = g.Count() })
+                            .ToListAsync();
+                        _logger.Information("[SDJ] Dimension distribution:");
+                        foreach (var d in byDimension) _logger.Information("  {Dimension}: {Count} items", d.Dimension, d.Count);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -111,18 +353,23 @@ namespace PsyApi.Services
             }
         }
 
-        public async Task SeedItemParametersAsync()
+        public async Task SeedItemParametersAsync(bool forceReseed = false)
         {
-            // Check if ItemParameters table is empty
-            if (await _context.ItemParameters.AnyAsync())
+            if (await _context.ItemParameters.AnyAsync() && !forceReseed)
             {
                 _logger.Information("ItemParameters table already contains data. Skipping seeding.");
                 return;
             }
 
+            if (forceReseed && await _context.ItemParameters.AnyAsync())
+            {
+                _logger.Information("Force reseeding: Clearing existing ItemParameters data.");
+                _context.ItemParameters.RemoveRange(await _context.ItemParameters.ToListAsync());
+                await _context.SaveChangesAsync();
+            }
+
             try
             {
-                // Get all items that don't have parameters yet
                 var itemsWithoutParameters = await _context.Items
                     .Where(i => !_context.ItemParameters.Any(ip => ip.ItemId == i.Id))
                     .ToListAsync();
@@ -137,25 +384,23 @@ namespace PsyApi.Services
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    // Set parameters based on item type
-                    switch (item.Type.ToUpper())
+                    switch ((item.Type ?? string.Empty).Trim())
                     {
                         case "MCQ":
                             itemParameter.ModelType = "3PL";
                             itemParameter.A = 1.0;
-                            // Map difficulty (1..5) to B parameter (+2,+1,0,-1,-2)
-                            itemParameter.B = 3 - item.Difficulty; // 1->2, 2->1, 3->0, 4->-1, 5->-2
+                            itemParameter.B = 3 - item.Difficulty;
                             itemParameter.C = 0.15;
                             break;
 
-                        case "LIKERT":
+                        case "LikertAgreement":
+                        case "Frequency":
                             itemParameter.ModelType = "GRM";
                             itemParameter.ThresholdsJson = "[-1.5,-0.5,0.5,1.5]";
                             break;
 
                         case "ORDERING":
                             itemParameter.ModelType = "PCM";
-                            // No initial parameters for PCM
                             break;
 
                         case "TIMED_NUMERIC":
@@ -164,9 +409,8 @@ namespace PsyApi.Services
                             itemParameter.TimeBeta = 0.0;
                             break;
 
-                        case "TEXT":
+                        case "Text":
                             itemParameter.ModelType = "TEXT";
-                            // No initial parameters for TEXT
                             break;
 
                         default:
@@ -175,6 +419,12 @@ namespace PsyApi.Services
                     }
 
                     itemParametersList.Add(itemParameter);
+                }
+
+                if (itemParametersList.Count == 0)
+                {
+                    _logger.Warning("No item parameters were generated because supported item types were not found.");
+                    return;
                 }
 
                 await _context.ItemParameters.AddRangeAsync(itemParametersList);
@@ -188,5 +438,97 @@ namespace PsyApi.Services
                 throw;
             }
         }
+
+        public async Task SeedMockUsersAsync(bool forceReseed = false)
+        {
+            if (await _context.Users.AnyAsync() && !forceReseed)
+            {
+                _logger.Information("Users table already contains data. Skipping mock user seeding.");
+                return;
+            }
+
+            if (forceReseed && await _context.Users.AnyAsync())
+            {
+                _logger.Information("Force reseeding: Clearing existing Users data.");
+                _context.Users.RemoveRange(await _context.Users.ToListAsync());
+                await _context.SaveChangesAsync();
+            }
+
+            try
+            {
+                var mockUsers = Enumerable.Range(1, 10)
+                    .Select(i => new User { 
+                        NationalId = $"100000000{i}", 
+                        FullName = $"مستخدم تجريبي {i}", 
+                        CreatedAt = DateTime.UtcNow 
+                    })
+                    .ToList();
+                await _context.Users.AddRangeAsync(mockUsers);
+                await _context.SaveChangesAsync();
+
+                _logger.Information("Successfully seeded {Count} mock users into the database.", mockUsers.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "An error occurred while seeding mock users.");
+                throw;
+            }
+        }
+
+        private static string NormalizeType(string typeRaw)
+        {
+            var t = (typeRaw ?? string.Empty).Trim();
+            if (string.Equals(t, "MCQ", StringComparison.OrdinalIgnoreCase)) return "MCQ";
+            if (string.Equals(t, "TEXT", StringComparison.OrdinalIgnoreCase)) return "Text";
+            if (string.Equals(t, "ORDERING", StringComparison.OrdinalIgnoreCase)) return "ORDERING";
+            if (string.Equals(t, "TIMED_NUMERIC", StringComparison.OrdinalIgnoreCase)) return "TIMED_NUMERIC";
+            if (string.Equals(t, "LIKERT", StringComparison.OrdinalIgnoreCase) || string.Equals(t, "LIKERTAGREEMENT", StringComparison.OrdinalIgnoreCase)) return "LikertAgreement";
+            if (string.Equals(t, "FREQUENCY", StringComparison.OrdinalIgnoreCase)) return "Frequency";
+            return t;
+        }
+
+        private static List<string> SplitOptions(string? raw)
+        {
+            var res = new List<string>();
+            if (string.IsNullOrWhiteSpace(raw)) return res;
+            foreach (var sep in new[] { "|", ";", "," })
+            {
+                if (raw.Contains(sep, StringComparison.Ordinal))
+                {
+                    res = raw.Split(sep, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                    break;
+                }
+            }
+            if (res.Count == 0 && !string.IsNullOrWhiteSpace(raw)) res.Add(raw);
+            return res;
+        }
+
+        private sealed class CsvQuestionRow
+        {
+            public string? item_id { get; set; }
+            public string? text_ar { get; set; }
+            public string? type { get; set; }
+            public string? dimension_tags { get; set; }
+            public string? difficulty { get; set; }
+            public string? time_limit_seconds { get; set; }
+            public string? max_score { get; set; }
+            public string? correct_answer { get; set; }
+            public string? options { get; set; }
+        }
+
+        private sealed class CsvSdjRow
+        {
+            public string? item_code { get; set; }
+            public string? text_ar { get; set; }
+            public string? type { get; set; }
+            public string? dimension { get; set; }
+            public string? sub_dimension { get; set; }
+            public string? anchors_ar { get; set; }
+            public string? reverse { get; set; }
+            public string? time_limit_seconds { get; set; }
+            public string? max_score { get; set; }
+            public string? difficulty { get; set; }
+        }
     }
 }
+

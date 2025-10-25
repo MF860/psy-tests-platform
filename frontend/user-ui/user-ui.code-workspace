@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "css.validate": false,
+    "less.validate": false, 
+    "scss.validate": false,
+    "css.lint.unknownAtRules": "ignore",
+    "css.customData": [],
+    "files.associations": {
+      "*.css": "tailwindcss"
+    },
+    "tailwindCSS.includeLanguages": {
+      "css": "css"
+    }
+  }
+}
