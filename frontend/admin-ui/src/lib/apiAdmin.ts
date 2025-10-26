@@ -74,9 +74,11 @@ const api = {
     if (isDemoMode()) {
       return mockAdminApi('GET', url);
     }
+    // AI analysis can take longer, so increase timeout
+    const timeout = url.includes('/ai-analyze') ? 60000 : 15000;
     const axiosInstance = axios.create({
       baseURL: getApiBaseUrl(),
-      timeout: 15000,
+      timeout: timeout,
     });
     const token = localStorage.getItem('admin_token');
     if (token) axiosInstance.defaults.headers.Authorization = `Bearer ${token}`;
@@ -97,9 +99,11 @@ const api = {
     if (isDemoMode()) {
       return mockAdminApi('POST', url, data);
     }
+    // AI analysis can take longer, so increase timeout
+    const timeout = url.includes('/ai-analyze') ? 60000 : 15000;
     const axiosInstance = axios.create({
       baseURL: getApiBaseUrl(),
-      timeout: 15000,
+      timeout: timeout,
     });
     const token = localStorage.getItem('admin_token');
     if (token) axiosInstance.defaults.headers.Authorization = `Bearer ${token}`;
