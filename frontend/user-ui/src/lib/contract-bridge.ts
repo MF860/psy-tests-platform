@@ -34,10 +34,22 @@ export function normalizeApiQuestion(raw: unknown): UiQuestion {
 
     // Parse options based on question type and format
     let opts: Array<{ value: string; label: string }> = [];
-    if (canonicalType === "MCQ") {
+    // MCQ, LikertAgreement, and Frequency all use options
+    if (canonicalType === "MCQ" || canonicalType === "LikertAgreement" || canonicalType === "Frequency") {
       if (typeof q.options === "string" && q.options.trim()) {
         // Handle string options (pipe-separated)
-        opts = q.options.split("|").map((s: string) => s.trim()).filter(Boolean).map((x: string) => ({ value: x, label: x }));
+        const optionLabels = q.options.split("|").map((s: string) => s.trim()).filter(Boolean);
+        
+        // For Likert and Frequency, map to numeric values (1-5)
+        if (canonicalType === "LikertAgreement" || canonicalType === "Frequency") {
+          opts = optionLabels.map((label: string, index: number) => ({ 
+            value: String(index + 1), 
+            label 
+          }));
+        } else {
+          // For MCQ, value and label are the same
+          opts = optionLabels.map((x: string) => ({ value: x, label: x }));
+        }
       } else if (Array.isArray(q.options) && q.options.length > 0) {
         // Handle array options
         opts = q.options.map((item: any) => {
@@ -53,7 +65,7 @@ export function normalizeApiQuestion(raw: unknown): UiQuestion {
         });
       }
     }
-    // For non-MCQ questions (like TEXT), options should be empty array
+    // For non-option questions (like TEXT, ORDERING, TIMED_NUMERIC), options should be empty array
 
     const ui = {
       id: q.id,

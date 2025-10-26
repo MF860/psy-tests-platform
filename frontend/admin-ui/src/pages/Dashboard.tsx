@@ -154,17 +154,14 @@ export default function Dashboard() {
                     <TrendingUp className="h-5 w-5 text-primary" />
                     <CardTitle>توزيع الدرجات</CardTitle>
                   </div>
-                  <CardDescription>توزيع نتائج الاختبارات</CardDescription>
+                  <CardDescription>توزيع نتائج T-Score</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
                     <CardSkeleton showHeader={false} />
-                  ) : data?.byTypeAccuracy && data.byTypeAccuracy.length > 0 ? (
-                    <CategoryDonutChart 
-                      data={data.byTypeAccuracy.map(t => ({ 
-                        category: t.type, 
-                        value: t.accuracy 
-                      }))} 
+                  ) : data?.scoreDistribution && data.scoreDistribution.length > 0 ? (
+                    <ScoreDistributionChart 
+                      data={data.scoreDistribution}
                     />
                   ) : (
                     <EmptyState message="لا توجد بيانات للعرض" />

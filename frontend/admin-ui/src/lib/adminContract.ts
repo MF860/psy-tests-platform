@@ -11,6 +11,7 @@ export interface AnalyticsSummary {
   avgTotalScore: number
   byDimension: Array<{ dimension: string; tScore: number }>
   byTypeAccuracy: Array<{ type: string; accuracy: number; avgTimeMs: number }>
+  scoreDistribution: Array<{ score: string; count: number }>
   recentSessions: Array<{ 
     sessionId: number | string
     nationalId: string
@@ -125,6 +126,15 @@ export function mapAnalytics(raw: any): AnalyticsSummary {
     .filter(item => item.nationalId) // Must have nationalId
     .slice(0, 10) // Limit to 10 most recent
 
+  // Process score distribution
+  const rawDistribution = safeArray(raw.scoreDistribution ?? raw.ScoreDistribution)
+  const scoreDistribution = rawDistribution
+    .map((item: any) => ({
+      score: safeString(item.score ?? item.Score),
+      count: safeNumber(item.count ?? item.Count)
+    }))
+    .filter(item => item.score) // Must have score label
+
   return {
     totalUsers,
     totalSessions,
@@ -133,6 +143,7 @@ export function mapAnalytics(raw: any): AnalyticsSummary {
     avgTotalScore,
     byDimension,
     byTypeAccuracy,
+    scoreDistribution,
     recentSessions
   }
 }
@@ -149,6 +160,7 @@ function getDefaultAnalytics(): AnalyticsSummary {
     avgTotalScore: 0,
     byDimension: [],
     byTypeAccuracy: [],
+    scoreDistribution: [],
     recentSessions: []
   }
 }
@@ -511,13 +523,22 @@ function mapCourseRecommendation(raw: any): CourseRecommendationUI {
 }
 
 /**
- * AI Analysis contracts (matching backend)
+ * AI Analysis contracts (matching backend with SDJ enhancements)
  */
+export interface CategoryAnalysis {
+  name: string
+  t: number
+  note: string
+}
+
 export interface AiAnalysis {
   strengths: string[]
   weaknesses: string[]
   recommendations: string[]
   rationale?: string
+  summary?: string
+  methodology?: string
+  categories?: CategoryAnalysis[]
 }
 
 export interface AiAnalysisUsage {

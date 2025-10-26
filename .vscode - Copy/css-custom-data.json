@@ -1,0 +1,61 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Use the @tailwind directive to insert Tailwind's base, components, and utilities styles into your CSS.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#tailwind"
+        }
+      ]
+    },
+    {
+      "name": "@apply",
+      "description": "Use @apply to inline any existing utility classes into your own custom CSS.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation", 
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply"
+        }
+      ]
+    },
+    {
+      "name": "@layer",
+      "description": "Use the @layer directive to tell Tailwind which bucket a set of custom styles belong to.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#layer"
+        }
+      ]
+    }
+  ],
+  "properties": [
+    {
+      "name": "overflow-scrolling",
+      "description": "Specifies whether to use native-style scrolling in an overflow container.",
+      "browsers": ["S", "iOS"],
+      "syntax": "auto | touch"
+    },
+    {
+      "name": "-webkit-overflow-scrolling", 
+      "description": "Specifies whether to use native-style scrolling in an overflow container on WebKit browsers.",
+      "browsers": ["S", "C", "iOS"],
+      "syntax": "auto | touch"
+    },
+    {
+      "name": "-webkit-tap-highlight-color",
+      "description": "Sets the color of the highlight that appears over a link while it's being tapped.",
+      "browsers": ["S", "C", "iOS"],
+      "syntax": "<color>"
+    },
+    {
+      "name": "overscroll-behavior",
+      "description": "Sets what a browser does when reaching the boundary of a scrolling area.",
+      "browsers": ["FF", "C", "S"],
+      "syntax": "auto | contain | none"
+    }
+  ]
+}

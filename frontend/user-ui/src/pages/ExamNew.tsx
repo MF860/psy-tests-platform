@@ -486,10 +486,10 @@ function ExamContent() {
 
     switch (current.type) {
       case "LikertAgreement":
-        return <Likert {...commonProps} />;
+        return <Likert {...commonProps} options={current.options} />;
         
       case "Frequency":
-        return <Frequency {...commonProps} />;
+        return <Frequency {...commonProps} options={current.options} />;
         
       case "MCQ":
         return <MCQ {...commonProps} options={current.options} />;

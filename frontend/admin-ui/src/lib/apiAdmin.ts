@@ -305,12 +305,14 @@ export const AdminApi = {
       console.error('[AdminApi] AI analyze failed:', error);
       
       // Map backend errors to frontend-friendly messages
-      if (error?.response?.status === 502) {
+      if (error?.response?.status === 400) {
+        // Extract error message from backend
+        const backendError = error?.response?.data?.error;
+        throw new Error(backendError || 'طلب غير صالح - تحقق من نوع النتيجة');
+      } else if (error?.response?.status === 502 || error?.response?.status === 503) {
         throw new Error('خدمة الذكاء الاصطناعي غير متوفرة حالياً');
       } else if (error?.response?.status === 404) {
         throw new Error('لم يتم العثور على النتيجة المطلوبة');
-      } else if (error?.response?.status === 400) {
-        throw new Error('طلب غير صالح');
       } else {
         throw new Error('فشل في توليد التحليل - يرجى المحاولة لاحقاً');
       }
@@ -396,6 +398,13 @@ function getMockAnalytics(): AnalyticsSummary {
       { type: 'ORDERING', accuracy: 0.71, avgTimeMs: 25800 },
       { type: 'TIMED_NUMERIC', accuracy: 0.65, avgTimeMs: 15300 },
       { type: 'Text', accuracy: 0.88, avgTimeMs: 45600 }
+    ],
+    scoreDistribution: [
+      { score: '0-20', count: Math.floor(totalResults * 0.05) },
+      { score: '21-40', count: Math.floor(totalResults * 0.15) },
+      { score: '41-60', count: Math.floor(totalResults * 0.30) },
+      { score: '61-80', count: Math.floor(totalResults * 0.35) },
+      { score: '81-100', count: Math.floor(totalResults * 0.15) }
     ],
     recentSessions: allResults.slice(-5).map(r => ({
       sessionId: r.sessionId,

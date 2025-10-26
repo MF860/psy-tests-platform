@@ -314,13 +314,15 @@ export default function ResultDetailPage() {
           </div>
         </Section>
 
-        {/* AI Analysis */}
-        <Section
-          title="التحليل الذكي بالذكاء الاصطناعي"
-          subtitle="تحليل مخصص مدعوم بـ DeepSeek عبر OpenRouter"
-        >
-          <AIAnalyzer resultId={rid} data={data} />
-        </Section>
+        {/* AI Analysis - Only show for SDJ results */}
+        {data.sdjData && (
+          <Section
+            title="التحليل الذكي بالذكاء الاصطناعي"
+            subtitle="تحليل مخصص مدعوم بـ DeepSeek للأبعاد السبعة"
+          >
+            <AIAnalyzer resultId={rid} data={data} />
+          </Section>
+        )}
       </div>
     </div>
   )
@@ -397,20 +399,33 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
             <Target className="h-5 w-5 text-red-600" />
             <h4 className="font-medium text-red-900">خطأ في توليد التحليل</h4>
           </div>
-          <p className="text-red-700 text-sm mb-3">{error}</p>
-          <Button 
-            onClick={() => generateAnalysis(true)} 
-            size="sm" 
-            variant="outline"
-            className="border-red-300 text-red-700 hover:bg-red-100"
-          >
-            <Brain className="h-4 w-4 ml-2" />
-            إعادة المحاولة
-          </Button>
+          <p className="text-red-700 text-sm mb-3" dir="rtl">{error}</p>
+          
+          {/* Show specific guidance for non-SDJ results */}
+          {error.includes('ليست من نوع SDJ') && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-3">
+              <p className="text-xs text-yellow-800" dir="rtl">
+                💡 <strong>ملاحظة:</strong> التحليل الذكي متاح حالياً فقط لنتائج اختبار SDJ (120 سؤال).
+                هذه النتيجة من نوع الاختبار القديم (200 سؤال).
+              </p>
+            </div>
+          )}
+          
+          {!error.includes('ليست من نوع SDJ') && (
+            <Button 
+              onClick={() => generateAnalysis(true)} 
+              size="sm" 
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-100"
+            >
+              <Brain className="h-4 w-4 ml-2" />
+              إعادة المحاولة
+            </Button>
+          )}
         </div>
         
         {/* Fallback client-side insights */}
-        <FallbackInsights data={data} />
+        {!error.includes('ليست من نوع SDJ') && <FallbackInsights data={data} />}
       </div>
     )
   }
@@ -441,9 +456,9 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
             <div>
               <h3 className="font-medium text-blue-900">
                 تحليل مدعوم بـ {analysis.model}
-                {analysis.model === 'demo-mock' && (
+                {(analysis.model === 'demo-mock' || analysis.model === 'fallback-sdj-rules') && (
                   <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">
-                    تجريبي
+                    {analysis.model === 'fallback-sdj-rules' ? 'تحليل احتياطي' : 'تجريبي'}
                   </span>
                 )}
               </h3>
@@ -464,8 +479,19 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
         </div>
       </div>
 
+      {/* Summary Section (New for SDJ) */}
+      {analysis.analysis.summary && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4" dir="rtl">
+          <div className="flex items-center gap-2 mb-2">
+            <Brain className="h-5 w-5 text-indigo-600" />
+            <h4 className="font-semibold text-indigo-900">ملخص التحليل</h4>
+          </div>
+          <p className="text-sm text-indigo-800 leading-relaxed">{analysis.analysis.summary}</p>
+        </div>
+      )}
+
       {/* Three-column analysis */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-6" dir="rtl">
         {/* Strengths */}
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -480,13 +506,16 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
               </li>
             ))}
           </ul>
+          {!analysis.analysis.strengths.length && (
+            <p className="text-sm text-green-700">لا توجد نقاط قوة واضحة</p>
+          )}
         </div>
 
         {/* Weaknesses */}
         <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <Target className="h-5 w-5 text-orange-600" />
-            <h3 className="font-semibold text-orange-900">نقاط الضعف</h3>
+            <h3 className="font-semibold text-orange-900">مجالات التطوير</h3>
           </div>
           <ul className="space-y-2">
             {analysis.analysis.weaknesses.map((weakness, index) => (
@@ -496,6 +525,9 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
               </li>
             ))}
           </ul>
+          {!analysis.analysis.weaknesses.length && (
+            <p className="text-sm text-orange-700">لا توجد مجالات ضعف واضحة</p>
+          )}
         </div>
 
         {/* Recommendations */}
@@ -515,9 +547,57 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
         </div>
       </div>
 
+      {/* SDJ Categories Table (New) */}
+      {analysis.analysis.categories && analysis.analysis.categories.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4" dir="rtl">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="h-5 w-5 text-gray-600" />
+            <h4 className="font-semibold text-gray-900">تحليل الأبعاد السبعة (SDJ)</h4>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-right py-2 px-3 font-semibold text-gray-700">البعد</th>
+                  <th className="text-center py-2 px-3 font-semibold text-gray-700">T-Score</th>
+                  <th className="text-right py-2 px-3 font-semibold text-gray-700">الملاحظة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analysis.analysis.categories.map((cat, index) => {
+                  const colorClass = cat.t >= 60 ? 'bg-green-50' : cat.t < 45 ? 'bg-red-50' : 'bg-yellow-50';
+                  const textClass = cat.t >= 60 ? 'text-green-800' : cat.t < 45 ? 'text-red-800' : 'text-yellow-800';
+                  
+                  return (
+                    <tr key={index} className={`${colorClass} border-b border-gray-100`}>
+                      <td className="py-2 px-3 font-medium text-gray-900">{cat.name}</td>
+                      <td className={`py-2 px-3 text-center font-bold ${textClass}`}>
+                        {cat.t.toFixed(1)}
+                      </td>
+                      <td className="py-2 px-3 text-gray-700 text-sm">{cat.note}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Methodology */}
+      {analysis.analysis.methodology && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4" dir="rtl">
+          <div className="flex items-center gap-2 mb-2">
+            <Brain className="h-4 w-4 text-gray-600" />
+            <h4 className="font-medium text-gray-900">المنهجية</h4>
+          </div>
+          <p className="text-sm text-gray-700">{analysis.analysis.methodology}</p>
+        </div>
+      )}
+
       {/* Rationale */}
       {analysis.analysis.rationale && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4" dir="rtl">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="h-4 w-4 text-gray-600" />
             <h4 className="font-medium text-gray-900">التبرير</h4>

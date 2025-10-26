@@ -6,10 +6,11 @@ interface LikertProps {
   value: string;
   onChange: (value: string) => void;
   questionId: string;
+  options?: Array<{ value: string; label: string }>;
 }
 
 // SDJ mode: Store numeric values (1-5) while displaying Arabic labels
-const LIKERT_OPTIONS = [
+const DEFAULT_LIKERT_OPTIONS = [
   { value: "1", label: strings.likert.stronglyDisagree },
   { value: "2", label: strings.likert.disagree },
   { value: "3", label: strings.likert.neutral },
@@ -17,7 +18,9 @@ const LIKERT_OPTIONS = [
   { value: "5", label: strings.likert.stronglyAgree },
 ];
 
-export default function Likert({ value, onChange, questionId }: LikertProps) {
+export default function Likert({ value, onChange, questionId, options }: LikertProps) {
+  // Use provided options if available, otherwise use defaults
+  const likertOptions = options && options.length > 0 ? options : DEFAULT_LIKERT_OPTIONS;
   return (
     <div className="space-y-3 sm:space-y-4">
       <RadioGroup 
@@ -25,7 +28,7 @@ export default function Likert({ value, onChange, questionId }: LikertProps) {
         onValueChange={onChange}
         className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
       >
-        {LIKERT_OPTIONS.map((option, index) => (
+        {likertOptions.map((option, index) => (
           <div 
             key={`${questionId}-likert-${index}`} 
             className={`flex items-center gap-3 p-3 sm:p-4 min-h-12 rounded-xl border transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-soft ${

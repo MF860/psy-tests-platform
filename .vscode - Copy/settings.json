@@ -1,0 +1,26 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "css.lint.unknownProperties": "ignore",
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false,
+  "css.customData": [".vscode/css-custom-data.json"],
+  "tailwindCSS.includeLanguages": {
+    "typescript": "typescript",
+    "typescriptreact": "typescriptreact"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+  "css.hover.documentation": true,
+  "css.lint.validProperties": [
+    "overflow-scrolling",
+    "-webkit-overflow-scrolling",
+    "-webkit-tap-highlight-color",
+    "overscroll-behavior"
+  ]
+}

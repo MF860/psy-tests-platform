@@ -1,0 +1,13 @@
+﻿{
+    "id":  175,
+    "item_id":  "I055",
+    "text_ar":  "أتجنب قيادة المشاريع أو الفرق.",
+    "type":  "LikertAgreement",
+    "dimension_tags":  "النجاح المهني \u003e القيادة",
+    "difficulty":  3,
+    "time_limit_seconds":  45,
+    "max_score":  5,
+    "options":  "لا أوافق بشدة|لا أوافق|محايد|أوافق|أوافق بشدة",
+    "orderingChoices":  null,
+    "orderingLabels":  null
+}

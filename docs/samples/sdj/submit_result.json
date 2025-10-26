@@ -1,0 +1,283 @@
+﻿{
+    "session":  {
+                    "id":  2,
+                    "status":  "completed",
+                    "startedAt":  "2025-10-25T14:55:50.7232062",
+                    "endedAt":  "2025-10-25T14:56:05.1191389",
+                    "durationSec":  14,
+                    "answeredCount":  80
+                },
+    "user":  {
+                 "nationalId":  "1000000001",
+                 "fullName":  "مستخدم تجريبي 1"
+             },
+    "totals":  {
+                   "score":  50,
+                   "tScore":  50,
+                   "percentile":  0.5
+               },
+    "dimensions":  [
+                       {
+                           "dimension":  "المسؤولية الاجتماعية",
+                           "raw":  3,
+                           "z":  0,
+                           "t":  50,
+                           "percentile":  0.5
+                       },
+                       {
+                           "dimension":  "النجاح المهني",
+                           "raw":  3,
+                           "z":  0,
+                           "t":  50,
+                           "percentile":  0.5
+                       },
+                       {
+                           "dimension":  "التواصل والعلاقات",
+                           "raw":  3,
+                           "z":  0,
+                           "t":  50,
+                           "percentile":  0.5
+                       },
+                       {
+                           "dimension":  "الصحة والتوازن",
+                           "raw":  3,
+                           "z":  0,
+                           "t":  50,
+                           "percentile":  0.5
+                       },
+                       {
+                           "dimension":  "التميز الذاتي",
+                           "raw":  3,
+                           "z":  0,
+                           "t":  50,
+                           "percentile":  0.5
+                       }
+                   ],
+    "byType":  [
+                   {
+                       "type":  "LikertAgreement",
+                       "correct":  0,
+                       "total":  80,
+                       "accuracy":  0,
+                       "avgTimeMs":  null
+                   }
+               ],
+    "timing":  {
+                   "avgResponseTimeMs":  null,
+                   "p90Ms":  null
+               },
+    "birkmanAxes":  {
+                        "relation":  50,
+                        "task":  50,
+                        "stress":  50,
+                        "energy":  50
+                    },
+    "recommendations":  [
+
+                        ],
+    "courses":  [
+
+                ],
+    "sdjData":  {
+                    "dimensions":  [
+                                       {
+                                           "dimension":  "المسؤولية الاجتماعية",
+                                           "raw":  3,
+                                           "t":  50,
+                                           "percentile":  0.5,
+                                           "band":  "Average"
+                                       },
+                                       {
+                                           "dimension":  "النجاح المهني",
+                                           "raw":  3,
+                                           "t":  50,
+                                           "percentile":  0.5,
+                                           "band":  "Average"
+                                       },
+                                       {
+                                           "dimension":  "التواصل والعلاقات",
+                                           "raw":  3,
+                                           "t":  50,
+                                           "percentile":  0.5,
+                                           "band":  "Average"
+                                       },
+                                       {
+                                           "dimension":  "الصحة والتوازن",
+                                           "raw":  3,
+                                           "t":  50,
+                                           "percentile":  0.5,
+                                           "band":  "Average"
+                                       },
+                                       {
+                                           "dimension":  "التميز الذاتي",
+                                           "raw":  3,
+                                           "t":  50,
+                                           "percentile":  0.5,
+                                           "band":  "Average"
+                                       }
+                                   ],
+                    "subDimensions":  [
+                                          {
+                                              "dimension":  "المسؤولية الاجتماعية",
+                                              "subDimension":  "الأخلاق المهنية",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "النجاح المهني",
+                                              "subDimension":  "الإبداع والابتكار",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التواصل والعلاقات",
+                                              "subDimension":  "بناء العلاقات",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "الصحة والتوازن",
+                                              "subDimension":  "التوازن بين العمل والحياة",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التواصل والعلاقات",
+                                              "subDimension":  "حل النزاعات",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التميز الذاتي",
+                                              "subDimension":  "الوعي الذاتي",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التميز الذاتي",
+                                              "subDimension":  "التعلم المستمر",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التواصل والعلاقات",
+                                              "subDimension":  "التواصل الفعال",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "الصحة والتوازن",
+                                              "subDimension":  "إدارة الضغوط",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التميز الذاتي",
+                                              "subDimension":  "الثقة بالنفس",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "النجاح المهني",
+                                              "subDimension":  "حل المشكلات",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التواصل والعلاقات",
+                                              "subDimension":  "التعاون",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التميز الذاتي",
+                                              "subDimension":  "المرونة النفسية",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "المسؤولية الاجتماعية",
+                                              "subDimension":  "الوعي المجتمعي",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "المسؤولية الاجتماعية",
+                                              "subDimension":  "العمل التطوعي",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "النجاح المهني",
+                                              "subDimension":  "القيادة",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "الصحة والتوازن",
+                                              "subDimension":  "الصحة النفسية",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "النجاح المهني",
+                                              "subDimension":  "إدارة الوقت",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "المسؤولية الاجتماعية",
+                                              "subDimension":  "المواطنة الفاعلة",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التميز الذاتي",
+                                              "subDimension":  "التنظيم الذاتي",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "الصحة والتوازن",
+                                              "subDimension":  "الصحة الجسدية",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "التواصل والعلاقات",
+                                              "subDimension":  "الذكاء العاطفي",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "المسؤولية الاجتماعية",
+                                              "subDimension":  "الاستدامة",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          },
+                                          {
+                                              "dimension":  "النجاح المهني",
+                                              "subDimension":  "التخطيط الاستراتيجي",
+                                              "t":  50,
+                                              "band":  "Average"
+                                          }
+                                      ],
+                    "trackFits":  [
+                                      {
+                                          "trackNameAr":  "مسار التميز الذاتي",
+                                          "fitLevel":  "medium",
+                                          "fitScore":  50
+                                      },
+                                      {
+                                          "trackNameAr":  "مسار العلاقات المهنية",
+                                          "fitLevel":  "medium",
+                                          "fitScore":  50
+                                      },
+                                      {
+                                          "trackNameAr":  "مسار النجاح الوظيفي",
+                                          "fitLevel":  "medium",
+                                          "fitScore":  50
+                                      }
+                                  ]
+                }
+}
