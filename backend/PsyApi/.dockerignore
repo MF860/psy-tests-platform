@@ -1,0 +1,40 @@
+# Build artifacts
+bin/
+obj/
+out/
+publish/
+
+# Development files
+*.user
+*.suo
+*.cache
+*.log
+
+# SQLite databases (not needed in production)
+*.db
+*.db-shm
+*.db-wal
+*.db.bak*
+
+# Test files
+**/Tests/
+*.Tests/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.old
+*.new
+*.cs.new*

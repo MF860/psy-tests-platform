@@ -1,22 +1,20 @@
 # Render Blueprint for PsyApi Backend
 # Deploy this ASP.NET Core backend to Render with PostgreSQL (Neon)
+# DOCKER RUNTIME - Includes Arabic fonts + HarfBuzz for PDF rendering
 
 services:
   # Backend API Service
   - type: web
     name: psy-api-backend
-    runtime: dotnet
+    runtime: docker
     region: oregon # Choose: oregon, frankfurt, singapore, ohio
     plan: free # Upgrade to starter for always-on ($7/mo)
     
     # Repository Configuration
-    rootDir: backend/PsyApi
-    
-    # Build Configuration
-    buildCommand: dotnet restore && dotnet build -c Release
-    
-    # Start Command - CRITICAL: Must use $PORT variable provided by Render
-    startCommand: dotnet run --configuration Release --urls http://0.0.0.0:$PORT
+    repo: https://github.com/MF860/psy-tests-platform
+    branch: develop
+    dockerfilePath: backend/PsyApi/Dockerfile
+    dockerContext: backend/PsyApi
     
     # Health Check
     healthCheckPath: /health

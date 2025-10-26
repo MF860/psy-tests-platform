@@ -63,13 +63,19 @@ async function mockAdminApi(method: string, url: string, data?: any) {
   return { data: {} };
 }
 
+// API base URL with fallback support for multiple env var names
+const getApiBaseUrl = () => {
+  const env = (import.meta as any).env;
+  return env?.VITE_API_BASE_URL || env?.VITE_API_BASE || 'http://localhost:5019/api';
+};
+
 const api = {
   get: async (url: string, config?: any) => {
     if (isDemoMode()) {
       return mockAdminApi('GET', url);
     }
     const axiosInstance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE,
+      baseURL: getApiBaseUrl(),
       timeout: 15000,
     });
     const token = localStorage.getItem('admin_token');
@@ -92,7 +98,7 @@ const api = {
       return mockAdminApi('POST', url, data);
     }
     const axiosInstance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE,
+      baseURL: getApiBaseUrl(),
       timeout: 15000,
     });
     const token = localStorage.getItem('admin_token');

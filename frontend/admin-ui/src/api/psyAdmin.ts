@@ -1,7 +1,13 @@
 ﻿import axios from 'axios'
 
+// Support both VITE_API_BASE_URL and VITE_API_BASE for compatibility
+const getApiBaseUrl = () => {
+  const env = (import.meta as any).env;
+  return env?.VITE_API_BASE_URL || env?.VITE_API_BASE || 'http://localhost:5019/api';
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE,
+  baseURL: getApiBaseUrl(),
   timeout: 15000,
 })
 
