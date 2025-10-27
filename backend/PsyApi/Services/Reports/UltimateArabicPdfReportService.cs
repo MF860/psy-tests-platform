@@ -183,7 +183,7 @@ namespace PsyApi.Services.Reports
             try
             {
                 Console.WriteLine($"\n{'═',60}");
-                Console.WriteLine($"🎯 SDJ PSYCHOMETRIC REPORT GENERATION");
+                Console.WriteLine($"🎯 SDJ PSYCHOMETRIC REPORT GENERATION (7-PATTERN VERSION)");
                 Console.WriteLine($"{'═',60}");
                 Console.WriteLine($"👤 User: {user.FullName ?? "غير محدد"} (ID: {user.NationalId ?? "N/A"})");
                 Console.WriteLine($"📋 Session: {result.SessionId}");
@@ -204,14 +204,25 @@ namespace PsyApi.Services.Reports
                 if (sdjData == null || sdjData.Dimensions.Count == 0)
                     throw new InvalidOperationException("No SDJ data found");
 
-                // Sort data
+                Console.WriteLine($"📊 SDJ DATA: {sdjData.Dimensions.Count} dimensions, {sdjData.SubDimensions.Count} sub-dimensions");
+                Console.WriteLine($"📊 Version: {sdjData.Version}");
+
+                // Check if 7-pattern data exists (SDJ_v2.0_7Patterns)
+                if (sdjData.SevenPatternScores != null && sdjData.SevenPatternScores.Any())
+                {
+                    Console.WriteLine($"✓ Using Modern 7-Pattern Report Service");
+                    var modernService = new ModernSdjSevenPatternReportService();
+                    return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                }
+
+                // Fallback to legacy rendering if no 7-pattern data
+                Console.WriteLine($"⚠ No 7-pattern data found, using legacy SDJ rendering");
+
                 var dimensions = sdjData.Dimensions.OrderBy(d => d.T).ToList();
                 var subDimensions = sdjData.SubDimensions.OrderBy(s => s.T).ToList();
                 var tracks = sdjData.TrackFits.ToList();
 
-                Console.WriteLine($"📊 SDJ DATA: {dimensions.Count} dimensions, {subDimensions.Count} sub-dimensions, {tracks.Count} tracks");
-
-                // Generate PDF
+                // Generate PDF (legacy)
                 var pdf = Document.Create(document =>
                 {
                     // Page 1: Cover

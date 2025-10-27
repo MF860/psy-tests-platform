@@ -87,13 +87,24 @@ namespace PsyApi.Services.Scoring
                 Percentile = dimensionScores.Average(d => d.Percentile)
             };
 
+            // NEW: Compute 7-pattern scores
+            var sevenPatternScores = SevenPatternsMapper.MapToSevenPatterns(new SdjScoreSummary
+            {
+                Dimensions = dimensionScores,
+                SubDimensions = subDimensionScores,
+                TotalScore = totalScore
+            });
+
+            _logger.LogInformation("[SDJ] Computed {Count} seven-pattern scores", sevenPatternScores.Count);
+
             return new SdjScoreSummary
             {
                 Dimensions = dimensionScores,
                 SubDimensions = subDimensionScores,
                 TotalScore = totalScore,
                 TrackFits = trackFits,
-                Version = "SDJ_v1.0"
+                SevenPatternScores = sevenPatternScores,
+                Version = "SDJ_v2.0_7Patterns"
             };
         }
 
@@ -321,7 +332,8 @@ namespace PsyApi.Services.Scoring
         public List<SdjSubDimensionScore> SubDimensions { get; set; } = new();
         public SdjTotalScore TotalScore { get; set; } = new();
         public List<SdjTrackFit> TrackFits { get; set; } = new();
-        public string Version { get; set; } = "SDJ_v1.0";
+        public List<SevenPatternScore> SevenPatternScores { get; set; } = new();
+        public string Version { get; set; } = "SDJ_v2.0_7Patterns";
     }
 
     public class SdjDimensionScore
