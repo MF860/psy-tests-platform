@@ -71,25 +71,32 @@ namespace PsyApi.Services.Reports
                 // Generate PDF
                 var pdf = Document.Create(document =>
                 {
-                    // Page 1: Cover with participant info, logo, and 7-pattern summary
+                    // Page 1: Cover with STEST logo, participant info, professional intro
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
-                        ComposePage1_CoverAndSevenPatternSummary(page, user, result, patterns);
+                        ComposePage1_CoverAndIntro(page, user, result);
                     });
 
-                    // Page 2: Heptagon chart + horizontal bar chart for dimensions
+                    // Page 2: Visual analytics - charts (subdimensions bar + 7-pattern radar)
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
                         ComposePage2_ChartsAndVisualizations(page, patterns, sdjData.SubDimensions);
                     });
 
-                    // Page 3: Weak sub-dimensions table with course recommendations
+                    // Page 3: Seven Tracks Summary (NEW - as per requirements)
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
-                        ComposePage3_WeakAreasAndCourses(page, courseRecommendations);
+                        ComposePage3_SevenTracksSummary(page, patterns, sdjData.SubDimensions);
+                    });
+
+                    // Page 4: Detailed track analyses with courses (restructured)
+                    document.Page(page =>
+                    {
+                        ConfigurePageDefaults(page);
+                        ComposePage4_DetailedTrackAnalysesAndCourses(page, patterns, sdjData.SubDimensions, courseRecommendations);
                     });
                 });
 
@@ -98,7 +105,7 @@ namespace PsyApi.Services.Reports
                 var duration = endTime - startTime;
 
                 Console.WriteLine($"\n✅ SDJ 7-PATTERN PDF COMPLETE");
-                Console.WriteLine($"   Pages: 3");
+                Console.WriteLine($"   Pages: 4 (Cover + Charts + Seven Tracks + Courses)");
                 Console.WriteLine($"   Size: {pdfBytes.Length / 1024:F1} KB");
                 Console.WriteLine($"   Duration: {duration.TotalMilliseconds:F0}ms");
                 Console.WriteLine($"{'═',70}\n");
@@ -116,121 +123,108 @@ namespace PsyApi.Services.Reports
         #region Page Composition
 
         /// <summary>
-        /// Page 1: Cover with centered logo, Arabic title, participant info, and 7-pattern summary
+        /// Page 1: Professional cover with STEST logo, Arabic title, participant info, and professional intro
         /// </summary>
-        private void ComposePage1_CoverAndSevenPatternSummary(
+        private void ComposePage1_CoverAndIntro(
             PageDescriptor page,
             User user,
-            Result result,
-            List<SevenPatternScore> patterns)
+            Result result)
         {
             page.Content().Column(column =>
             {
-                // Centered logo at top (SAITEST-ICON.png)
+                // CENTERED LOGO AT TOP (STEST.PNG - high DPI, professional placement)
                 if (_logoBytes != null && _logoBytes.Length > 0)
                 {
                     column.Item()
                         .AlignCenter()
-                        .PaddingBottom(16)
-                        .Width(120)
-                        .Height(120)
+                        .PaddingBottom(12)
+                        .Width(100)
                         .Image(_logoBytes);
                 }
 
-                // Main title: منصة التحليل النفسي المتقدم (big, bold)
+                // MAIN TITLE - as specified: "التقرير النفسي الشامل — نتائج القياس والتحليل"
                 column.Item().AlignCenter()
-                    .Text("منصة التحليل النفسي المتقدم")
-                    .Style(ReportTheme.ArabicTextStyle(24, true, "#1e40af"));
+                    .Text("التقرير النفسي الشامل — نتائج القياس والتحليل")
+                    .Style(ReportTheme.ArabicTextStyle(22, true, "#1e40af"));
 
-                // Arabic subtitle (short, inspiring phrase)
-                column.Item().PaddingTop(8).AlignCenter()
-                    .Text("تقرير الأنماط السباعية للتحليل النفسي الشامل")
-                    .Style(ReportTheme.ArabicTextStyle(12, false, "#6b7280"));
+                column.Item().PaddingTop(24);
 
-                column.Item().PaddingTop(32);
-
-                // Participant Info Block (improved spacing & typography)
+                // PARTICIPANT INFO BLOCK - centered title, RTL table layout
                 column.Item()
                     .Background("#f9fafb")
                     .Border(1)
                     .BorderColor("#e5e7eb")
-                    .Padding(20)
+                    .Padding(16)
                     .Column(info =>
                     {
-                        info.Item().Text("معلومات المشارك")
+                        // Centered block title
+                        info.Item().AlignCenter().Text("بيانات المشارك")
                             .Style(ReportTheme.ArabicTextStyle(16, true, "#111827"));
                         
-                        info.Item().PaddingTop(12).Row(row =>
-                        {
-                            row.RelativeItem().Text($"الاسم: {user.FullName ?? "غير محدد"}")
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#374151"));
-                            row.RelativeItem().Text($"الرقم الوطني: {user.NationalId ?? "N/A"}")
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#374151"));
-                        });
+                        info.Item().PaddingTop(12);
                         
-                        info.Item().PaddingTop(8).Row(row =>
+                        // RTL table-style layout with labels on right, values on left
+                        info.Item().Table(table =>
                         {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.RelativeColumn(2); // Label column (right)
+                                cols.RelativeColumn(3); // Value column (left)
+                            });
+
+                            // Row 1: Full Name
+                            table.Cell().AlignRight().PaddingVertical(4).Text("الاسم الكامل:")
+                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
+                            table.Cell().AlignRight().PaddingVertical(4).Text(user.FullName ?? "غير محدد")
+                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
+
+                            // Row 2: National ID
+                            table.Cell().AlignRight().PaddingVertical(4).Text("الرقم الوطني:")
+                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
+                            table.Cell().AlignRight().PaddingVertical(4).Text(user.NationalId ?? "N/A")
+                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
+
+                            // Row 3: Session ID
+                            table.Cell().AlignRight().PaddingVertical(4).Text("رقم الجلسة:")
+                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
                             var sessionDisplay = result.SessionId.ToString();
-                            if (sessionDisplay.Length > 12) sessionDisplay = sessionDisplay[..12];
-                            
-                            row.RelativeItem().Text($"رقم الجلسة: {sessionDisplay}")
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#374151"));
-                            row.RelativeItem().Text($"التاريخ: {result.CreatedAt:dd-MM-yyyy}")
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#374151"));
+                            if (sessionDisplay.Length > 15) sessionDisplay = sessionDisplay[..15] + "...";
+                            table.Cell().AlignRight().PaddingVertical(4).Text(sessionDisplay)
+                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
+
+                            // Row 4: Date/Time
+                            table.Cell().AlignRight().PaddingVertical(4).Text("التاريخ/الوقت:")
+                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
+                            table.Cell().AlignRight().PaddingVertical(4).Text(result.CreatedAt.ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture))
+                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
                         });
-                        
-                        if (!string.IsNullOrEmpty(user.Email))
-                        {
-                            info.Item().PaddingTop(8).Text($"البريد الإلكتروني: {user.Email}")
-                                .Style(ReportTheme.ArabicTextStyle(11, false, "#6b7280"));
-                        }
                     });
 
-                column.Item().PaddingTop(32);
+                column.Item().PaddingTop(20);
 
-                // 7 Pattern Scores Summary (compact grid with colored badges)
-                column.Item().Text("ملخص الأنماط السباعية")
-                    .Style(ReportTheme.ArabicTextStyle(18, true, "#111827"));
-
-                column.Item().PaddingTop(16).Column(summary =>
-                {
-                    foreach (var pattern in patterns)
+                // PROFESSIONAL INTRO PARAGRAPH - as specified
+                column.Item().AlignRight()
+                    .Padding(12)
+                    .Background("#eef2ff")
+                    .Border(0.5f).BorderColor("#c7d2fe")
+                    .Column(intro =>
                     {
-                        summary.Item().PaddingVertical(6).Row(row =>
-                        {
-                            // Pattern name (Arabic)
-                            row.RelativeItem(3).Text(pattern.PatternNameAr)
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#374151"));
-                            
-                            // T-Score with colored badge
-                            row.AutoItem().PaddingHorizontal(8)
-                                .Background(ReportTheme.GetBandColor(pattern.TScore))
-                                .PaddingVertical(4)
-                                .PaddingHorizontal(6)
-                                .Text($"T={ReportTheme.FormatNum(pattern.TScore, 1)}")
-                                .Style(TextStyle.Default.FontSize(11).FontColor("#ffffff").Bold());
-                            
-                            // Band label in Arabic
-                            var bandAr = pattern.Band switch
-                            {
-                                "Excellent" => "ممتاز",
-                                "Average" => "متوسط",
-                                _ => "يحتاج تطوير"
-                            };
-                            row.AutoItem().Text(bandAr)
-                                .Style(ReportTheme.ArabicTextStyle(11, false, "#6b7280"));
-                        });
-                    }
-                });
+                        intro.Item().Text(
+                            "يُقدم هذا التقرير تحليلاً شاملاً لسماتك النفسية وقدراتك المهنية بناءً على إطار التنمية المستدامة (SDJ). " +
+                            "تم تقييم أدائك عبر سبعة أنماط رئيسية و24 بُعداً فرعياً، وتمثل الدرجات كنسب معيارية (T-Scores) حيث " +
+                            "50 هي المتوسط، وكلما ارتفعت الدرجة دل ذلك على قوة أكبر في البُعد المقاس. يتضمن التقرير توصيات تطويرية " +
+                            "ودورات تدريبية مخصصة لتعزيز جوانب القوة ومعالجة مجالات التحسين."
+                        ).Style(ReportTheme.ArabicTextStyle(11, false, "#1e3a8a")).LineHeight(1.6f);
+                    });
             });
 
             // Footer
-            page.Footer().AlignCenter().Text("صفحة 1 / 3")
+            page.Footer().AlignCenter().Text("صفحة 1")
                 .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
 
         /// <summary>
-        /// Page 2: Heptagon radar chart + horizontal bar chart for detail
+        /// Page 2: Visual analytics - horizontal bar chart (subdimensions) + radar chart (7 patterns)
         /// </summary>
         private void ComposePage2_ChartsAndVisualizations(
             PageDescriptor page,
@@ -239,49 +233,24 @@ namespace PsyApi.Services.Reports
         {
             page.Content().Column(column =>
             {
-                // Title
-                column.Item().Text("التحليل البصري للأنماط")
+                // MAIN SECTION TITLE
+                column.Item().AlignCenter().Text("التحليل البصري للأنماط")
                     .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
 
-                column.Item().PaddingTop(20);
+                column.Item().PaddingTop(16);
 
-                // Section 1: Heptagon Radar Chart (الخريطة النفسية السباعية)
-                column.Item().Text("الخريطة النفسية السباعية")
-                    .Style(ReportTheme.ArabicTextStyle(16, true, "#374151"));
+                // SUB-SECTION 1: Horizontal Bar Chart for Subdimensions (restored as requested)
+                column.Item().AlignRight().Text("توزيع الدرجات التفصيلي عبر الأبعاد الفرعية (T-Score)")
+                    .Style(ReportTheme.ArabicTextStyle(14, true, "#374151"));
 
-                column.Item().PaddingTop(12);
-
-                try
-                {
-                    var heptagonBytes = HeptagonRadarChartRenderer.RenderHeptagonChart(
-                        patterns, 
-                        size: 480, 
-                        title: "الخريطة النفسية السباعية");
-                    
-                    column.Item().AlignCenter().Height(480).Image(heptagonBytes);
-                    Console.WriteLine("   ✓ Heptagon chart rendered successfully");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"   ⚠ Heptagon chart failed: {ex.Message}");
-                    column.Item().AlignCenter().Text("[Heptagon Chart Error]")
-                        .Style(TextStyle.Default.FontSize(10).FontColor("#ef4444"));
-                }
-
-                column.Item().PaddingTop(32);
-
-                // Section 2: Horizontal Bar Chart (kept as-is per requirements)
-                column.Item().Text("توزيع الدرجات التفصيلية")
-                    .Style(ReportTheme.ArabicTextStyle(16, true, "#374151"));
-
-                column.Item().PaddingTop(12);
+                column.Item().PaddingTop(8);
 
                 try
                 {
-                    // Take top 12 dimensions for horizontal bar chart
-                    var topSubDims = subDimensions
-                        .OrderByDescending(s => s.T)
-                        .Take(12)
+                    // Sort subdimensions ascending by T-score (weakest first, strongest last)
+                    var sortedSubDims = subDimensions
+                        .OrderBy(s => s.T)
+                        .Take(18) // Max 18 for readability on one page
                         .Select(s => new DimensionScore
                         {
                             Dimension = s.SubDimension,
@@ -291,26 +260,231 @@ namespace PsyApi.Services.Reports
                         .ToList();
 
                     var barChartBytes = HorizontalBarChartRenderer.RenderHorizontalBars(
-                        topSubDims,
-                        width: 560,
-                        maxDimensions: 12);
+                        sortedSubDims,
+                        width: 540,
+                        maxDimensions: 18);
                     
                     column.Item().AlignCenter().Image(barChartBytes);
-                    Console.WriteLine($"   ✓ Horizontal bar chart rendered ({topSubDims.Count} dimensions)");
+                    Console.WriteLine($"   ✓ Horizontal subdimension bar chart rendered ({sortedSubDims.Count} dimensions)");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"   ⚠ Bar chart failed: {ex.Message}");
+                    Console.WriteLine($"   ⚠ Bar chart rendering failed: {ex.Message}");
+                    column.Item().AlignCenter().PaddingVertical(20)
+                        .Text("[خطأ في رسم المخطط الشريطي]")
+                        .Style(TextStyle.Default.FontSize(11).FontColor("#ef4444"));
+                }
+
+                column.Item().PaddingTop(24);
+
+                // SUB-SECTION 2: Heptagon Radar Chart for 7 Patterns (fixed Arabic labels with HarfBuzz)
+                column.Item().AlignRight().Text("التحليل البصري للأنماط الرئيسية")
+                    .Style(ReportTheme.ArabicTextStyle(14, true, "#374151"));
+
+                column.Item().PaddingTop(8).AlignCenter()
+                    .Text("(الرسم البياني السباعي يُظهر توزيع الأنماط السبعة الرئيسية)")
+                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
+
+                column.Item().PaddingTop(12);
+
+                try
+                {
+                    var heptagonBytes = HeptagonRadarChartRenderer.RenderHeptagonChart(
+                        patterns, 
+                        size: 420, 
+                        title: "الخريطة النفسية السباعية");
+                    
+                    column.Item().AlignCenter().Height(420).Image(heptagonBytes);
+                    Console.WriteLine("   ✓ Heptagon radar chart rendered with Arabic labels (HarfBuzz enabled)");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"   ⚠ Heptagon chart rendering failed: {ex.Message}");
+                    column.Item().AlignCenter().PaddingVertical(20)
+                        .Text("[خطأ في رسم المخطط السباعي]")
+                        .Style(TextStyle.Default.FontSize(11).FontColor("#ef4444"));
                 }
             });
 
             // Footer
-            page.Footer().AlignCenter().Text("صفحة 2 / 3")
+            page.Footer().AlignCenter().Text("صفحة 2")
                 .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
 
         /// <summary>
-        /// Page 3: Weak sub-dimensions table with course recommendations
+        /// Page 3: Seven Tracks Summary (ملخص الأنماط الرئيسية) - as per requirements
+        /// Shows all 7 SDJ tracks with T-scores, bands, and interpretations
+        /// </summary>
+        private void ComposePage3_SevenTracksSummary(
+            PageDescriptor page,
+            List<SevenPatternScore> patterns,
+            List<SdjSubDimensionScore> subDimensions)
+        {
+            page.Content().Column(column =>
+            {
+                // MAIN TITLE
+                column.Item().AlignCenter().Text("ملخص الأنماط الرئيسية")
+                    .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
+
+                column.Item().PaddingTop(8).AlignCenter()
+                    .Text("(تحليل شامل للأنماط السبعة بناءً على نتائجك في الاختبار)")
+                    .Style(ReportTheme.ArabicTextStyle(10, false, "#6b7280"));
+
+                column.Item().PaddingTop(16);
+
+                // Sort patterns by T-score descending (best first)
+                var sortedPatterns = patterns.OrderByDescending(p => p.TScore).ToList();
+
+                // Display all 7 tracks with interpretations
+                foreach (var pattern in sortedPatterns)
+                {
+                    column.Item().PaddingBottom(14)
+                        .Border(1)
+                        .BorderColor("#e5e7eb")
+                        .Background("#fafafa")
+                        .Padding(14)
+                        .Column(trackCard =>
+                        {
+                            // Track header: Name + T-score badge + Band
+                            trackCard.Item().Row(header =>
+                            {
+                                header.RelativeItem(3).Text(pattern.PatternNameAr)
+                                    .Style(ReportTheme.ArabicTextStyle(14, true, "#111827"));
+                                
+                                header.AutoItem().PaddingHorizontal(8)
+                                    .Background(ReportTheme.GetBandColor(pattern.TScore))
+                                    .PaddingVertical(4)
+                                    .PaddingHorizontal(8)
+                                    .Text($"T = {ReportTheme.FormatNum(pattern.TScore, 1)}")
+                                    .Style(TextStyle.Default.FontSize(11).FontColor("#ffffff").Bold());
+                                
+                                var bandLabel = GetBandLabel(pattern.TScore);
+                                header.AutoItem().AlignMiddle().Text(bandLabel)
+                                    .Style(ReportTheme.ArabicTextStyle(11, true, GetBandColor(pattern.TScore)));
+                            });
+
+                            // Interpretation paragraph
+                            trackCard.Item().PaddingTop(8).Text(GetTrackInterpretation(pattern, subDimensions))
+                                .Style(ReportTheme.ArabicTextStyle(10, false, "#374151")).LineHeight(1.5f);
+                        });
+                }
+            });
+
+            // Footer
+            page.Footer().AlignCenter().Text("صفحة 3")
+                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
+        }
+
+        /// <summary>
+        /// Page 4: Detailed track analyses organized by track (not by weakness) + course recommendations
+        /// Title: "الدورات المقترحة لكل مسار" (no mention of "weak")
+        /// </summary>
+        private void ComposePage4_DetailedTrackAnalysesAndCourses(
+            PageDescriptor page,
+            List<SevenPatternScore> patterns,
+            List<SdjSubDimensionScore> subDimensions,
+            List<SubDimensionCourseRecommendation> courseRecommendations)
+        {
+            page.Content().Column(column =>
+            {
+                // MAIN TITLE - restructured as per requirements
+                column.Item().AlignCenter().Text("الدورات المقترحة لكل مسار")
+                    .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
+
+                column.Item().PaddingTop(8).AlignCenter()
+                    .Text("(توصيات تطويرية مخصصة لكل نمط من الأنماط السبعة)")
+                    .Style(ReportTheme.ArabicTextStyle(10, false, "#6b7280"));
+
+                column.Item().PaddingTop(16);
+
+                // Organize by tracks (show subdimensions within each track)
+                var sortedPatterns = patterns.OrderByDescending(p => p.TScore).ToList();
+                
+                // Show top 3-4 tracks for space management
+                foreach (var pattern in sortedPatterns.Take(4))
+                {
+                    column.Item().PaddingBottom(16)
+                        .Column(trackSection =>
+                        {
+                            // Track heading
+                            trackSection.Item().Background("#f3f4f6")
+                                .Padding(10)
+                                .Row(header =>
+                                {
+                                    header.RelativeItem().Text(pattern.PatternNameAr)
+                                        .Style(ReportTheme.ArabicTextStyle(14, true, "#1f2937"));
+                                    header.AutoItem().Text($"T = {ReportTheme.FormatNum(pattern.TScore, 1)}")
+                                        .Style(ReportTheme.ArabicTextStyle(12, true, GetBandColor(pattern.TScore)));
+                                });
+
+                            // Subdimensions table within this track
+                            var trackSubDims = pattern.SubDimensions.OrderBy(s => s.T).ToList();
+                            if (trackSubDims.Any())
+                            {
+                                trackSection.Item().PaddingTop(8).Column(subDimTable =>
+                                {
+                                    foreach (var subDim in trackSubDims.Take(3)) // Max 3 per track for space
+                                    {
+                                        subDimTable.Item().PaddingVertical(4).Row(row =>
+                                        {
+                                            row.RelativeItem(2).Text(subDim.SubDimension)
+                                                .Style(ReportTheme.ArabicTextStyle(10, false, "#4b5563"));
+                                            row.AutoItem().Text($"T={ReportTheme.FormatNum(subDim.T, 1)}")
+                                                .Style(TextStyle.Default.FontSize(9).FontColor("#6b7280"));
+                                            row.RelativeItem(1).Text(GetMiniAssessment(subDim.T))
+                                                .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
+                                        });
+                                    }
+                                });
+                            }
+
+                            // Course recommendations for this track's weak subdimensions
+                            var trackCourses = courseRecommendations
+                                .Where(c => pattern.SubDimensions.Any(s => s.SubDimension == c.SubDimensionAr))
+                                .SelectMany(c => c.RecommendedCourses)
+                                .Distinct()
+                                .Take(3)
+                                .ToList();
+
+                            if (trackCourses.Any())
+                            {
+                                trackSection.Item().PaddingTop(6).Column(courses =>
+                                {
+                                    courses.Item().Text("دورات مقترحة:")
+                                        .Style(ReportTheme.ArabicTextStyle(10, true, "#374151"));
+                                    foreach (var course in trackCourses)
+                                    {
+                                        courses.Item().PaddingVertical(2).Row(courseRow =>
+                                        {
+                                            courseRow.AutoItem().Width(12).Text("•")
+                                                .Style(TextStyle.Default.FontSize(10).FontColor("#2563eb"));
+                                            courseRow.RelativeItem().Text(course)
+                                                .Style(ReportTheme.ArabicTextStyle(9, false, "#4b5563"));
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                }
+
+                column.Item().PaddingTop(20);
+
+                // CLOSING LINE - as specified
+                column.Item().AlignCenter()
+                    .Background("#eef2ff")
+                    .Padding(12)
+                    .Text("ابدأ رحلتك التدريبية المخصصة عبر منصة استدامة.")
+                    .Style(ReportTheme.ArabicTextStyle(12, true, "#1e40af"));
+            });
+
+            // Footer
+            page.Footer().AlignCenter().Text("صفحة 4")
+                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
+        }
+
+        /// <summary>
+        /// Page 3 (OLD): Weak sub-dimensions table with course recommendations
+        /// REPLACED by new structure above - keeping for reference during migration
         /// </summary>
         private void ComposePage3_WeakAreasAndCourses(
             PageDescriptor page,
@@ -403,6 +577,71 @@ namespace PsyApi.Services.Reports
             page.DefaultTextStyle(style => ReportTheme.ArabicTextStyle(11, false, "#374151"));
         }
 
+        /// <summary>
+        /// Get Arabic band label based on T-score
+        /// </summary>
+        private string GetBandLabel(double tScore)
+        {
+            if (tScore >= 55) return "متقدّم";
+            if (tScore >= 45) return "متوسط";
+            return "بحاجة لتنمية";
+        }
+
+        /// <summary>
+        /// Get band color based on T-score
+        /// </summary>
+        private string GetBandColor(double tScore)
+        {
+            if (tScore >= 55) return "#10b981"; // Green
+            if (tScore >= 40) return "#f59e0b"; // Orange
+            return "#ef4444"; // Red
+        }
+
+        /// <summary>
+        /// Generate track interpretation based on pattern score and subdimensions (data-driven, no AI)
+        /// </summary>
+        private string GetTrackInterpretation(SevenPatternScore pattern, List<SdjSubDimensionScore> allSubDimensions)
+        {
+            var trackSubDims = pattern.SubDimensions.OrderByDescending(s => s.T).ToList();
+            var avgT = pattern.TScore;
+            
+            // Get top strengths and weaknesses
+            var topStrengths = trackSubDims.Take(2).Select(s => s.SubDimension).ToList();
+            var topWeaknesses = trackSubDims.OrderBy(s => s.T).Take(2).Select(s => s.SubDimension).ToList();
+
+            string interpretation;
+            
+            if (avgT >= 55) // Excellent
+            {
+                interpretation = $"يُظهر أداءً متقدماً في {pattern.PatternNameAr} (T = {avgT:F1})، مع نقاط قوة بارزة في: {string.Join("، ", topStrengths)}. " +
+                                 $"يُنصح بالحفاظ على هذا المستوى من خلال الممارسة المستمرة والتحديات الجديدة.";
+            }
+            else if (avgT >= 45) // Average
+            {
+                interpretation = $"يُظهر مستوى متوسط في {pattern.PatternNameAr} (T = {avgT:F1})، مع إمكانيات للتطوير. " +
+                                 $"يُنصح بالتركيز على تحسين: {string.Join("، ", topWeaknesses)} من خلال التدريب المستهدف والممارسة العملية.";
+            }
+            else // Needs development
+            {
+                interpretation = $"يحتاج {pattern.PatternNameAr} إلى تطوير مكثف (T = {avgT:F1}). " +
+                                 $"يُنصح بالبدء بتحسين: {string.Join("، ", topWeaknesses)} من خلال دورات تدريبية متخصصة ومتابعة منتظمة. " +
+                                 $"التحسن في هذه المجالات سيرفع الأداء العام بشكل ملحوظ.";
+            }
+
+            return interpretation;
+        }
+
+        /// <summary>
+        /// Get mini assessment for subdimension (one-liner)
+        /// </summary>
+        private string GetMiniAssessment(double tScore)
+        {
+            if (tScore >= 55) return "قوي";
+            if (tScore >= 45) return "مقبول";
+            if (tScore >= 35) return "يحتاج تطوير";
+            return "ضعيف";
+        }
+
         private static void EnsureFonts()
         {
             if (_fontsRegistered) return;
@@ -442,9 +681,14 @@ namespace PsyApi.Services.Reports
         {
             try
             {
-                var logoPath = Path.Combine(AppContext.BaseDirectory, "Resources", "Brand", "SAITEST-ICON.png");
+                // PRIMARY: Use STEST.PNG as per requirements
+                var logoPath = Path.Combine(AppContext.BaseDirectory, "Resources", "Brand", "STEST.png");
                 
-                // Fallback to SAITES-ICON.png if SAITEST not found
+                // Fallbacks if STEST.png not found
+                if (!File.Exists(logoPath))
+                {
+                    logoPath = Path.Combine(AppContext.BaseDirectory, "Resources", "Brand", "SAITEST-ICON.png");
+                }
                 if (!File.Exists(logoPath))
                 {
                     logoPath = Path.Combine(AppContext.BaseDirectory, "Resources", "Brand", "SAITES-ICON.png");
@@ -453,11 +697,11 @@ namespace PsyApi.Services.Reports
                 if (File.Exists(logoPath))
                 {
                     _logoBytes = File.ReadAllBytes(logoPath);
-                    Console.WriteLine($"[ModernSdjSevenPatternReportService] ✓ Logo loaded from {logoPath}");
+                    Console.WriteLine($"[ModernSdjSevenPatternReportService] ✓ Logo loaded from {Path.GetFileName(logoPath)}");
                 }
                 else
                 {
-                    Console.WriteLine($"[ModernSdjSevenPatternReportService] ⚠ Logo not found: {logoPath}");
+                    Console.WriteLine($"[ModernSdjSevenPatternReportService] ⚠ Logo not found in Resources/Brand/");
                 }
             }
             catch (Exception ex)
