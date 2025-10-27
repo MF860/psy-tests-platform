@@ -26,7 +26,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfontconfig1 \
     libfreetype6 \
     libharfbuzz0b \
+    libharfbuzz-gobject0 \
+    libharfbuzz-icu0 \
     libpng16-16 \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Ensure ICU/globalization support is enabled
