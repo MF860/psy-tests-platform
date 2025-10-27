@@ -210,8 +210,8 @@ namespace PsyApi.Services.Reports
                     .Column(intro =>
                     {
                         intro.Item().Text(
-                            "يُقدم هذا التقرير تحليلاً شاملاً لسماتك النفسية وقدراتك المهنية بناءً على إطار التنمية المستدامة (SDJ). " +
-                            "تم تقييم أدائك عبر سبعة أنماط رئيسية و24 بُعداً فرعياً، وتمثل الدرجات كنسب معيارية (T-Scores) حيث " +
+                            "يُقدم هذا التقرير تحليلاً شاملاً لسماتك النفسية وقدراتك المهنية بناءً على إطار التنمية المستدامة SDJ. " +
+                            "تم تقييم أدائك عبر سبعة أنماط رئيسية و24 بُعداً فرعياً، وتمثل الدرجات كنسب معيارية T-Scores حيث " +
                             "50 هي المتوسط، وكلما ارتفعت الدرجة دل ذلك على قوة أكبر في البُعد المقاس. يتضمن التقرير توصيات تطويرية " +
                             "ودورات تدريبية مخصصة لتعزيز جوانب القوة ومعالجة مجالات التحسين."
                         ).Style(ReportTheme.ArabicTextStyle(11, false, "#1e3a8a")).LineHeight(1.6f);
@@ -240,7 +240,7 @@ namespace PsyApi.Services.Reports
                 column.Item().PaddingTop(16);
 
                 // SUB-SECTION 1: Horizontal Bar Chart for Subdimensions (restored as requested)
-                column.Item().AlignRight().Text("توزيع الدرجات التفصيلي عبر الأبعاد الفرعية (T-Score)")
+                column.Item().AlignRight().Text("توزيع الدرجات التفصيلي عبر الأبعاد الفرعية - T-Score")
                     .Style(ReportTheme.ArabicTextStyle(14, true, "#374151"));
 
                 column.Item().PaddingTop(8);
@@ -285,7 +285,7 @@ namespace PsyApi.Services.Reports
                     .Style(ReportTheme.ArabicTextStyle(14, true, "#374151"));
 
                 column.Item().PaddingTop(8).AlignCenter()
-                    .Text("(الرسم البياني السباعي يُظهر توزيع الأنماط السبعة الرئيسية)")
+                    .Text("الرسم البياني السباعي يُظهر توزيع الأنماط السبعة الرئيسية")
                     .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
 
                 column.Item().PaddingTop(12);

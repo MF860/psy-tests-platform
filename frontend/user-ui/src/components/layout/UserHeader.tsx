@@ -23,15 +23,21 @@ export default function UserHeader({ showStep, stepLabel, className = "" }: User
         {/* Brand Section - Right side in RTL */}
         <div className="flex items-center space-sm">
           <img
+            src="/FB-ICON.png"
+            alt="أيقونة المنصة"
+            className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
+            style={{ minWidth: '40px', minHeight: '40px' }}
+          />
+          <img
             src="/SAITES-ICON.png"
-            alt="منصة الاختبارات النفسية"
+            alt="منصة الاختبارات القياسية"
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
             style={{ minWidth: '40px', minHeight: '40px' }}
           />
           <div className="flex flex-col">
             <h1 className="font-semibold text-base sm:text-lg lg:text-xl text-slate-900 leading-tight">
-              <span className="hidden sm:inline">منصة الاختبارات النفسية</span>
-              <span className="sm:hidden">الاختبارات النفسية</span>
+              <span className="hidden sm:inline">منصة الاختبارات القياسية</span>
+              <span className="sm:hidden">الاختبارات القياسية</span>
             </h1>
           </div>
         </div>

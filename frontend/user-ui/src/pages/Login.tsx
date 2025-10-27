@@ -79,7 +79,7 @@ function LoginContent() {
             {/* Welcome Section */}
             <div className="text-center space-lg">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
-                مرحباً بك في منصة الاختبارات النفسية
+                مرحباً بك في منصة الاختبارات القياسية
               </h1>
               <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                 أدخل الرقم الوطني للبدء في الاختبار النفسي المخصص لك

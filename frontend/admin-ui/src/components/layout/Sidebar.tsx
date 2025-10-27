@@ -21,8 +21,13 @@ export default function Sidebar() {
   return (
     <div className="hidden md:flex md:w-64 md:flex-col">
       <div className="flex flex-col flex-grow pt-5 bg-white overflow-y-auto border-r">
-        <div className="flex items-center flex-shrink-0 px-4">
-          <div className="text-xl font-bold text-blue-600">نظام الاختبارات النفسية</div>
+        <div className="flex items-center flex-shrink-0 px-4 gap-3">
+          <img
+            src="/FB-ICON.png"
+            alt="أيقونة المنصة"
+            className="w-10 h-10 object-contain"
+          />
+          <div className="text-xl font-bold text-blue-600">نظام الاختبارات القياسية</div>
         </div>
         <div className="mt-8 flex-grow flex flex-col">
           <nav className="flex-1 px-2 pb-4 space-y-1">
