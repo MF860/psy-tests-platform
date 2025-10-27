@@ -29,7 +29,7 @@ export default function UserHeader({ showStep, stepLabel, className = "" }: User
             style={{ minWidth: '40px', minHeight: '40px' }}
           />
           <img
-            src="/STEST-ICON.png"
+            src="/STEST.png"
             alt="منصة الاختبارات القياسية"
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
             style={{ minWidth: '40px', minHeight: '40px' }}
