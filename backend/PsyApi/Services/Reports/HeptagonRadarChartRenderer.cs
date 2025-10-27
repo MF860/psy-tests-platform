@@ -1,28 +1,30 @@
 using SkiaSharp;
+using SkiaSharp.HarfBuzz;
 using PsyApi.Services.Scoring;
 
 namespace PsyApi.Services.Reports
 {
     /// <summary>
     /// Renders a heptagon (7-sided) radar/polar chart for the Seven Patterns
-    /// Pure vector rendering with Skia - no PNG images
-    /// Arabic labels with proper RTL support
+    /// Pure vector rendering with Skia - Arabic labels with HarfBuzz shaping
     /// </summary>
     public static class HeptagonRadarChartRenderer
     {
+        private static SKTypeface? _arabicTypeface;
+        private static SKShaper? _arabicShaper;
+        private static readonly object _lock = new();
+
         /// <summary>
-        /// Renders a heptagon radar chart showing 7 pattern scores
+        /// Renders a heptagon radar chart showing 7 pattern scores with proper Arabic labels
         /// </summary>
-        /// <param name="patternScores">The 7 pattern scores to visualize</param>
-        /// <param name="size">Chart size (width and height in pixels)</param>
-        /// <param name="title">Chart title in Arabic</param>
-        /// <returns>PNG byte array for QuestPDF rendering</returns>
         public static byte[] RenderHeptagonChart(
             List<SevenPatternScore> patternScores,
             int size = 500,
             string title = "الخريطة النفسية السباعية")
         {
-            // Ensure we have exactly 7 patterns (pad with defaults if needed)
+            EnsureArabicFont();
+
+            // Ensure we have exactly 7 patterns
             var orderedPatterns = patternScores.OrderBy(p => p.PatternKey).Take(7).ToList();
             while (orderedPatterns.Count < 7)
             {
@@ -190,68 +192,118 @@ namespace PsyApi.Services.Reports
         }
 
         /// <summary>
-        /// Draws Arabic text label with proper positioning based on angle
+        /// Draws Arabic text label with HarfBuzz shaping for proper rendering
         /// </summary>
         private static void DrawArabicLabel(SKCanvas canvas, string text, float x, float y, double angle)
         {
+            if (_arabicShaper == null || _arabicTypeface == null)
+            {
+                // Fallback to simple text if fonts not loaded
+                using var fallbackPaint = new SKPaint { Color = SKColor.Parse("#1f2937"), IsAntialias = true };
+                using var fallbackFont = new SKFont(SKTypeface.FromFamilyName("Arial"), 11);
+                canvas.DrawText(text, x, y, SKTextAlign.Center, fallbackFont, fallbackPaint);
+                return;
+            }
+
             using var textPaint = new SKPaint
             {
                 Color = SKColor.Parse("#1f2937"),
                 IsAntialias = true
             };
-            using var textFont = new SKFont(SKTypeface.FromFamilyName("Arial", SKFontStyle.Normal), 11);
+            using var textFont = new SKFont(_arabicTypeface, 11);
 
-            // Adjust text alignment based on position
-            SKTextAlign align;
+            // Calculate text width with HarfBuzz
+            var shapedText = _arabicShaper.Shape(text, textFont);
+            var textWidth = shapedText.Width;
+
+            // Adjust text alignment based on angle
+            float offsetX = 0;
+            float offsetY = 0;
+
             if (angle >= -100 && angle <= -80)
             {
                 // Top - center
-                align = SKTextAlign.Center;
+                offsetX = -textWidth / 2;
+                offsetY = -5;
             }
             else if (angle > -80 && angle < 0)
             {
-                // Top-right - left align
-                align = SKTextAlign.Left;
-                x += 5;
+                // Top-right
+                offsetX = 5;
+                offsetY = 0;
             }
             else if (angle >= 0 && angle <= 100)
             {
-                // Bottom-right - left align
-                align = SKTextAlign.Left;
-                x += 5;
+                // Bottom-right
+                offsetX = 5;
+                offsetY = 0;
             }
             else if (angle > 100 && angle < 170)
             {
                 // Bottom - center
-                align = SKTextAlign.Center;
-                y += 5;
+                offsetX = -textWidth / 2;
+                offsetY = 15;
             }
             else
             {
                 // Left side - right align
-                align = SKTextAlign.Right;
-                x -= 5;
+                offsetX = -textWidth - 5;
+                offsetY = 0;
             }
 
-            // Handle multi-line wrapping for long labels
-            var words = text.Split(' ');
-            if (words.Length > 3)
+            // Handle multi-line wrapping for long labels (> 20 chars)
+            if (text.Length > 20)
             {
-                var line1 = string.Join(" ", words.Take(3));
-                var line2 = string.Join(" ", words.Skip(3));
-                canvas.DrawText(line1, x, y - 6, align, textFont, textPaint);
-                canvas.DrawText(line2, x, y + 6, align, textFont, textPaint);
+                var words = text.Split(' ');
+                if (words.Length > 2)
+                {
+                    var line1 = string.Join(" ", words.Take(2));
+                    var line2 = string.Join(" ", words.Skip(2));
+                    
+                    var shaped1 = _arabicShaper.Shape(line1, textFont);
+                    var shaped2 = _arabicShaper.Shape(line2, textFont);
+                    
+                    canvas.DrawShapedText(_arabicShaper, line1, x + offsetX, y + offsetY - 8, textFont, textPaint);
+                    canvas.DrawShapedText(_arabicShaper, line2, x + offsetX, y + offsetY + 8, textFont, textPaint);
+                    return;
+                }
             }
-            else if (words.Length > 2)
+
+            canvas.DrawShapedText(_arabicShaper, text, x + offsetX, y + offsetY, textFont, textPaint);
+        }
+
+        /// <summary>
+        /// Ensures Arabic font and HarfBuzz shaper are loaded
+        /// </summary>
+        private static void EnsureArabicFont()
+        {
+            if (_arabicTypeface != null && _arabicShaper != null) return;
+
+            lock (_lock)
             {
-                var line1 = string.Join(" ", words.Take(2));
-                var line2 = words.Last();
-                canvas.DrawText(line1, x, y - 6, align, textFont, textPaint);
-                canvas.DrawText(line2, x, y + 6, align, textFont, textPaint);
-            }
-            else
-            {
-                canvas.DrawText(text, x, y, align, textFont, textPaint);
+                if (_arabicTypeface != null && _arabicShaper != null) return;
+
+                try
+                {
+                    var fontsDir = Path.Combine(AppContext.BaseDirectory, "Resources", "Fonts");
+                    var regularPath = Path.Combine(fontsDir, "NotoNaskhArabic-Regular.ttf");
+
+                    if (File.Exists(regularPath))
+                    {
+                        using var fontStream = File.OpenRead(regularPath);
+                        _arabicTypeface = SKTypeface.FromStream(fontStream);
+                        _arabicShaper = new SKShaper(_arabicTypeface);
+                        Console.WriteLine("[HeptagonRenderer] ✓ Arabic font loaded with HarfBuzz shaper");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[HeptagonRenderer] ⚠ Arabic font not found: {regularPath}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[HeptagonRenderer] ⚠ Font loading error: {ex.Message}");
+                }
             }
         }
     }
