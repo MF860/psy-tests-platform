@@ -49,6 +49,8 @@ namespace PsyApi.Controllers
         public List<SdjDimensionPayload> Dimensions { get; set; } = new();
         public List<SdjSubDimensionPayload> SubDimensions { get; set; } = new();
         public List<SdjTrackFitPayload> TrackFits { get; set; } = new();
+        public List<SevenPatternPayload>? SevenPatternScores { get; set; } = new(); // NEW: For 7-pattern report
+        public string? Version { get; set; } // NEW: Scoring model version
     }
 
     public class SdjDimensionPayload
@@ -73,6 +75,15 @@ namespace PsyApi.Controllers
         public string TrackNameAr { get; set; } = string.Empty;
         public string FitLevel { get; set; } = string.Empty;
         public double FitScore { get; set; }
+    }
+
+    public class SevenPatternPayload
+    {
+        public string PatternNameAr { get; set; } = string.Empty;
+        public string PatternNameEn { get; set; } = string.Empty;
+        public double TScore { get; set; }
+        public string Band { get; set; } = string.Empty;
+        public List<string> SubDimensions { get; set; } = new();
     }
 
     public class Models
@@ -905,12 +916,14 @@ namespace PsyApi.Controllers
                 {
                     var sdjScores = await _sdjScoringService!.ComputeSdjScores(session.Id);
                     
-                    // Store SDJ-specific data in JSON
+                    // Store SDJ-specific data in JSON - INCLUDING 7-PATTERN SCORES (critical for new report)
                     result.DimensionScoresJson = JsonSerializer.Serialize(new
                     {
                         Dimensions = sdjScores.Dimensions,
                         SubDimensions = sdjScores.SubDimensions,
-                        TrackFits = sdjScores.TrackFits
+                        TrackFits = sdjScores.TrackFits,
+                        SevenPatternScores = sdjScores.SevenPatternScores, // NEW: Required for ModernSdjSevenPatternReportService
+                        Version = sdjScores.Version
                     }, jsonOptions);
                     
                     result.CompositeScoresJson = JsonSerializer.Serialize(new
@@ -949,7 +962,16 @@ namespace PsyApi.Controllers
                                 TrackNameAr = tf.TrackNameAr,
                                 FitLevel = tf.FitLevel,
                                 FitScore = tf.FitScore
-                            }).ToList()
+                            }).ToList(),
+                            SevenPatternScores = sdjScores.SevenPatternScores?.Select(sp => new SevenPatternPayload
+                            {
+                                PatternNameAr = sp.PatternNameAr,
+                                PatternNameEn = sp.PatternNameEn,
+                                TScore = sp.TScore,
+                                Band = sp.Band,
+                                SubDimensions = sp.SubDimensions.Select(sd => sd.SubDimension).ToList()
+                            }).ToList(),
+                            Version = sdjScores.Version
                         };
                         session.Payload = JsonSerializer.Serialize(payload, jsonOptions);
                     }
