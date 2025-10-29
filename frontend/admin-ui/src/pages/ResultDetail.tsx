@@ -447,6 +447,20 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
   const [error, setError] = useState('')
   const [analysis, setAnalysis] = useState<AiAnalysisResponse | null>(null)
   const [hasTriedGeneration, setHasTriedGeneration] = useState(false)
+  const [aiHealthStatus, setAiHealthStatus] = useState<{enabled: boolean, message: string} | null>(null)
+
+  // Check AI health on mount
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const health = await AdminApi.aiHealth()
+        setAiHealthStatus({ enabled: health.enabled, message: health.message })
+      } catch (err) {
+        setAiHealthStatus({ enabled: false, message: 'خطأ في فحص حالة خدمة الذكاء الاصطناعي' })
+      }
+    }
+    checkHealth()
+  }, [])
 
   const generateAnalysis = async (forceRegenerate = false) => {
     setLoading(true)
@@ -466,12 +480,25 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
     }
   }
 
-  // Auto-generate on mount if not cached
+  // Auto-generate on mount if not cached and AI is enabled
   useEffect(() => {
-    if (!hasTriedGeneration && !analysis) {
+    if (!hasTriedGeneration && !analysis && aiHealthStatus?.enabled) {
       generateAnalysis()
     }
-  }, [resultId])
+  }, [resultId, aiHealthStatus])
+
+  // Show disabled state if AI is not enabled
+  if (aiHealthStatus && !aiHealthStatus.enabled) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+        <Brain className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
+        <h3 className="font-medium text-yellow-900 mb-2">خدمة الذكاء الاصطناعي غير مفعّلة</h3>
+        <p className="text-yellow-800 text-sm" dir="rtl">
+          {aiHealthStatus.message}
+        </p>
+      </div>
+    )
+  }
 
   if (loading) {
     return (

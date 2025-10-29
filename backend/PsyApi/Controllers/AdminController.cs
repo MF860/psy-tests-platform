@@ -150,9 +150,67 @@ namespace PsyApi.Controllers
 
             var dims = ParseDimensionScores(entity.DimensionScoresJson);
 
-            // Extract SDJ data from session payload if available
+            // Extract SDJ data from DimensionScoresJson (V2) or Session.Payload (V1 fallback)
             SdjDataDto? sdjData = null;
-            if (!string.IsNullOrWhiteSpace(session.Payload))
+            
+            // Try parsing SDJ V2 format first (PatternScores/SubDimensionScores)
+            if (!string.IsNullOrWhiteSpace(entity.DimensionScoresJson))
+            {
+                try
+                {
+                    var scoresDoc = JsonDocument.Parse(entity.DimensionScoresJson);
+                    
+                    // Check for V2 format (PatternScores)
+                    if (scoresDoc.RootElement.TryGetProperty("PatternScores", out var patternScores) && patternScores.ValueKind == JsonValueKind.Array)
+                    {
+                        sdjData = new SdjDataDto
+                        {
+                            Dimensions = patternScores.EnumerateArray()
+                                .Select(p => new SdjDimensionDto
+                                {
+                                    Dimension = p.GetProperty("PatternNameAr").GetString() ?? "",
+                                    Raw = p.GetProperty("Raw").GetDouble(),
+                                    T = p.GetProperty("TScore").GetDouble(),
+                                    Percentile = p.GetProperty("Percentile").GetDouble(),
+                                    Band = p.GetProperty("Band").GetString() ?? ""
+                                }).ToList(),
+                            SubDimensions = scoresDoc.RootElement.TryGetProperty("SubDimensionScores", out var subDimScores) && subDimScores.ValueKind == JsonValueKind.Array
+                                ? subDimScores.EnumerateArray()
+                                    .Select(sd => new SdjSubDimensionDto
+                                    {
+                                        Dimension = sd.GetProperty("PatternId").GetString() ?? "",
+                                        SubDimension = sd.GetProperty("SubNameAr").GetString() ?? "",
+                                        T = sd.GetProperty("TScore").GetDouble(),
+                                        Band = sd.GetProperty("Band").GetString() ?? ""
+                                    }).ToList()
+                                : new List<SdjSubDimensionDto>(),
+                            TrackFits = new List<SdjTrackDto>(), // V2 doesn't use track fits
+                            SevenPatternScores = patternScores.EnumerateArray()
+                                .Select(p => new SevenPatternScoreDto
+                                {
+                                    PatternNameAr = p.GetProperty("PatternNameAr").GetString() ?? "",
+                                    PatternNameEn = p.GetProperty("PatternKey").GetString() ?? "",
+                                    TScore = p.GetProperty("TScore").GetDouble(),
+                                    Band = p.GetProperty("Band").GetString() ?? "",
+                                    SubDimensions = p.TryGetProperty("SubDimensions", out var subs) && subs.ValueKind == JsonValueKind.Array
+                                        ? subs.EnumerateArray().Select(s => 
+                                            s.TryGetProperty("SubNameAr", out var name) ? name.GetString() ?? "" : "").ToList()
+                                        : new List<string>()
+                                }).ToList(),
+                            Version = scoresDoc.RootElement.TryGetProperty("Version", out var version)
+                                ? version.GetString()
+                                : "SDJ_v2"
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Not V2 format, trying V1 fallback for result {ResultId}", id);
+                }
+            }
+            
+            // Fallback to V1 format from Session.Payload
+            if (sdjData == null && !string.IsNullOrWhiteSpace(session.Payload))
             {
                 try
                 {

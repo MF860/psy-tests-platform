@@ -79,57 +79,64 @@ namespace PsyApi.Controllers
 
                 var avgTotalScore = results.Any() ? results.Average(r => r.TotalScore) : 0;
 
-                var dimensionData = new List<DimensionScore>();
+                // Process SDJ V2 results (7 patterns)
+                var patternScores = new Dictionary<string, List<double>>();
+                var allTScores = new List<double>();
 
-                // Process dimension scores (SDJ-aware)
                 foreach (var r in results)
                 {
-                    if (!string.IsNullOrEmpty(r.DimensionScoresJson))
+                    if (string.IsNullOrWhiteSpace(r.DimensionScoresJson)) continue;
+                    
+                    try
                     {
-                        try
+                        // Parse SDJ V2 structure
+                        var sdjData = TryParseSdjV2Data(r.DimensionScoresJson);
+                        if (sdjData != null && sdjData.PatternScores != null)
                         {
-                            // Try SDJ format first
-                            var sdjData = TryParseSdjData(r.DimensionScoresJson);
-                            if (sdjData != null && sdjData.Dimensions != null)
+                            // Aggregate pattern scores (P1-P7)
+                            foreach (var pattern in sdjData.PatternScores)
                             {
-                                // Map SDJ dimensions to DimensionScore
-                                foreach (var dim in sdjData.Dimensions)
+                                if (!patternScores.ContainsKey(pattern.PatternNameAr))
                                 {
-                                    dimensionData.Add(new DimensionScore
+                                    patternScores[pattern.PatternNameAr] = new List<double>();
+                                }
+                                patternScores[pattern.PatternNameAr].Add(pattern.TScore);
+                                allTScores.Add(pattern.TScore);
+                            }
+                        }
+                        else
+                        {
+                            // Try legacy SDJ V1 format
+                            var legacyData = TryParseSdjData(r.DimensionScoresJson);
+                            if (legacyData != null && legacyData.Dimensions != null)
+                            {
+                                foreach (var dim in legacyData.Dimensions)
+                                {
+                                    if (!patternScores.ContainsKey(dim.Dimension))
                                     {
-                                        Dimension = dim.Dimension,
-                                        T = dim.T,
-                                        Percentile = dim.Percentile,
-                                        Raw = dim.Raw,
-                                        Z = 0 // Not available in SDJ format
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                // Try legacy format
-                                var scores = JsonSerializer.Deserialize<List<DimensionScore>>(r.DimensionScoresJson);
-                                if (scores != null)
-                                {
-                                    dimensionData.AddRange(scores);
+                                        patternScores[dim.Dimension] = new List<double>();
+                                    }
+                                    patternScores[dim.Dimension].Add(dim.T);
+                                    allTScores.Add(dim.T);
                                 }
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            _logger.Warning(ex, "Failed to deserialize dimension scores for result {ResultId}", r.TotalScore);
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Warning(ex, "Failed to parse dimension scores for result, skipping");
+                        continue;
                     }
                 }
 
-                // Group by dimension and calculate averages
-                var dimensionAvgs = dimensionData
-                    .GroupBy(d => d.Dimension)
-                    .Select(g => new
+                // Calculate averages by dimension/pattern
+                var dimensionAvgs = patternScores
+                    .Where(p => p.Value.Any())
+                    .Select(p => new
                     {
-                        Dimension = g.Key,
-                        AvgT = g.Average(d => d.T),
-                        AvgPercentile = g.Average(d => d.Percentile)
+                        Dimension = p.Key,
+                        AvgT = p.Value.Average(),
+                        AvgPercentile = 0.0 // Not used in charts
                     })
                     .OrderBy(d => d.Dimension)
                     .ToList();
@@ -174,7 +181,6 @@ namespace PsyApi.Controllers
                     .ToList();
 
                 // Score Distribution - bucket all T-scores from all dimensions
-                var allTScores = dimensionData.Select(d => d.T).Where(t => t > 0).ToList();
                 var scoreDistribution = new List<object>
                 {
                     new { score = "يحتاج التقييم (< 40)", range = "< 40", count = allTScores.Count(t => t < 40) },
@@ -227,6 +233,57 @@ namespace PsyApi.Controllers
             {
                 return null;
             }
+        }
+
+        // SDJ V2 Data Parsing (7 Patterns)
+        private static SdjV2DataWrapper? TryParseSdjV2Data(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            try
+            {
+                var options = new JsonSerializerOptions 
+                { 
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+                var data = JsonSerializer.Deserialize<SdjV2DataWrapper>(json, options);
+                // Check if it has SDJ V2 structure (PatternScores array)
+                if (data?.PatternScores != null && data.PatternScores.Any())
+                {
+                    return data;
+                }
+                return null;
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+
+        private class SdjV2DataWrapper
+        {
+            public List<SdjV2Pattern>? PatternScores { get; set; }
+            public List<SdjV2SubDim>? SubDimensionScores { get; set; }
+        }
+
+        private class SdjV2Pattern
+        {
+            public string PatternId { get; set; } = string.Empty;
+            public string PatternNameAr { get; set; } = string.Empty;
+            public double TScore { get; set; }
+            public string Band { get; set; } = string.Empty;
+        }
+
+        private class SdjV2SubDim
+        {
+            public string SubId { get; set; } = string.Empty;
+            public string SubNameAr { get; set; } = string.Empty;
+            public double TScore { get; set; }
+            public string Band { get; set; } = string.Empty;
         }
 
         private class SdjDataWrapper

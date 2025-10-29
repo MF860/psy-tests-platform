@@ -110,7 +110,8 @@ builder.Services.AddCors(o =>
         p.WithOrigins(origins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Disposition", "ETag", "Cache-Control");
     });
     
     o.AddPolicy("UserCors", p =>
@@ -133,7 +134,8 @@ builder.Services.AddCors(o =>
         p.WithOrigins(origins.ToArray())
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Disposition", "ETag", "Cache-Control");
     });
 });
 

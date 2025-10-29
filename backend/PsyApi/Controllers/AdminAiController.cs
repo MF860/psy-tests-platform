@@ -57,10 +57,49 @@ namespace PsyApi.Controllers
         private readonly IAiAnalyzerService _ai;
         private readonly IAuditService _audit;
         private readonly ILogger<AdminAiController> _logger;
+        private readonly IConfiguration _config;
 
-        public AdminAiController(AppDbContext db, IAiAnalyzerService ai, IAuditService audit, ILogger<AdminAiController> logger)
+        public AdminAiController(AppDbContext db, IAiAnalyzerService ai, IAuditService audit, ILogger<AdminAiController> logger, IConfiguration config)
         {
-            _db = db; _ai = ai; _audit = audit; _logger = logger;
+            _db = db; _ai = ai; _audit = audit; _logger = logger; _config = config;
+        }
+
+        [HttpGet("health")]
+        [AllowAnonymous]
+        public IActionResult GetHealth()
+        {
+            try
+            {
+                // Check if AI service is configured
+                var apiKey = _config["AI:DeepSeek:ApiKey"] ?? Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
+                var provider = _config["AI:Provider"] ?? "DeepSeek";
+                var model = _config["AI:Model"] ?? "deepseek-chat";
+                
+                var hasKey = !string.IsNullOrWhiteSpace(apiKey);
+                var enabled = hasKey && _ai != null;
+
+                return Ok(new
+                {
+                    enabled = enabled,
+                    provider = provider,
+                    model = model,
+                    hasKey = hasKey,
+                    status = enabled ? "ready" : "disabled",
+                    message = enabled 
+                        ? "خدمة الذكاء الاصطناعي جاهزة" 
+                        : "خدمة الذكاء الاصطناعي غير مفعّلة - يرجى تكوين مفتاح API"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking AI health");
+                return Ok(new
+                {
+                    enabled = false,
+                    status = "error",
+                    message = "خطأ في فحص حالة خدمة الذكاء الاصطناعي"
+                });
+            }
         }
 
         [HttpPost("analyze")]

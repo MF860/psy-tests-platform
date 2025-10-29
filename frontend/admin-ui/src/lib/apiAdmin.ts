@@ -271,6 +271,44 @@ export const AdminApi = {
     api.post('/admin/change-password', { oldPassword, newPassword }).then((r) => r.data),
 
   /**
+   * AI health check
+   */
+  aiHealth: async (): Promise<{
+    enabled: boolean
+    provider: string
+    model: string
+    hasKey: boolean
+    status: string
+    message: string
+  }> => {
+    if (isDemoMode()) {
+      return {
+        enabled: true,
+        provider: 'Demo',
+        model: 'demo-mock',
+        hasKey: true,
+        status: 'ready',
+        message: 'خدمة الذكاء الاصطناعي التجريبية جاهزة'
+      };
+    }
+    
+    try {
+      const response = await api.get('/admin/ai/health');
+      return response.data;
+    } catch (error) {
+      console.error('[AdminApi] AI health check failed:', error);
+      return {
+        enabled: false,
+        provider: 'Unknown',
+        model: 'Unknown',
+        hasKey: false,
+        status: 'error',
+        message: 'فشل في فحص حالة خدمة الذكاء الاصطناعي'
+      };
+    }
+  },
+
+  /**
    * AI analysis for result using OpenRouter/DeepSeek
    */
   aiAnalyze: async (id: number): Promise<import('./adminContract').AiAnalysisResponse> => {
