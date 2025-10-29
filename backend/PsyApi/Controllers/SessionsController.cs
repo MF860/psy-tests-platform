@@ -307,37 +307,90 @@ namespace PsyApi.Controllers
                 
                 // Select items based on mode
                 const int TOTAL_QUESTIONS = 80; // TODO: Make configurable via appsettings
-                IQueryable<Item> itemsQuery = _context.Items;
+                List<Item> items;
                 
                 // Filter for SDJ V2, V1, or legacy items
                 if (sdjMode == "2")
                 {
-                    // SDJ V2 items have non-null PatternId and SubId
-                    itemsQuery = itemsQuery.Where(i => i.PatternId != null && i.SubId != null);
-                    _logger.LogInformation("Starting SDJ V2 session - filtering for 7-pattern items (PatternId/SubId), selecting {Count} random from total pool", TOTAL_QUESTIONS);
+                    // SDJ V2: Stratified random sampling to ensure all 7 patterns are covered
+                    // Get all V2 items
+                    var allV2Items = await _context.Items
+                        .Where(i => i.PatternId != null && i.SubId != null)
+                        .ToListAsync();
+                    
+                    // Group by PatternId
+                    var patternGroups = allV2Items.GroupBy(i => i.PatternId).ToList();
+                    
+                    if (patternGroups.Count == 0)
+                    {
+                        _logger.LogError("No SDJ V2 items found in database!");
+                        return BadRequest(new { error = "No questions available for SDJ V2" });
+                    }
+                    
+                    // Calculate questions per pattern (distribute evenly)
+                    int questionsPerPattern = TOTAL_QUESTIONS / patternGroups.Count;
+                    int remainder = TOTAL_QUESTIONS % patternGroups.Count;
+                    
+                    items = new List<Item>();
+                    var random = new Random();
+                    
+                    foreach (var group in patternGroups.OrderBy(g => g.Key))
+                    {
+                        var patternItems = group.ToList();
+                        int countToTake = questionsPerPattern + (remainder > 0 ? 1 : 0);
+                        if (remainder > 0) remainder--;
+                        
+                        // Randomly select items from this pattern
+                        var selectedFromPattern = patternItems
+                            .OrderBy(x => random.Next())
+                            .Take(Math.Min(countToTake, patternItems.Count))
+                            .ToList();
+                        
+                        items.AddRange(selectedFromPattern);
+                    }
+                    
+                    // Shuffle final list
+                    items = items.OrderBy(x => random.Next()).ToList();
+                    
+                    _logger.LogInformation("Starting SDJ V2 session - selected {Count} questions (stratified: ~{PerPattern} per pattern from {TotalPatterns} patterns)", 
+                        items.Count, questionsPerPattern, patternGroups.Count);
                 }
                 else if (sdjMode == "1")
                 {
                     // SDJ V1 items have non-null Dimension and SubDimension
-                    itemsQuery = itemsQuery.Where(i => i.Dimension != null && i.SubDimension != null);
-                    _logger.LogInformation("Starting SDJ V1 session - filtering for SDJ items with Dimension/SubDimension");
+                    IQueryable<Item> itemsQuery = _context.Items.Where(i => i.Dimension != null && i.SubDimension != null);
+                    
+                    var provider = _context.Database.ProviderName ?? string.Empty;
+                    if (provider.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
+                    {
+                        itemsQuery = itemsQuery.OrderBy(i => EF.Functions.Random());
+                    }
+                    else
+                    {
+                        itemsQuery = itemsQuery.OrderBy(i => Guid.NewGuid());
+                    }
+                    
+                    items = await itemsQuery.Take(TOTAL_QUESTIONS).ToListAsync();
+                    _logger.LogInformation("Starting SDJ V1 session - selected {Count} random questions", items.Count);
                 }
                 else
                 {
-                    // Legacy items might not have Dimension/SubDimension
-                    _logger.LogInformation("Starting LEGACY session - using all items");
+                    // Legacy items - simple random selection
+                    IQueryable<Item> itemsQuery = _context.Items;
+                    
+                    var provider = _context.Database.ProviderName ?? string.Empty;
+                    if (provider.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
+                    {
+                        itemsQuery = itemsQuery.OrderBy(i => EF.Functions.Random());
+                    }
+                    else
+                    {
+                        itemsQuery = itemsQuery.OrderBy(i => Guid.NewGuid());
+                    }
+                    
+                    items = await itemsQuery.Take(TOTAL_QUESTIONS).ToListAsync();
+                    _logger.LogInformation("Starting LEGACY session - selected {Count} random questions", items.Count);
                 }
-                
-                var provider = _context.Database.ProviderName ?? string.Empty;
-                if (provider.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
-                {
-                    itemsQuery = itemsQuery.OrderBy(i => EF.Functions.Random());
-                }
-                else
-                {
-                    itemsQuery = itemsQuery.OrderBy(i => Guid.NewGuid());
-                }
-                var items = await itemsQuery.Take(TOTAL_QUESTIONS).ToListAsync();
 
                 // Insert them into SessionItems
                 var sessionItems = items.Select(item => new SessionItem
