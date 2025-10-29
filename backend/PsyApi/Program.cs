@@ -438,13 +438,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseResponseCompression();
 app.UseHttpsRedirection();
-// Apply different CORS policies based on the route
-app.UseWhen(context => context.Request.Path.StartsWithSegments("/api/admin"), app => app.UseCors("AdminCors"));
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api/admin"), app => app.UseCors("UserCors"));
+
+// CRITICAL FIX: Use single CORS policy for all routes to avoid middleware pipeline issues
+// AdminCors already includes all origins from CORS_ALLOWED_ORIGINS
+app.UseCors("AdminCors");
+
 app.UseRateLimiting(); // Custom rate limiting for /api/sessions/start
 app.UseRateLimiter(); // Built-in rate limiting for other endpoints
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseAuthorization();
 
 // Health check endpoint for cloud platforms (Render, etc.)
