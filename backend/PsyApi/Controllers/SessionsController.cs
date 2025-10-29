@@ -302,20 +302,25 @@ namespace PsyApi.Controllers
                 _context.Sessions.Add(session);
                 await _context.SaveChangesAsync();
 
-                // SDJ is now DEFAULT. Filter for SDJ items (those with Dimension/SubDimension).
-                // Set USE_SDJ=0 to use legacy items.
-                var useSdj = Environment.GetEnvironmentVariable("USE_SDJ") != "0";
+                // SDJ Mode Detection: USE_SDJ=0 (legacy), USE_SDJ=1 (V1), USE_SDJ=2 (V2)
+                var sdjMode = Environment.GetEnvironmentVariable("USE_SDJ");
                 
                 // Select items based on mode
                 const int TOTAL_QUESTIONS = 80; // TODO: Make configurable via appsettings
                 IQueryable<Item> itemsQuery = _context.Items;
                 
-                // Filter for SDJ or legacy items
-                if (useSdj)
+                // Filter for SDJ V2, V1, or legacy items
+                if (sdjMode == "2")
                 {
-                    // SDJ items have non-null Dimension and SubDimension
+                    // SDJ V2 items have non-null PatternId and SubId
+                    itemsQuery = itemsQuery.Where(i => i.PatternId != null && i.SubId != null);
+                    _logger.LogInformation("Starting SDJ V2 session - filtering for 7-pattern items (PatternId/SubId), selecting {Count} random from total pool", TOTAL_QUESTIONS);
+                }
+                else if (sdjMode == "1")
+                {
+                    // SDJ V1 items have non-null Dimension and SubDimension
                     itemsQuery = itemsQuery.Where(i => i.Dimension != null && i.SubDimension != null);
-                    _logger.LogInformation("Starting SDJ session - filtering for SDJ items with Dimension/SubDimension");
+                    _logger.LogInformation("Starting SDJ V1 session - filtering for SDJ items with Dimension/SubDimension");
                 }
                 else
                 {
