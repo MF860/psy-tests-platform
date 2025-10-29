@@ -1,0 +1,298 @@
+{
+  "version": "sdj-v2-seven-patterns",
+  "description": "Authoritative schema for SDJ V2 Seven Patterns assessment framework",
+  "created": "2025-10-29",
+  "total_items": 210,
+  "main_patterns": [
+    {
+      "id": "P1",
+      "key": "personality_patterns",
+      "name_ar": "الأنماط الشخصية",
+      "name_en": "Personality Patterns",
+      "description_ar": "تحليل أنماط الشخصية والتعلم والسمات الخمس الكبرى",
+      "order": 1,
+      "sub_dimensions": [
+        {
+          "id": "P1_S1",
+          "key": "mbti",
+          "name_ar": "نمط الشخصية MBTI",
+          "name_en": "MBTI Personality Type",
+          "description_ar": "تحديد نمط الشخصية وفق مؤشر مايرز-بريجز"
+        },
+        {
+          "id": "P1_S2",
+          "key": "big_five",
+          "name_ar": "السمات الخمس الكبرى",
+          "name_en": "Big Five Personality Traits",
+          "description_ar": "تقييم الانفتاح والضمير والانبساط والوداعة والعصابية"
+        },
+        {
+          "id": "P1_S3",
+          "key": "learning_style",
+          "name_ar": "نمط التعلم",
+          "name_en": "Learning Style",
+          "description_ar": "تحديد الأسلوب المفضل في التعلم والاكتساب المعرفي"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "key": "cognitive_mental",
+      "name_ar": "القدرات المعرفية والعقلية",
+      "name_en": "Cognitive & Mental Abilities",
+      "description_ar": "قياس الذكاءات المتعددة والذاكرة والانتباه والإبداع",
+      "order": 2,
+      "sub_dimensions": [
+        {
+          "id": "P2_S1",
+          "key": "multiple_intelligences",
+          "name_ar": "الذكاءات المتعددة",
+          "name_en": "Multiple Intelligences",
+          "description_ar": "تقييم الذكاءات اللغوية والمنطقية والمكانية والحركية وغيرها"
+        },
+        {
+          "id": "P2_S2",
+          "key": "memory",
+          "name_ar": "الذاكرة",
+          "name_en": "Memory",
+          "description_ar": "قياس قدرة الذاكرة قصيرة وطويلة المدى"
+        },
+        {
+          "id": "P2_S3",
+          "key": "attention",
+          "name_ar": "الانتباه والتركيز",
+          "name_en": "Attention & Focus",
+          "description_ar": "تقييم القدرة على التركيز والانتباه المستدام"
+        },
+        {
+          "id": "P2_S4",
+          "key": "creativity",
+          "name_ar": "الإبداع والابتكار",
+          "name_en": "Creativity & Innovation",
+          "description_ar": "قياس القدرة على التفكير الإبداعي وتوليد الأفكار الجديدة"
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "key": "psychological_patterns",
+      "name_ar": "الأنماط النفسية",
+      "name_en": "Psychological Patterns",
+      "description_ar": "تقييم التوتر والقلق والمرونة النفسية والذكاء العاطفي",
+      "order": 3,
+      "sub_dimensions": [
+        {
+          "id": "P3_S1",
+          "key": "stress_management",
+          "name_ar": "إدارة التوتر",
+          "name_en": "Stress Management",
+          "description_ar": "قياس القدرة على التعامل مع مواقف التوتر والضغط"
+        },
+        {
+          "id": "P3_S2",
+          "key": "anxiety",
+          "name_ar": "القلق",
+          "name_en": "Anxiety",
+          "description_ar": "تقييم مستويات القلق والقدرة على التحكم فيه"
+        },
+        {
+          "id": "P3_S3",
+          "key": "resilience",
+          "name_ar": "المرونة النفسية",
+          "name_en": "Psychological Resilience",
+          "description_ar": "قياس القدرة على التعافي من الصعوبات والتكيف مع التغيير"
+        },
+        {
+          "id": "P3_S4",
+          "key": "emotional_intelligence",
+          "name_ar": "الذكاء العاطفي",
+          "name_en": "Emotional Intelligence",
+          "description_ar": "تقييم الوعي بالمشاعر والتحكم فيها والتعاطف مع الآخرين"
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "key": "behavioral_patterns",
+      "name_ar": "الأنماط السلوكية",
+      "name_en": "Behavioral Patterns",
+      "description_ar": "تحليل أنماط التكيف والتأثير والتحكم في الانفعالات",
+      "order": 4,
+      "sub_dimensions": [
+        {
+          "id": "P4_S1",
+          "key": "adaptation",
+          "name_ar": "التكيف",
+          "name_en": "Adaptation",
+          "description_ar": "قياس القدرة على التكيف مع البيئات والمواقف الجديدة"
+        },
+        {
+          "id": "P4_S2",
+          "key": "influence_leadership",
+          "name_ar": "القدرة على التأثير والقيادة",
+          "name_en": "Influence & Leadership",
+          "description_ar": "تقييم القدرة على التأثير في الآخرين وقيادة الفرق"
+        },
+        {
+          "id": "P4_S3",
+          "key": "anger_control",
+          "name_ar": "ضبط الانفعالات والغضب",
+          "name_en": "Anger & Emotion Control",
+          "description_ar": "قياس القدرة على التحكم في الغضب والانفعالات"
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "key": "numerical_logical",
+      "name_ar": "الأنماط العددية والمنطقية",
+      "name_en": "Numerical & Logical Patterns",
+      "description_ar": "قياس القدرات الحسابية والاستنتاج المنطقي والتحليل الإحصائي",
+      "order": 5,
+      "sub_dimensions": [
+        {
+          "id": "P5_S1",
+          "key": "arithmetic",
+          "name_ar": "القدرات الحسابية",
+          "name_en": "Arithmetic Skills",
+          "description_ar": "تقييم القدرة على إجراء العمليات الحسابية والرياضية"
+        },
+        {
+          "id": "P5_S2",
+          "key": "deduction",
+          "name_ar": "الاستنتاج المنطقي",
+          "name_en": "Logical Deduction",
+          "description_ar": "قياس القدرة على التفكير المنطقي واستنتاج النتائج"
+        },
+        {
+          "id": "P5_S3",
+          "key": "correlation",
+          "name_ar": "معامل الارتباط والتحليل",
+          "name_en": "Correlation & Analysis",
+          "description_ar": "تقييم القدرة على تحليل العلاقات والارتباطات بين البيانات"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "key": "leadership_organizational",
+      "name_ar": "الأنماط القيادية والتنظيمية",
+      "name_en": "Leadership & Organizational Patterns",
+      "description_ar": "تقييم مهارات اتخاذ القرار والتفويض والمساءلة",
+      "order": 6,
+      "sub_dimensions": [
+        {
+          "id": "P6_S1",
+          "key": "decision_making",
+          "name_ar": "اتخاذ القرار",
+          "name_en": "Decision Making",
+          "description_ar": "قياس القدرة على اتخاذ القرارات الفعالة في المواقف المختلفة"
+        },
+        {
+          "id": "P6_S2",
+          "key": "delegation",
+          "name_ar": "تفويض المهام",
+          "name_en": "Task Delegation",
+          "description_ar": "تقييم القدرة على تفويض المهام والصلاحيات بفعالية"
+        },
+        {
+          "id": "P6_S3",
+          "key": "reward_accountability",
+          "name_ar": "الثواب والعقاب والمساءلة",
+          "name_en": "Reward & Accountability",
+          "description_ar": "قياس القدرة على تطبيق نظام عادل للثواب والعقاب"
+        }
+      ]
+    },
+    {
+      "id": "P7",
+      "key": "general_professional_aptitudes",
+      "name_ar": "الاستعدادات المهنية العامة",
+      "name_en": "General Professional Aptitudes",
+      "description_ar": "قياس الاستعداد للتعامل مع مواقف العمل المعقدة والمتنوعة",
+      "order": 7,
+      "sub_dimensions": [
+        {
+          "id": "P7_S1",
+          "key": "complex_work_situations",
+          "name_ar": "التعامل مع مواقف العمل المعقدة",
+          "name_en": "Complex Work Situations",
+          "description_ar": "تقييم القدرة على التعامل مع المواقف المهنية المعقدة والمتعددة الأبعاد"
+        }
+      ]
+    }
+  ],
+  "items_per_sub_dimension": 10,
+  "reverse_ratio": 0.5,
+  "likert_scale": {
+    "min": 1,
+    "max": 5,
+    "type": "LikertAgreement",
+    "labels_ar": [
+      "لا أوافق بشدة",
+      "لا أوافق",
+      "محايد",
+      "أوافق",
+      "أوافق بشدة"
+    ],
+    "labels_en": [
+      "Strongly Disagree",
+      "Disagree",
+      "Neutral",
+      "Agree",
+      "Strongly Agree"
+    ]
+  },
+  "scoring_parameters": {
+    "t_score_mean": 50.0,
+    "t_score_sd": 10.0,
+    "population_mean": 3.0,
+    "population_sd": 0.8,
+    "bands": [
+      {
+        "key": "weak",
+        "name_ar": "ضعيف",
+        "name_en": "Weak",
+        "t_min": 0,
+        "t_max": 39.9,
+        "color": "#ef4444"
+      },
+      {
+        "key": "average",
+        "name_ar": "متوسط",
+        "name_en": "Average",
+        "t_min": 40.0,
+        "t_max": 54.9,
+        "color": "#f59e0b"
+      },
+      {
+        "key": "excellent",
+        "name_ar": "ممتاز",
+        "name_en": "Excellent",
+        "t_min": 55.0,
+        "t_max": 100.0,
+        "color": "#10b981"
+      }
+    ]
+  },
+  "test_parameters": {
+    "total_time_minutes": 60,
+    "items_per_page": 10,
+    "allow_skip": false,
+    "auto_submit_on_timeout": true
+  },
+  "validation_rules": {
+    "exact_items_per_subdimension": 10,
+    "exact_reverse_ratio": 0.5,
+    "required_fields": [
+      "ItemCode",
+      "TextAr",
+      "PatternId",
+      "PatternKey",
+      "SubId",
+      "SubKey",
+      "Type",
+      "Reverse"
+    ]
+  }
+}

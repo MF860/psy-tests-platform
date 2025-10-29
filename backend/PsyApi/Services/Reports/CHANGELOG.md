@@ -1,5 +1,121 @@
 # 📝 CHANGELOG - v3.1 Refined Edition
 
+## [3.2.0] - 2025-10-29 - SDJ V2 Seven Patterns Release
+
+### 🚀 Major Features
+
+#### SDJ V2 Seven Patterns Framework
+- **210 Test Items** (105 MCQ + 105 Likert)
+  - 7 Main Patterns (P1-P7)
+  - 21 Sub-dimensions (10 items each)
+  - Mixed item types: 50% MCQ, 50% Likert Agreement
+  - Balanced reverse scoring (50% direct, 50% reverse)
+
+- **New Scoring Engine** (`SdjV2ScoringService`)
+  - MCQ Scoring: Correct answer = 5.0, incorrect = 1.0
+  - Likert Scoring: 1-5 scale with reverse scoring support
+  - T-score transformation (μ=50, σ=10)
+  - Pattern-level aggregation (7 patterns)
+  - Sub-dimension aggregation (21 subdimensions)
+  - Arabic banding: ضعيف (<40), متوسط (40-55), ممتاز (≥55)
+
+- **Database Schema Extension**
+  - Added 6 new columns to Items table:
+    - PatternId (P1-P7)
+    - PatternKey (e.g., personality_patterns)
+    - PatternNameAr (e.g., الأنماط الشخصية)
+    - SubId (e.g., P1_S1)
+    - SubKey (e.g., mbti_personality_type)
+    - SubNameAr (e.g., نمط الشخصية MBTI)
+  - Backward compatible with V1 data
+  - Auto-detection: Uses PatternId presence to determine V1 vs V2 mode
+
+- **CSV Generation Tools**
+  - TypeScript generator: `tools/generate_sdj_v2_csv.ts`
+  - CSV validator: `tools/validate_csv.ts`
+  - Schema definition: `backend/PsyApi/Domain/SdjV2SevenPatterns.json`
+  - Generated CSV: `questions_sdj_v2_ar.csv`
+
+#### Frontend Updates
+
+- **User UI** (ExamNew.tsx)
+  - Already supports MCQ and Likert items
+  - Arabic RTL maintained
+  - 60-minute timer + auto-submit
+
+- **Admin UI** (ResultDetail.tsx)
+  - New "Patterns Section" for V2 results
+  - Horizontal bar chart (21 subdimensions sorted by T-score)
+  - Pattern cards grid with 7-color scheme
+  - Sub-dimension detail display
+  - Version badge: "SDJ v2.1"
+
+#### Backend Updates
+
+- **Controllers**
+  - SessionsController: V2 detection + scoring integration
+  - AdminController: SevenPatternScores serialization
+  - Updated DTOs: SdjDataDto, SevenPatternScoreDto
+
+- **Data Seeding** (DataSeeder.cs)
+  - V1/V2 auto-detection via PatternId
+  - Enhanced logging: pattern distribution, subdimension counts
+  - MCQ support: CorrectAnswer + Options fields
+
+### 🔧 Technical Details
+
+#### Seven Patterns Schema
+1. **P1: الأنماط الشخصية** (Personality Patterns)
+   - P1_S1: نمط الشخصية MBTI
+   - P1_S2: السمات الخمس الكبرى
+   - P1_S3: نمط التعلم
+
+2. **P2: القدرات المعرفية والعقلية** (Cognitive & Mental Abilities)
+   - P2_S1: الذكاءات المتعددة
+   - P2_S2: الذاكرة
+   - P2_S3: الانتباه والتركيز
+   - P2_S4: الإبداع والابتكار
+
+3. **P3: الأنماط النفسية** (Psychological Patterns)
+   - P3_S1: إدارة التوتر
+   - P3_S2: القلق
+   - P3_S3: المرونة النفسية
+   - P3_S4: الذكاء العاطفي
+
+4. **P4: الأنماط السلوكية** (Behavioral Patterns)
+   - P4_S1: التكيف
+   - P4_S2: القدرة على التأثير والقيادة
+   - P4_S3: ضبط الانفعالات والغضب
+
+5. **P5: الأنماط العددية والمنطقية** (Numerical & Logical)
+   - P5_S1: القدرات الحسابية
+   - P5_S2: الاستنتاج المنطقي
+   - P5_S3: معامل الارتباط والتحليل
+
+6. **P6: الأنماط القيادية والتنظيمية** (Leadership & Organizational)
+   - P6_S1: اتخاذ القرار
+   - P6_S2: تفويض المهام
+   - P6_S3: الثواب والعقاب والمساءلة
+
+7. **P7: الاستعدادات المهنية العامة** (Professional Readiness)
+   - P7_S1: التعامل مع مواقف العمل المعقدة
+
+### 📦 Migration Notes
+
+- **Backward Compatible**: V1 scoring still works for existing data
+- **Auto-Detection**: System automatically detects V1 vs V2 based on PatternId
+- **No Breaking Changes**: Existing API contracts maintained
+- **Database Migration**: `20251029143657_SDJ_V2_SevenPatterns.cs`
+
+### 🏗️ Build Information
+
+- Backend: ASP.NET 8.0 with EF Core
+- Frontend: React 18 + TypeScript
+- Database: PostgreSQL (Neon) / SQLite (local)
+- Build Status: ✅ SUCCESS (0 errors, 6 warnings)
+
+---
+
 ## [3.1.0] - 2025-10-14
 
 ### 🎨 Visual Enhancements

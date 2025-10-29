@@ -188,7 +188,23 @@ namespace PsyApi.Controllers
                                         FitLevel = t.GetProperty("FitLevel").GetString() ?? "",
                                         FitScore = t.GetProperty("FitScore").GetDouble()
                                     }).ToList()
-                                : new List<SdjTrackDto>()
+                                : new List<SdjTrackDto>(),
+                            SevenPatternScores = sdjElement.TryGetProperty("SevenPatternScores", out var sevenPatterns)
+                                ? sevenPatterns.EnumerateArray()
+                                    .Select(sp => new SevenPatternScoreDto
+                                    {
+                                        PatternNameAr = sp.GetProperty("PatternNameAr").GetString() ?? "",
+                                        PatternNameEn = sp.GetProperty("PatternNameEn").GetString() ?? "",
+                                        TScore = sp.GetProperty("TScore").GetDouble(),
+                                        Band = sp.GetProperty("Band").GetString() ?? "",
+                                        SubDimensions = sp.TryGetProperty("SubDimensions", out var subs)
+                                            ? subs.EnumerateArray().Select(s => s.GetString() ?? "").ToList()
+                                            : new List<string>()
+                                    }).ToList()
+                                : new List<SevenPatternScoreDto>(),
+                            Version = sdjElement.TryGetProperty("Version", out var version)
+                                ? version.GetString()
+                                : null
                         };
                     }
                 }

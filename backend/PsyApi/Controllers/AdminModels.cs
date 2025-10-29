@@ -30,6 +30,8 @@ namespace PsyApi.Controllers
         public List<SdjDimensionDto> Dimensions { get; set; } = new();
         public List<SdjSubDimensionDto> SubDimensions { get; set; } = new();
         public List<SdjTrackDto> TrackFits { get; set; } = new();
+        public List<SevenPatternScoreDto> SevenPatternScores { get; set; } = new();
+        public string? Version { get; set; }
     }
 
     public class SdjDimensionDto
@@ -54,6 +56,15 @@ namespace PsyApi.Controllers
         public string TrackNameAr { get; set; } = string.Empty;
         public string FitLevel { get; set; } = string.Empty;
         public double FitScore { get; set; }
+    }
+
+    public class SevenPatternScoreDto
+    {
+        public string PatternNameAr { get; set; } = string.Empty;
+        public string PatternNameEn { get; set; } = string.Empty;
+        public double TScore { get; set; }
+        public string Band { get; set; } = string.Empty;
+        public List<string> SubDimensions { get; set; } = new();
     }
 
     public class AdminLoginRequest

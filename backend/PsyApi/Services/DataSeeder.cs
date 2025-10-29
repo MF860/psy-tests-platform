@@ -48,14 +48,17 @@ namespace PsyApi.Services
             var rejected = new List<(string ItemId, string Reason)>();
             var seenIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             
-                        // SDJ is now the DEFAULT mode. Set USE_SDJ=0 to use legacy questions.
-            var useSdj = Environment.GetEnvironmentVariable("USE_SDJ") != "0"; // Changed: Default to SDJ unless explicitly disabled
-            var csvFileName = useSdj 
-                ? "questions_sdj_ar.csv"
-                : "questions.csv";
+                        // SDJ V2 is now the DEFAULT mode. Set USE_SDJ=0 to use legacy questions, USE_SDJ=1 for V1.
+            var sdjMode = Environment.GetEnvironmentVariable("USE_SDJ");
+            var csvFileName = sdjMode == "0" 
+                ? "questions.csv"  // Legacy mode (USE_SDJ=0)
+                : (sdjMode == "1" 
+                    ? "questions_sdj_ar.csv"  // SDJ V1 mode (USE_SDJ=1)
+                    : "questions_sdj_v2_ar.csv");  // SDJ V2 mode (default, or USE_SDJ=2)
             
             var csvPath = Path.Combine(AppContext.BaseDirectory, "Resources", "Questions", csvFileName);
-            _logger.Information("[{Mode}] Using CSV file: {CsvPath}", useSdj ? "SDJ" : "LEGACY", csvPath);
+            var modeLabel = sdjMode == "0" ? "LEGACY" : (sdjMode == "1" ? "SDJ V1" : "SDJ V2");
+            _logger.Information("[{Mode}] Using CSV file: {CsvPath}", modeLabel, csvPath);
 
             try
             {
@@ -87,61 +90,104 @@ namespace PsyApi.Services
                     HasHeaderRecord = true,
                     TrimOptions = TrimOptions.Trim,
                     IgnoreBlankLines = true,
-                    BadDataFound = args => { try { _logger.Warning("Bad CSV data: {Raw}", args.RawRecord); } catch { } },
-                    MissingFieldFound = args => { try { _logger.Warning("Missing field at row {Row}. Index={Index} Headers={Headers}", args.Context?.Parser?.Row, args.Index, string.Join(',', args.HeaderNames ?? Array.Empty<string>())); } catch { } }
+                    HeaderValidated = null,  // Allow missing headers (V1/V2 compatibility)
+                    MissingFieldFound = null,  // Don't error on missing fields
+                    BadDataFound = args => { try { _logger.Warning("Bad CSV data: {Raw}", args.RawRecord); } catch { } }
                 };
 
                 int parsedRows = 0;
+                var isLegacy = sdjMode == "0";
                 using (var reader = new StreamReader(csvPath, new UTF8Encoding(false)))
                 using (var csv = new CsvReader(reader, cfg))
                 {
-                    if (useSdj)
+                    if (!isLegacy)
                     {
-                        // Parse SDJ CSV format
+                        // Parse SDJ CSV format (V1 or V2)
                         var records = csv.GetRecords<CsvSdjRow>();
                         foreach (var r in records)
                         {
                             parsedRows++;
-                            var id = (r.item_code ?? string.Empty).Trim();
+                            
+                            // Support both V1 (snake_case) and V2 (PascalCase) headers
+                            var id = (!string.IsNullOrWhiteSpace(r.ItemCode) ? r.ItemCode : r.item_code ?? string.Empty).Trim();
                             if (string.IsNullOrWhiteSpace(id)) { rejected.Add(("<missing>", "item_code missing")); continue; }
                             if (!seenIds.Add(id)) { rejected.Add((id, "duplicate item_code")); continue; }
 
-                            var textAr = (r.text_ar ?? string.Empty).Trim();
+                            var textAr = (!string.IsNullOrWhiteSpace(r.TextAr) ? r.TextAr : r.text_ar ?? string.Empty).Trim();
                             if (string.IsNullOrWhiteSpace(textAr)) { rejected.Add((id, "text_ar missing")); continue; }
 
-                            var type = NormalizeType((r.type ?? string.Empty).Trim());
-                            if (!CanonicalTypes.Contains(type)) { rejected.Add((id, $"unsupported type '{r.type}'")); continue; }
+                            var typeRaw = !string.IsNullOrWhiteSpace(r.Type) ? r.Type : r.type ?? string.Empty;
+                            var type = NormalizeType(typeRaw.Trim());
+                            if (!CanonicalTypes.Contains(type)) { rejected.Add((id, $"unsupported type '{typeRaw}'")); continue; }
 
                             var dimension = (r.dimension ?? string.Empty).Trim();
                             var subDimension = (r.sub_dimension ?? string.Empty).Trim();
-                            if (string.IsNullOrWhiteSpace(dimension) || string.IsNullOrWhiteSpace(subDimension))
+                            
+                            // V2 Seven Patterns fields (optional, only present in questions_sdj_v2_ar.csv)
+                            var patternId = (r.PatternId ?? string.Empty).Trim();
+                            var patternKey = (r.PatternKey ?? string.Empty).Trim();
+                            var patternNameAr = (r.PatternNameAr ?? string.Empty).Trim();
+                            var subId = (r.SubId ?? string.Empty).Trim();
+                            var subKey = (r.SubKey ?? string.Empty).Trim();
+                            var subNameAr = (r.SubNameAr ?? string.Empty).Trim();
+                            
+                            // Determine if this is V2 by checking PatternId presence
+                            bool isV2 = !string.IsNullOrWhiteSpace(patternId);
+                            
+                            if (!isV2)
                             {
-                                rejected.Add((id, "dimension or sub_dimension missing"));
-                                continue;
+                                // V1 validation: dimension and sub_dimension required
+                                if (string.IsNullOrWhiteSpace(dimension) || string.IsNullOrWhiteSpace(subDimension))
+                                {
+                                    rejected.Add((id, "dimension or sub_dimension missing (V1 mode)"));
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                // V2 validation: PatternId and SubId required
+                                if (string.IsNullOrWhiteSpace(subId))
+                                {
+                                    rejected.Add((id, "SubId missing (V2 mode)"));
+                                    continue;
+                                }
                             }
 
-                            if (!int.TryParse((r.difficulty ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var difficulty) || difficulty < 1 || difficulty > 5)
+                            // Parse difficulty - V2 doesn't have difficulty field
+                            var difficultyStr = r.difficulty ?? string.Empty;
+                            if (!int.TryParse(difficultyStr.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var difficulty) || difficulty < 1 || difficulty > 5)
                             {
-                                _logger.Warning("Row {ItemId}: difficulty invalid '{Diff}', defaulting to 3", id, r.difficulty);
+                                if (!string.IsNullOrWhiteSpace(difficultyStr))
+                                    _logger.Warning("Row {ItemId}: difficulty invalid '{Diff}', defaulting to 3", id, r.difficulty);
                                 difficulty = 3;
                             }
 
-                            if (!int.TryParse((r.time_limit_seconds ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var timeLimit) || timeLimit <= 0)
+                            // Parse time limit - V2 uses TimeLimitSeconds (PascalCase)
+                            var timeLimitStr = !string.IsNullOrWhiteSpace(r.TimeLimitSeconds) ? r.TimeLimitSeconds : r.time_limit_seconds ?? string.Empty;
+                            if (!int.TryParse(timeLimitStr.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var timeLimit) || timeLimit <= 0)
                             {
-                                _logger.Warning("Row {ItemId}: time_limit_seconds invalid '{Sec}', defaulting to 45", id, r.time_limit_seconds);
+                                _logger.Warning("Row {ItemId}: time_limit_seconds invalid '{Sec}', defaulting to 45", id, timeLimitStr);
                                 timeLimit = 45;
                             }
 
-                            if (!int.TryParse((r.max_score ?? string.Empty).Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var maxScore) || maxScore <= 0)
+                            // Parse max score - V2 uses Weight instead of max_score
+                            var maxScoreStr = !string.IsNullOrWhiteSpace(r.Weight) ? r.Weight : r.max_score ?? string.Empty;
+                            if (!int.TryParse(maxScoreStr.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var maxScore) || maxScore <= 0)
                             {
-                                _logger.Warning("Row {ItemId}: max_score invalid '{Max}', defaulting to 5", id, r.max_score);
+                                _logger.Warning("Row {ItemId}: max_score invalid '{Max}', defaulting to 5", id, maxScoreStr);
                                 maxScore = 5;
                             }
 
-                            var reverseStr = (r.reverse ?? "0").Trim();
+                            // Parse reverse - V2 uses Reverse (PascalCase)
+                            var reverseStr = (!string.IsNullOrWhiteSpace(r.Reverse) ? r.Reverse : r.reverse ?? "0").Trim();
                             var reverse = reverseStr == "1" || string.Equals(reverseStr, "true", StringComparison.OrdinalIgnoreCase);
 
                             var anchorsAr = (r.anchors_ar ?? string.Empty).Trim();
+                            
+                            // MCQ fields (V2)
+                            var correctAnswer = (r.CorrectAnswer ?? string.Empty).Trim();
+                            var csvOptions = (r.Options ?? string.Empty).Trim();
+                            
                             string? optionsStr = null;
 
                             switch (type)
@@ -151,6 +197,14 @@ namespace PsyApi.Services
                                     break;
                                 case "Frequency":
                                     optionsStr = !string.IsNullOrWhiteSpace(anchorsAr) ? anchorsAr : FrequencyOptions;
+                                    break;
+                                case "MCQ":
+                                    optionsStr = !string.IsNullOrWhiteSpace(csvOptions) ? csvOptions : anchorsAr;
+                                    if (string.IsNullOrWhiteSpace(optionsStr))
+                                    {
+                                        rejected.Add((id, "MCQ missing options"));
+                                        continue;
+                                    }
                                     break;
                                 default:
                                     optionsStr = anchorsAr;
@@ -162,14 +216,27 @@ namespace PsyApi.Services
                                 ItemCode = id,
                                 TextAr = textAr,
                                 Type = type,
-                                DimensionTags = $"{dimension} > {subDimension}", // Maintain legacy field for compatibility
-                                Dimension = dimension,
-                                SubDimension = subDimension,
+                                DimensionTags = isV2 
+                                    ? $"{patternNameAr} > {subNameAr}"  // V2: Use pattern/sub names
+                                    : $"{dimension} > {subDimension}",   // V1: Use dimension/subdimension
+                                
+                                // V1 fields (maintain for backward compatibility)
+                                Dimension = isV2 ? patternNameAr : dimension,
+                                SubDimension = isV2 ? subNameAr : subDimension,
                                 Reverse = reverse,
+                                
+                                // V2 Seven Patterns fields (only populated for V2 CSV)
+                                PatternId = isV2 ? patternId : null,
+                                PatternKey = isV2 ? patternKey : null,
+                                PatternNameAr = isV2 ? patternNameAr : null,
+                                SubId = isV2 ? subId : null,
+                                SubKey = isV2 ? subKey : null,
+                                SubNameAr = isV2 ? subNameAr : null,
+                                
                                 Difficulty = difficulty,
                                 TimeLimitSeconds = timeLimit,
                                 MaxScore = maxScore,
-                                CorrectAnswer = null,
+                                CorrectAnswer = type == "MCQ" && !string.IsNullOrWhiteSpace(correctAnswer) ? correctAnswer : null,
                                 Options = optionsStr
                             });
                         }
@@ -302,8 +369,8 @@ namespace PsyApi.Services
 
                 _logger.Information("Total rows parsed (excluding header): {Count}", parsedRows);
 
-                // SDJ has 125 items (120 Likert + 5 MCQ), legacy has 200
-                var expectedCount = useSdj ? 125 : 200;
+                // SDJ V1 has 125 items, V2 has 210 items (105 MCQ + 105 Likert), legacy has 200
+                var expectedCount = isLegacy ? 200 : (sdjMode == "1" ? 125 : 210);
                 if (items.Count > expectedCount)
                 {
                     var skipped = items.Count - expectedCount;
@@ -334,16 +401,52 @@ namespace PsyApi.Services
                 else
                 {
                     _logger.Information("Post-seed verification passed: {Count} items.", expectedCount);
-                    if (useSdj)
+                    if (!isLegacy)
                     {
-                        // SDJ-specific validation: log dimension distribution
-                        var byDimension = await _context.Items
-                            .Where(i => i.Dimension != null)
-                            .GroupBy(i => i.Dimension)
-                            .Select(g => new { Dimension = g.Key, Count = g.Count() })
-                            .ToListAsync();
-                        _logger.Information("[SDJ] Dimension distribution:");
-                        foreach (var d in byDimension) _logger.Information("  {Dimension}: {Count} items", d.Dimension, d.Count);
+                        // Check if V2 mode (PatternId populated)
+                        var v2Count = await _context.Items.CountAsync(i => i.PatternId != null);
+                        var isV2 = v2Count > 0;
+                        
+                        if (isV2)
+                        {
+                            _logger.Information("[SDJ V2] Seven Patterns mode detected: {V2Count} items with PatternId", v2Count);
+                            
+                            // V2: Log pattern distribution
+                            var byPattern = await _context.Items
+                                .Where(i => i.PatternId != null)
+                                .GroupBy(i => new { i.PatternId, i.PatternNameAr })
+                                .Select(g => new { PatternId = g.Key.PatternId, Name = g.Key.PatternNameAr, Count = g.Count() })
+                                .OrderBy(x => x.PatternId)
+                                .ToListAsync();
+                            
+                            _logger.Information("[SDJ V2] Pattern distribution:");
+                            foreach (var p in byPattern) 
+                                _logger.Information("  {PatternId} ({Name}): {Count} items", p.PatternId, p.Name, p.Count);
+                            
+                            // V2: Log sub-dimension distribution
+                            var bySubDim = await _context.Items
+                                .Where(i => i.SubId != null)
+                                .GroupBy(i => new { i.SubId, i.SubNameAr })
+                                .Select(g => new { SubId = g.Key.SubId, Name = g.Key.SubNameAr, Count = g.Count() })
+                                .OrderBy(x => x.SubId)
+                                .ToListAsync();
+                            
+                            _logger.Information("[SDJ V2] Sub-dimension distribution ({Count} sub-dimensions):", bySubDim.Count);
+                            foreach (var s in bySubDim) 
+                                _logger.Information("  {SubId} ({Name}): {Count} items", s.SubId, s.Name, s.Count);
+                        }
+                        else
+                        {
+                            // V1: Log dimension distribution
+                            _logger.Information("[SDJ V1] Legacy dimension mode");
+                            var byDimension = await _context.Items
+                                .Where(i => i.Dimension != null)
+                                .GroupBy(i => i.Dimension)
+                                .Select(g => new { Dimension = g.Key, Count = g.Count() })
+                                .ToListAsync();
+                            _logger.Information("[SDJ V1] Dimension distribution:");
+                            foreach (var d in byDimension) _logger.Information("  {Dimension}: {Count} items", d.Dimension, d.Count);
+                        }
                     }
                 }
             }
@@ -519,16 +622,37 @@ namespace PsyApi.Services
 
         private sealed class CsvSdjRow
         {
+            // V2 Headers (PascalCase) - used in questions_sdj_v2_ar.csv
+            public string? ItemCode { get; set; }
+            public string? TextAr { get; set; }
+            public string? Type { get; set; }
+            public string? Reverse { get; set; }
+            public string? TimeLimitSeconds { get; set; }
+            public string? Weight { get; set; }  // V2 replaces max_score
+            
+            // V1 Headers (snake_case) - used in questions_sdj_ar.csv for backward compatibility
             public string? item_code { get; set; }
             public string? text_ar { get; set; }
             public string? type { get; set; }
-            public string? dimension { get; set; }
-            public string? sub_dimension { get; set; }
             public string? anchors_ar { get; set; }
             public string? reverse { get; set; }
             public string? time_limit_seconds { get; set; }
             public string? max_score { get; set; }
             public string? difficulty { get; set; }
+            public string? dimension { get; set; }
+            public string? sub_dimension { get; set; }
+            
+            // V2 Seven Patterns Fields
+            public string? PatternId { get; set; }
+            public string? PatternKey { get; set; }
+            public string? PatternNameAr { get; set; }
+            public string? SubId { get; set; }
+            public string? SubKey { get; set; }
+            public string? SubNameAr { get; set; }
+            
+            // MCQ Fields (V2)
+            public string? CorrectAnswer { get; set; }
+            public string? Options { get; set; }
         }
     }
 }

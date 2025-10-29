@@ -314,6 +314,115 @@ export default function ResultDetailPage() {
           </div>
         </Section>
 
+        {/* Seven Patterns Chart - Only show for V2 results */}
+        {data.sdjData?.SevenPatternScores && data.sdjData.SevenPatternScores.length > 0 && (
+          <Section
+            title="الأنماط السباعية - SDJ v2"
+            subtitle={`تحليل الأنماط السباعية (الإصدار ${data.sdjData.Version || 'v2.1'})`}
+            actions={
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                <Award className="h-3.5 w-3.5" />
+                <span>7 أنماط رئيسية</span>
+              </div>
+            }
+          >
+            <div className="space-y-6">
+              {/* Horizontal Bar Chart */}
+              <div className="h-96 w-full">
+                <Chart
+                  type="bar"
+                  height="100%"
+                  series={[{
+                    name: 'T-Score',
+                    data: data.sdjData.SevenPatternScores
+                      .sort((a, b) => b.TScore - a.TScore)
+                      .map(p => ({
+                        x: p.PatternNameAr,
+                        y: p.TScore
+                      }))
+                  }]}
+                  options={{
+                    chart: {
+                      type: 'bar',
+                      toolbar: { show: false }
+                    },
+                    plotOptions: {
+                      bar: {
+                        horizontal: true,
+                        borderRadius: 6,
+                        columnWidth: '70%',
+                        distributed: true
+                      }
+                    },
+                    colors: ['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#ef4444', '#6366f1'],
+                    xaxis: {
+                      min: 0,
+                      max: 80,
+                      labels: { style: { fontSize: '12px' } }
+                    },
+                    yaxis: {
+                      labels: { 
+                        style: { fontSize: '13px', fontWeight: 600 },
+                        maxWidth: 200
+                      }
+                    },
+                    tooltip: {
+                      y: {
+                        formatter: (value: number) => `${value.toFixed(1)} (${
+                          value < 40 ? 'ضعيف' : value < 55 ? 'متوسط' : 'ممتاز'
+                        })`
+                      }
+                    },
+                    grid: { show: true, strokeDashArray: 3 },
+                    dataLabels: { 
+                      enabled: true,
+                      formatter: (value: number) => value.toFixed(1),
+                      style: { fontSize: '11px', fontWeight: 'bold', colors: ['#fff'] }
+                    },
+                    legend: { show: false }
+                  }}
+                />
+              </div>
+
+              {/* Pattern Cards Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {data.sdjData.SevenPatternScores.map((pattern, idx) => (
+                  <div 
+                    key={idx}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-sm">{pattern.PatternNameAr}</h4>
+                      <BandBadge score={pattern.TScore} variant="compact" />
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {pattern.TScore.toFixed(1)}
+                    </div>
+                    <div className="text-xs text-gray-500 mb-2">
+                      {pattern.SubDimensions.length} بُعد فرعي
+                    </div>
+                    {pattern.SubDimensions.length > 0 && (
+                      <div className="text-xs text-gray-600 space-y-1 mt-2 pt-2 border-t">
+                        {pattern.SubDimensions.slice(0, 3).map((sub, subIdx) => (
+                          <div key={subIdx} className="flex items-center gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                            <span>{sub}</span>
+                          </div>
+                        ))}
+                        {pattern.SubDimensions.length > 3 && (
+                          <div className="text-xs text-gray-400">
+                            +{pattern.SubDimensions.length - 3} آخرين
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
+        )}
+
         {/* AI Analysis - Only show for SDJ results */}
         {data.sdjData && (
           <Section

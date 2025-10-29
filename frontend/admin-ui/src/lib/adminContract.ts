@@ -286,6 +286,14 @@ export interface ResultDetailUI {
       reasoningAr: string
       keyCompetencies: string[]
     }>
+    SevenPatternScores?: Array<{
+      PatternNameAr: string
+      PatternNameEn: string
+      TScore: number
+      Band: string
+      SubDimensions: string[]
+    }>
+    Version?: string
   }
 }
 

@@ -231,6 +231,14 @@ builder.Services.AddScoped<ISdjScoringService>(provider =>
     )
 );
 
+// SDJ V2 Scoring Service (Seven Patterns with MCQ support)
+builder.Services.AddScoped<ISdjV2ScoringService>(provider =>
+    new SdjV2ScoringService(
+        provider.GetRequiredService<AppDbContext>(),
+        provider.GetRequiredService<ILogger<SdjV2ScoringService>>()
+    )
+);
+
 // Reports - Ultimate Arabic PDF Service (v3.0)
 builder.Services.AddScoped<IPdfReportService, UltimateArabicPdfReportService>();
 // Legacy service still available if needed

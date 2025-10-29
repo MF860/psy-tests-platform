@@ -206,6 +206,7 @@ namespace PsyApi.Controllers
         private readonly ILogger<SessionsController> _logger;
         private readonly IScoringService _scoringService;
         private readonly ISdjScoringService? _sdjScoringService;
+        private readonly ISdjV2ScoringService? _sdjV2ScoringService;
         private static readonly Dictionary<string, int> _rateLimiter = new();
         private static readonly object _rateLimiterLock = new();
 
@@ -213,12 +214,14 @@ namespace PsyApi.Controllers
             AppDbContext context, 
             ILogger<SessionsController> logger, 
             IScoringService scoringService,
-            ISdjScoringService? sdjScoringService = null)
+            ISdjScoringService? sdjScoringService = null,
+            ISdjV2ScoringService? sdjV2ScoringService = null)
         {
             _context = context;
             _logger = logger;
             _scoringService = scoringService;
             _sdjScoringService = sdjScoringService;
+            _sdjV2ScoringService = sdjV2ScoringService;
         }
 
         [HttpPost("start")]
@@ -880,13 +883,33 @@ namespace PsyApi.Controllers
                 session.EndedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
 
-                // SDJ is now DEFAULT mode. Set USE_SDJ=0 to use legacy scoring.
-                var useSdj = Environment.GetEnvironmentVariable("USE_SDJ") != "0" && _sdjScoringService != null;
+                // Detect scoring mode: Check if items have PatternId (V2) or not (V1/legacy)
+                var sessionItems = await _context.SessionItems
+                    .Where(si => si.SessionId == session.Id)
+                    .Include(si => si.Item)
+                    .ToListAsync();
+
+                var hasV2Items = sessionItems.Any(si => !string.IsNullOrWhiteSpace(si.Item.PatternId));
+                var useSdjV2 = hasV2Items && _sdjV2ScoringService != null;
+                var useSdjV1 = !hasV2Items && Environment.GetEnvironmentVariable("USE_SDJ") != "0" && _sdjScoringService != null;
+
+                _logger.LogInformation("[Scoring] Session {SessionId}: V2={HasV2}, UseV2={UseV2}, UseV1={UseV1}", 
+                    session.Id, hasV2Items, useSdjV2, useSdjV1);
 
                 // Compute scores via appropriate scoring service
-                var serviceSummary = useSdj 
-                    ? await ComputeSdjScoresWrapper(session.Id)
-                    : await _scoringService.ComputeSessionScores(session.Id);
+                ScoreSummary serviceSummary;
+                if (useSdjV2)
+                {
+                    serviceSummary = await ComputeSdjV2ScoresWrapper(session.Id);
+                }
+                else if (useSdjV1)
+                {
+                    serviceSummary = await ComputeSdjScoresWrapper(session.Id);
+                }
+                else
+                {
+                    serviceSummary = await _scoringService.ComputeSessionScores(session.Id);
+                }
 
                 var modelSummary = serviceSummary; // Since we're using the same model now
 
@@ -911,8 +934,71 @@ namespace PsyApi.Controllers
                     WriteIndented = false
                 };
 
-                // Store SDJ data if available
-                if (useSdj)
+                // Store SDJ V2 data if available
+                if (useSdjV2)
+                {
+                    var sdjV2Scores = await _sdjV2ScoringService!.ComputeSdjV2Scores(session.Id);
+                    
+                    // Store V2-specific data in JSON
+                    result.DimensionScoresJson = JsonSerializer.Serialize(new
+                    {
+                        PatternScores = sdjV2Scores.PatternScores,
+                        SubDimensionScores = sdjV2Scores.SubDimensionScores,
+                        OverallScore = sdjV2Scores.OverallScore,
+                        Version = sdjV2Scores.Version,
+                        ItemCount = sdjV2Scores.ItemCount,
+                        McqCount = sdjV2Scores.McqCount,
+                        LikertCount = sdjV2Scores.LikertCount
+                    }, jsonOptions);
+                    
+                    result.CompositeScoresJson = JsonSerializer.Serialize(new
+                    {
+                        TotalScore = sdjV2Scores.OverallScore.TScore,
+                        RawScore = sdjV2Scores.OverallScore.Raw,
+                        Percentile = sdjV2Scores.OverallScore.Percentile,
+                        Band = sdjV2Scores.OverallScore.Band
+                    }, jsonOptions);
+                    
+                    // Store V2 data in Session.Payload for AdminController
+                    var payload = string.IsNullOrEmpty(session.Payload)
+                        ? new SessionPayload { StartedAtUtc = session.StartedAt }
+                        : JsonSerializer.Deserialize<SessionPayload>(session.Payload);
+                    
+                    if (payload != null)
+                    {
+                        payload.SdjData = new SdjDataPayload
+                        {
+                            Dimensions = sdjV2Scores.PatternScores.Select(p => new SdjDimensionPayload
+                            {
+                                Dimension = p.PatternNameAr,
+                                Raw = p.Raw,
+                                T = p.TScore,
+                                Percentile = p.Percentile,
+                                Band = p.Band
+                            }).ToList(),
+                            SubDimensions = sdjV2Scores.SubDimensionScores.Select(sd => new SdjSubDimensionPayload
+                            {
+                                Dimension = sd.PatternId,
+                                SubDimension = sd.SubNameAr,
+                                T = sd.TScore,
+                                Band = sd.Band
+                            }).ToList(),
+                            TrackFits = new List<SdjTrackFitPayload>(), // V2 doesn't use track fits
+                            SevenPatternScores = sdjV2Scores.PatternScores.Select(p => new SevenPatternPayload
+                            {
+                                PatternNameAr = p.PatternNameAr,
+                                PatternNameEn = p.PatternKey,
+                                TScore = p.TScore,
+                                Band = p.Band,
+                                SubDimensions = p.SubDimensions.Select(sd => sd.SubNameAr).ToList()
+                            }).ToList(),
+                            Version = sdjV2Scores.Version
+                        };
+                        session.Payload = JsonSerializer.Serialize(payload, jsonOptions);
+                    }
+                }
+                // Store SDJ V1 data if available
+                else if (useSdjV1)
                 {
                     var sdjScores = await _sdjScoringService!.ComputeSdjScores(session.Id);
                     
@@ -1009,6 +1095,26 @@ namespace PsyApi.Controllers
                     T = d.T,
                     Percentile = d.Percentile,
                     Z = (d.T - 50) / 10 // Convert T-score back to Z-score
+                }).ToList()
+            };
+        }
+
+        private async Task<ScoreSummary> ComputeSdjV2ScoresWrapper(int sessionId)
+        {
+            var sdjV2Scores = await _sdjV2ScoringService!.ComputeSdjV2Scores(sessionId);
+            
+            // Convert SDJ V2 scores to legacy ScoreSummary format for compatibility
+            return new ScoreSummary
+            {
+                TotalScore = sdjV2Scores.OverallScore.TScore,
+                Version = sdjV2Scores.Version,
+                DimensionScores = sdjV2Scores.PatternScores.Select(p => new DimensionScore
+                {
+                    Dimension = p.PatternNameAr,
+                    Raw = p.Raw,
+                    T = p.TScore,
+                    Percentile = p.Percentile,
+                    Z = (p.TScore - 50) / 10 // Convert T-score back to Z-score
                 }).ToList()
             };
         }
