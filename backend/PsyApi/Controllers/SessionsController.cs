@@ -327,9 +327,9 @@ namespace PsyApi.Controllers
                         return BadRequest(new { error = "No questions available for SDJ V2" });
                     }
                     
-                    // Calculate questions per pattern (distribute evenly)
-                    int questionsPerPattern = TOTAL_QUESTIONS / patternGroups.Count;
-                    int remainder = TOTAL_QUESTIONS % patternGroups.Count;
+                    // Calculate questions per pattern (distribute evenly, respecting available questions)
+                    int baseQuestionsPerPattern = TOTAL_QUESTIONS / patternGroups.Count; // 80 / 7 = 11
+                    int remainder = TOTAL_QUESTIONS % patternGroups.Count; // 80 % 7 = 3
                     
                     items = new List<Item>();
                     var random = new Random();
@@ -337,23 +337,41 @@ namespace PsyApi.Controllers
                     foreach (var group in patternGroups.OrderBy(g => g.Key))
                     {
                         var patternItems = group.ToList();
-                        int countToTake = questionsPerPattern + (remainder > 0 ? 1 : 0);
+                        int countToTake = baseQuestionsPerPattern + (remainder > 0 ? 1 : 0);
                         if (remainder > 0) remainder--;
+                        
+                        // Take minimum of requested count and available items
+                        int actualCount = Math.Min(countToTake, patternItems.Count);
                         
                         // Randomly select items from this pattern
                         var selectedFromPattern = patternItems
                             .OrderBy(x => random.Next())
-                            .Take(Math.Min(countToTake, patternItems.Count))
+                            .Take(actualCount)
                             .ToList();
                         
                         items.AddRange(selectedFromPattern);
+                    }
+                    
+                    // If we don't have exactly 80, take more from patterns with surplus
+                    if (items.Count < TOTAL_QUESTIONS)
+                    {
+                        int needed = TOTAL_QUESTIONS - items.Count;
+                        var usedIds = new HashSet<int>(items.Select(i => i.Id));
+                        
+                        var surplus = allV2Items
+                            .Where(i => !usedIds.Contains(i.Id))
+                            .OrderBy(x => random.Next())
+                            .Take(needed)
+                            .ToList();
+                        
+                        items.AddRange(surplus);
                     }
                     
                     // Shuffle final list
                     items = items.OrderBy(x => random.Next()).ToList();
                     
                     _logger.LogInformation("Starting SDJ V2 session - selected {Count} questions (stratified: ~{PerPattern} per pattern from {TotalPatterns} patterns)", 
-                        items.Count, questionsPerPattern, patternGroups.Count);
+                        items.Count, baseQuestionsPerPattern, patternGroups.Count);
                 }
                 else if (sdjMode == "1")
                 {
