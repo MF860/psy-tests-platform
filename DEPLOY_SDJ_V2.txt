@@ -1,0 +1,9 @@
+SDJ V2 Deployment Marker
+========================
+Timestamp: 2025-10-29 19:11:50
+Commit: f515bbba18fc7dbead24b3a494a88d2a4f73aa12
+Branch: develop
+Status: READY FOR DEPLOYMENT
+
+This file triggers Render auto-deploy.
+Delete this file after successful deployment.
