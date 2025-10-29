@@ -344,10 +344,10 @@ function ExamContent() {
       setSessionTimeLeft(remaining);
       console.log(`[SessionTimer] Resumed - ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')} remaining`);
     } else {
-      // First time - start timer
+      // First time - start timer (60 minutes)
       const startTime = Date.now();
       sessionStorage.setItem(startKey, startTime.toString());
-      setSessionTimeLeft(3600);
+      setSessionTimeLeft(3600); // 60 minutes
       console.log('[SessionTimer] Started - 60:00');
     }
   }, [sessionId]);
