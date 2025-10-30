@@ -601,29 +601,44 @@ namespace PsyApi.Controllers
 
             try
             {
-                // Try SDJ format first
-                var sdjData = TryParseSdjData(json);
-                if (sdjData != null && sdjData.Dimensions != null)
+                // Try SDJ V2 format first (PatternScores)
+                var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("PatternScores", out var patternScores) && patternScores.ValueKind == JsonValueKind.Array)
                 {
-                    // Map SDJ dimensions to DimensionScore
-                    return sdjData.Dimensions.Select(dim => new DimensionScore
-                    {
-                        Dimension = dim.Dimension,
-                        T = dim.T,
-                        Percentile = dim.Percentile,
-                        Raw = dim.Raw,
-                        Z = 0 // Not available in SDJ format
-                    }).ToList();
+                    // Map PatternScores to DimensionScore for V2 format
+                    return patternScores.EnumerateArray()
+                        .Select(p => new DimensionScore
+                        {
+                            Dimension = p.GetProperty("PatternNameAr").GetString() ?? "",
+                            Raw = p.GetProperty("Raw").GetDouble(),
+                            T = p.GetProperty("TScore").GetDouble(),
+                            Percentile = p.GetProperty("Percentile").GetDouble(),
+                            Z = 0 // Z-score not stored in V2 format
+                        }).ToList();
+                }
+                
+                // Try SDJ V1 format (Dimensions in root)
+                if (doc.RootElement.TryGetProperty("Dimensions", out var dimensions) && dimensions.ValueKind == JsonValueKind.Array)
+                {
+                    return dimensions.EnumerateArray()
+                        .Select(d => new DimensionScore
+                        {
+                            Dimension = d.GetProperty("Dimension").GetString() ?? "",
+                            Raw = d.GetProperty("Raw").GetDouble(),
+                            T = d.GetProperty("T").GetDouble(),
+                            Percentile = d.GetProperty("Percentile").GetDouble(),
+                            Z = 0
+                        }).ToList();
                 }
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-                // Fall through to legacy format
+                _logger.LogDebug(ex, "Not SDJ format, trying legacy format");
             }
 
             try
             {
-                // Try legacy format
+                // Try legacy format (flat array of DimensionScore)
                 var scores = JsonSerializer.Deserialize<List<DimensionScore>>(json, opts);
                 return scores ?? new List<DimensionScore>();
             }
@@ -632,61 +647,6 @@ namespace PsyApi.Controllers
                 _logger.LogWarning(ex, "Failed to parse dimension scores from JSON");
                 return new List<DimensionScore>();
             }
-        }
-
-        private static SdjDataWrapper? TryParseSdjData(string? json)
-        {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return null;
-            }
-
-            try
-            {
-                var opts = new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-                var data = JsonSerializer.Deserialize<SdjDataWrapper>(json, opts);
-                // Check if it has SDJ structure
-                if (data?.Dimensions != null && data.Dimensions.Any())
-                {
-                    return data;
-                }
-                return null;
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
-        }
-
-        private class SdjDataWrapper
-        {
-            public List<SdjDimension>? Dimensions { get; set; }
-            public List<SdjSubDimension>? SubDimensions { get; set; }
-            public List<SdjTrack>? TrackFits { get; set; }
-        }
-
-        private class SdjDimension
-        {
-            public string Dimension { get; set; } = string.Empty;
-            public double Raw { get; set; }
-            public double T { get; set; }
-            public double Percentile { get; set; }
-            public string Band { get; set; } = string.Empty;
-        }
-
-        private class SdjSubDimension
-        {
-            public string Dimension { get; set; } = string.Empty;
-            public string SubDimension { get; set; } = string.Empty;
-            public double T { get; set; }
-            public string Band { get; set; } = string.Empty;
-        }
-
-        private class SdjTrack
-        {
-            public string TrackNameAr { get; set; } = string.Empty;
-            public string FitLevel { get; set; } = string.Empty;
-            public double FitScore { get; set; }
         }
 
     }
