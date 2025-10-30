@@ -185,14 +185,24 @@ namespace PsyApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[AI] Analysis failed for resultId={ResultId}", request.ResultId);
+                _logger.LogError(ex, "[AI] Analysis failed for resultId={ResultId}. Error type: {ExType}, Message: {Message}", 
+                    request.ResultId, ex.GetType().Name, ex.Message);
                 
-                // Return user-friendly error
-                var errorMsg = ex.Message.Contains("DEEPSEEK_API_KEY") || ex.Message.Contains("API") ? 
-                    "خدمة الذكاء الاصطناعي غير متوفرة حالياً - جاري استخدام التحليل الاحتياطي" :
-                    "حدث خطأ في توليد التحليل";
+                // Return user-friendly error with more details for debugging
+                var errorMsg = ex.Message.Contains("DEEPSEEK_API_KEY") || ex.Message.Contains("not configured") ? 
+                    "خدمة الذكاء الاصطناعي غير متوفرة - مفتاح API غير مكوّن بشكل صحيح" :
+                    ex.Message.Contains("DeepSeek API error") ?
+                    $"خطأ في الاتصال بخدمة الذكاء الاصطناعي: {ex.Message}" :
+                    ex.Message.Contains("timeout") || ex.Message.Contains("Timeout") ?
+                    "انتهت مهلة الاتصال بخدمة الذكاء الاصطناعي - يرجى المحاولة لاحقاً" :
+                    "فشل في توليد التحليل - يرجى المحاولة لاحقاً";
                     
-                return StatusCode(503, new { error = errorMsg, details = ex.Message });
+                return StatusCode(503, new { 
+                    error = errorMsg, 
+                    details = ex.Message,
+                    type = ex.GetType().Name,
+                    timestamp = DateTime.UtcNow
+                });
             }
         }
 

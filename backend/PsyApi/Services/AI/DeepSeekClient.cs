@@ -184,6 +184,8 @@ namespace PsyApi.Services.AI
                     }
                     
                     var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _logger.LogError("[AI] DeepSeek API returned {StatusCode}: {ErrorContent}", 
+                        response.StatusCode, errorContent);
                     throw new HttpRequestException($"DeepSeek API error: {response.StatusCode} - {errorContent}");
                 }
                 catch (Exception ex) when (!(ex is OperationCanceledException))
