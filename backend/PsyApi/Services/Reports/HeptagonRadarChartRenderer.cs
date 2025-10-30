@@ -47,14 +47,33 @@ namespace PsyApi.Services.Reports
             var titleHeight = 50f;
             var adjustedCenterY = centerY + (titleHeight / 4); // Shift chart down for title
 
-            // Draw title
+            // Draw title with Arabic font (HarfBuzz shaping)
             using var titlePaint = new SKPaint
             {
                 Color = SKColor.Parse("#1a365d"),
                 IsAntialias = true
             };
-            using var titleFont = new SKFont(SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold), 22);
-            canvas.DrawText(title, centerX, titleHeight - 10, SKTextAlign.Center, titleFont, titlePaint);
+            var titleTypeface = _arabicTypeface ?? SKTypeface.Default;
+            using var titleFont = new SKFont(titleTypeface, 22);
+            
+            // Use HarfBuzz shaper for Arabic text in title
+            if (_arabicShaper != null && title.Any(c => c >= 0x0600 && c <= 0x06FF))
+            {
+                var shapedTitle = _arabicShaper.Shape(title, titleFont);
+                if (shapedTitle?.Points != null && shapedTitle.Points.Length > 0)
+                {
+                    var titleWidth = shapedTitle.Points.LastOrDefault().X;
+                    canvas.DrawShapedText(_arabicShaper, title, centerX - titleWidth / 2, titleHeight - 10, titleFont, titlePaint);
+                }
+                else
+                {
+                    canvas.DrawText(title, centerX, titleHeight - 10, SKTextAlign.Center, titleFont, titlePaint);
+                }
+            }
+            else
+            {
+                canvas.DrawText(title, centerX, titleHeight - 10, SKTextAlign.Center, titleFont, titlePaint);
+            }
 
             // Draw concentric rings (grid) at T-scores: 40, 55, 70
             var ringTScores = new[] { 40.0, 55.0, 70.0 };
