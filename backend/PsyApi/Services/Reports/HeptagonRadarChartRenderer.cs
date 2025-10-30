@@ -40,10 +40,10 @@ namespace PsyApi.Services.Reports
             var canvas = surface.Canvas;
             canvas.Clear(SKColors.White);
 
-            // Chart parameters
+            // Chart parameters - Reduced radius to leave more room for Arabic labels
             var centerX = size / 2f;
             var centerY = size / 2f;
-            var maxRadius = size * 0.35f; // Leave room for labels
+            var maxRadius = size * 0.31f; // Reduced from 0.35f for better label visibility
             var titleHeight = 50f;
             var adjustedCenterY = centerY + (titleHeight / 4); // Shift chart down for title
 
@@ -116,8 +116,8 @@ namespace PsyApi.Services.Reports
                 var dataY = adjustedCenterY + dataRadius * (float)Math.Sin(angleRad);
                 dataPoints.Add(new SKPoint(dataX, dataY));
 
-                // Draw Arabic label at end of axis
-                var labelDistance = maxRadius + 35;
+                // Draw Arabic label at end of axis - Increased distance for readability
+                var labelDistance = maxRadius + 50; // Increased from 35 to 50 for better spacing
                 var labelX = centerX + labelDistance * (float)Math.Cos(angleRad);
                 var labelY = adjustedCenterY + labelDistance * (float)Math.Sin(angleRad);
                 

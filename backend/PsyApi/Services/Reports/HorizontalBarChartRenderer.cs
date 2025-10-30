@@ -42,7 +42,7 @@ namespace PsyApi.Services.Reports
             var barSpacing = 11f;
             var topMargin = 50f;
             var bottomMargin = 40f;
-            var leftMargin = 160f; // للتسميات العربية RTL
+            var leftMargin = 190f; // Increased from 160f for longer Arabic dimension names
             var rightMargin = 80f;  // للقيم في نهاية الشريط
 
             var plotHeight = sortedDimensions.Count * (barHeight + barSpacing);
@@ -287,7 +287,8 @@ namespace PsyApi.Services.Reports
             SKFont font,
             SKPaint paint)
         {
-            var formatted = FormatDimensionName(dimensionName, 20);
+            // Increased from 20 to 26 chars to prevent truncating long Arabic dimension names
+            var formatted = FormatDimensionName(dimensionName, 26);
 
             if (_arabicShaper != null && ContainsArabic(formatted))
             {
@@ -313,6 +314,7 @@ namespace PsyApi.Services.Reports
         private static string FormatDimensionName(string name, int maxLength)
         {
             if (string.IsNullOrWhiteSpace(name)) return "غير محدد";
+            // Increased max length from 20 to 26 to accommodate longer Arabic sub-dimension names
             if (name.Length <= maxLength) return name;
             return name[..(maxLength - 1)] + "…";
         }
