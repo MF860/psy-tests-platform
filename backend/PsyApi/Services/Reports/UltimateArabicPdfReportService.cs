@@ -193,30 +193,118 @@ namespace PsyApi.Services.Reports
                 QuestPDF.Settings.License = LicenseType.Community;
                 QuestPDF.Settings.EnableDebugging = false;
 
-                // Parse SDJ data
+                // Parse SDJ data - try V2 format first (PatternScores), then V1 format (Dimensions)
                 var opts = new System.Text.Json.JsonSerializerOptions 
                 { 
                     Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
                 };
-                var sdjData = System.Text.Json.JsonSerializer.Deserialize<SdjScoreSummary>(
-                    result.DimensionScoresJson ?? "{}", opts);
-
-                if (sdjData == null || sdjData.Dimensions.Count == 0)
-                    throw new InvalidOperationException("No SDJ data found");
-
-                Console.WriteLine($"📊 SDJ DATA: {sdjData.Dimensions.Count} dimensions, {sdjData.SubDimensions.Count} sub-dimensions");
-                Console.WriteLine($"📊 Version: {sdjData.Version}");
-
-                // Check if 7-pattern data exists (SDJ_v2.0_7Patterns)
-                if (sdjData.SevenPatternScores != null && sdjData.SevenPatternScores.Any())
+                
+                SdjScoreSummary sdjData;
+                
+                // Check for V2 format first
+                using var doc = System.Text.Json.JsonDocument.Parse(result.DimensionScoresJson ?? "{}");
+                if (doc.RootElement.TryGetProperty("PatternScores", out var patternScoresElement))
                 {
+                    Console.WriteLine($"✓ Detected SDJ V2 format (PatternScores)");
+                    
+                    // Deserialize as V2 format
+                    var v2Data = System.Text.Json.JsonSerializer.Deserialize<PsyApi.Services.Scoring.SdjV2ScoreSummary>(
+                        result.DimensionScoresJson ?? "{}", opts);
+                    
+                    if (v2Data == null || v2Data.PatternScores.Count == 0)
+                        throw new InvalidOperationException("No SDJ V2 data found");
+                    
+                    Console.WriteLine($"📊 SDJ V2 DATA: {v2Data.PatternScores.Count} patterns, {v2Data.SubDimensionScores.Count} sub-dimensions");
+                    Console.WriteLine($"📊 Version: {v2Data.Version}");
                     Console.WriteLine($"✓ Using Modern 7-Pattern Report Service");
+                    
+                    // Convert V2 format to SdjScoreSummary for compatibility
+                    sdjData = new SdjScoreSummary
+                    {
+                        Dimensions = v2Data.PatternScores.Select(p => new SdjDimensionScore
+                        {
+                            Dimension = p.PatternNameAr,
+                            Raw = p.Raw,
+                            T = p.TScore,
+                            Percentile = p.Percentile,
+                            Band = p.Band,
+                            ItemCount = p.SubDimensionCount,
+                            SubDimensions = v2Data.SubDimensionScores
+                                .Where(s => s.PatternId == p.PatternId)
+                                .Select(s => new SdjSubDimensionScore
+                                {
+                                    Dimension = s.PatternId,
+                                    SubDimension = s.SubNameAr,
+                                    Raw = s.Raw,
+                                    T = s.TScore,
+                                    Percentile = s.Percentile,
+                                    Band = s.Band,
+                                    ItemCount = s.ItemCount
+                                }).ToList()
+                        }).ToList(),
+                        SubDimensions = v2Data.SubDimensionScores.Select(s => new SdjSubDimensionScore
+                        {
+                            Dimension = s.PatternId,
+                            SubDimension = s.SubNameAr,
+                            Raw = s.Raw,
+                            T = s.TScore,
+                            Percentile = s.Percentile,
+                            Band = s.Band,
+                            ItemCount = s.ItemCount
+                        }).ToList(),
+                        SevenPatternScores = v2Data.PatternScores.Select(p => new SevenPatternScore
+                        {
+                            PatternKey = p.PatternKey,
+                            PatternNameAr = p.PatternNameAr,
+                            PatternNameEn = p.PatternKey,
+                            TScore = p.TScore,
+                            Band = p.Band,
+                            Raw = p.Raw,
+                            Percentile = p.Percentile,
+                            SubDimensionCount = p.SubDimensionCount,
+                            SubDimensions = v2Data.SubDimensionScores
+                                .Where(s => s.PatternId == p.PatternId)
+                                .Select(s => new SdjSubDimensionScore
+                                {
+                                    Dimension = s.PatternId,
+                                    SubDimension = s.SubNameAr,
+                                    Raw = s.Raw,
+                                    T = s.TScore,
+                                    Percentile = s.Percentile,
+                                    Band = s.Band,
+                                    ItemCount = s.ItemCount
+                                }).ToList()
+                        }).ToList(),
+                        Version = v2Data.Version
+                    };
+                    
                     var modernService = new ModernSdjSevenPatternReportService();
                     return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
                 }
+                else
+                {
+                    // Fallback to V1 format (Dimensions)
+                    var sdjDataV1 = System.Text.Json.JsonSerializer.Deserialize<SdjScoreSummary>(
+                        result.DimensionScoresJson ?? "{}", opts);
 
-                // Fallback to legacy rendering if no 7-pattern data
-                Console.WriteLine($"⚠ No 7-pattern data found, using legacy SDJ rendering");
+                    if (sdjDataV1 == null || sdjDataV1.Dimensions.Count == 0)
+                        throw new InvalidOperationException("No SDJ data found");
+
+                    sdjData = sdjDataV1;
+                    Console.WriteLine($"📊 SDJ V1 DATA: {sdjData.Dimensions.Count} dimensions, {sdjData.SubDimensions.Count} sub-dimensions");
+                    Console.WriteLine($"📊 Version: {sdjData.Version}");
+
+                    // Check if 7-pattern data exists (SDJ_v2.0_7Patterns)
+                    if (sdjData.SevenPatternScores != null && sdjData.SevenPatternScores.Any())
+                    {
+                        Console.WriteLine($"✓ Using Modern 7-Pattern Report Service");
+                        var modernService = new ModernSdjSevenPatternReportService();
+                        return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                    }
+
+                    // Fallback to legacy rendering if no 7-pattern data
+                    Console.WriteLine($"⚠ No 7-pattern data found, using legacy SDJ rendering");
+                }
 
                 var dimensions = sdjData.Dimensions.OrderBy(d => d.T).ToList();
                 var subDimensions = sdjData.SubDimensions.OrderBy(s => s.T).ToList();
