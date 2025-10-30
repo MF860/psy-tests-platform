@@ -93,18 +93,31 @@ builder.Services.AddCors(o =>
     {
         var origins = new List<string> 
         { 
+            // Local development origins
             "http://localhost:5173", "http://localhost:5174", "http://localhost:3000",
-            "https://localhost:5173", "https://localhost:5174"
+            "https://localhost:5173", "https://localhost:5174",
+            "http://localhost:5175", "http://localhost:5176", "http://localhost:4173",
+            "https://localhost:5175", "https://localhost:5176",
+            
+            // Production Vercel deployments (always included)
+            "https://admin-ui-lyart-nu.vercel.app",
+            "https://psy-tests-platform.vercel.app"
         };
         
-        // Add production origins from environment variable
+        // Add additional production origins from environment variable
         if (!string.IsNullOrWhiteSpace(corsAllowedOriginsEnv))
         {
             var prodOrigins = corsAllowedOriginsEnv
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(o => !string.IsNullOrWhiteSpace(o));
             origins.AddRange(prodOrigins);
-            Log.Information("CORS: Added {Count} production origins", prodOrigins.Count());
+            Log.Information("CORS: Added {Count} custom production origins from env", prodOrigins.Count());
+        }
+        
+        Log.Information("CORS: Total configured origins: {Count}", origins.Count);
+        foreach (var origin in origins)
+        {
+            Log.Information("  - {Origin}", origin);
         }
         
         p.WithOrigins(origins.ToArray())
@@ -119,7 +132,10 @@ builder.Services.AddCors(o =>
         var origins = new List<string> 
         { 
             "http://localhost:5175", "http://localhost:5176", "http://localhost:4173",
-            "https://localhost:5175", "https://localhost:5176"
+            "https://localhost:5175", "https://localhost:5176",
+            
+            // Production Vercel deployments
+            "https://psy-tests-platform.vercel.app"
         };
         
         // Add production origins from environment variable (same as Admin)
