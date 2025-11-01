@@ -7,50 +7,54 @@ interface UserHeaderProps {
 export default function UserHeader({ showStep, stepLabel, className = "" }: UserHeaderProps) {
   return (
     <header
-      className={`header ${className}`}
+      className={`luxury-header ${className}`}
       dir="rtl"
       role="banner"
       aria-label="رأس الصفحة"
     >
-      <div className="container">
-        <div className="header-grid">
-          {/* FB Icon - Left side in RTL */}
-          <div className="header-logo-corner">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-cyan-500/20 rounded-xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <img
-                src="/FB-ICON.png"
-                alt="أيقونة المنصة"
-                className="relative w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-xl ring-1 ring-white/20 hover:ring-white/40 transition-all duration-300 hover:scale-105"
-                style={{ minWidth: '36px', minHeight: '36px' }}
-              />
+      <div className="luxury-header-inner">
+        {/* Left Logo - FB Icon (Primary) */}
+        <div className="luxury-header-logo-left">
+          <img
+            src="/FB-ICON.png"
+            alt="الشعار الرئيسي"
+            loading="eager"
+            decoding="async"
+            srcSet="/FB-ICON.png 1x, /FB-ICON.png 2x, /FB-ICON.png 3x"
+          />
+        </div>
+        
+        {/* Center Spacer (for visual balance) */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {showStep && stepLabel && (
+            <div 
+              style={{
+                padding: '6px 16px',
+                borderRadius: '24px',
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(30, 64, 175, 0.1) 100%)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: 'var(--luxury-green)',
+                whiteSpace: 'nowrap'
+              }}
+              role="status"
+              aria-live="polite"
+            >
+              {stepLabel}
             </div>
-          </div>
-          
-          {/* STEST Logo - Center */}
-          <div className="header-logo-main">
-            <img
-              src="/STEST.png"
-              alt="منصة الاختبارات القياسية"
-              className="h-10 sm:h-12 object-contain"
-              style={{ minHeight: '40px' }}
-            />
-          </div>
-          
-          {/* Step Indicator - Right side in RTL */}
-          <div className="header-actions">
-            {showStep && stepLabel && (
-              <div 
-                className="flex items-center px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-500/10 to-cyan-500/10 border border-violet-500/20 backdrop-blur-sm"
-                role="status"
-                aria-live="polite"
-              >
-                <span className="text-xs sm:text-sm font-medium bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap">
-                  {stepLabel}
-                </span>
-              </div>
-            )}
-          </div>
+          )}
+        </div>
+        
+        {/* Right Logo - STEST (Partner) */}
+        <div className="luxury-header-logo-right">
+          <img
+            src="/STEST.png"
+            alt="شعار الشريك"
+            loading="eager"
+            decoding="async"
+            srcSet="/STEST.png 1x, /STEST.png 2x, /STEST.png 3x"
+          />
         </div>
       </div>
     </header>

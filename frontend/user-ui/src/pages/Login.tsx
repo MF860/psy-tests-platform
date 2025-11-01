@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, Shield, Clock, FileText, CreditCard } from "lucide-react";
+import { Loader2, Shield, Clock, FileText, CreditCard, ChevronLeft } from "lucide-react";
 import UserHeader from "@/components/layout/UserHeader";
 import { GuardedRoute } from "@/components/GuardedRoute";
 import { ApiError } from "@/lib/api";
@@ -65,310 +65,184 @@ function LoginContent() {
 
   return (
     <>
-      <UserHeader showStep stepLabel="تسجيل الدخول" />
+      {/* Animated Luxury Gradient Background */}
+      <div className="luxury-gradient-bg" aria-hidden="true" />
       
-      {/* Animated Background */}
-      <div className="hero-bg" aria-hidden="true" />
+      <UserHeader />
       
-      {/* Floating Particles */}
-      <div className="particles" aria-hidden="true">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 10}s`
-            }}
-          />
-        ))}
-      </div>
-
-      <main className="main">
-        <section className="container container-narrow" style={{ position: 'relative', zIndex: 1 }}>
-          {/* Glass Card with Glow */}
-          <div style={{ position: 'relative' }}>
-            {/* Glow effect */}
-            <div 
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: 'linear-gradient(90deg, rgba(124, 70, 255, 0.2), rgba(34, 211, 238, 0.2))',
-                filter: 'blur(40px)',
-                transform: 'scale(1.1)',
-                opacity: 0.5,
-                zIndex: -1
-              }}
-              aria-hidden="true"
-            />
-            
-            <div className="glass" style={{ padding: '28px 28px 24px' }}>
-              {/* Title Section */}
-              <h1 style={{ 
-                textAlign: 'center', 
-                margin: '0 0 8px', 
-                fontSize: 'clamp(1.5rem, 4vw, 2rem)',
-                fontWeight: 700,
-                lineHeight: 1.2,
-                background: 'linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.8) 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text'
-              }}>
-                مرحبًا بك في منصة الاختبارات القياسية
+      <main className="luxury-main">
+        <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Premium Login Card */}
+          <section className="luxury-card">
+            <header className="luxury-card-header">
+              <h1 className="luxury-card-title">
+                تسجيل الدخول
               </h1>
-              
-              <p style={{ 
-                textAlign: 'center', 
-                opacity: 0.85, 
-                margin: '0 0 20px',
-                fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
-                lineHeight: 1.6
-              }}>
+              <p className="luxury-card-subtitle">
                 أدخل الرقم الوطني للبدء في الاختبار النفسي المخصص لك
               </p>
+            </header>
 
-              {/* Form */}
-              <form onSubmit={onSubmit} noValidate>
-                <label style={{ display: 'block', marginBottom: 8 }}>
-                  <span style={{
-                    display: 'block',
-                    marginBottom: '6px',
-                    fontSize: '0.9rem',
-                    fontWeight: 500,
-                    opacity: 0.9,
-                    textAlign: 'right'
-                  }}>
-                    الرقم الوطني <span style={{ color: '#ef4444' }}>*</span>
-                  </span>
-                  
-                  <div style={{ position: 'relative' }}>
-                    {/* Icon */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      insetInlineEnd: '12px',
-                      zIndex: 10,
-                      pointerEvents: 'none'
-                    }}>
-                      <CreditCard 
-                        size={20}
-                        style={{
-                          color: error ? '#ef4444' : isValid ? '#22c55e' : 'rgba(255,255,255,0.4)',
-                          transition: 'color 0.2s'
-                        }}
-                        aria-hidden="true"
-                      />
-                    </div>
-                    
-                    {/* Input */}
-                    <input
-                      dir="ltr"
-                      className="input"
-                      type="tel"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={10}
-                      placeholder="أدخل الرقم الوطني (10 أرقام)"
-                      aria-label="الرقم الوطني"
-                      aria-describedby={error ? "nid-error" : "nid-help"}
-                      aria-invalid={!!error}
-                      value={value}
-                      onChange={(e) => onChange(e.target.value)}
-                      disabled={busy}
-                      autoComplete="off"
-                      style={{
-                        paddingInlineEnd: '44px',
-                        paddingInlineStart: '44px',
-                        textAlign: 'center',
-                        fontFamily: 'ui-monospace, monospace',
-                        fontSize: 'clamp(0.95rem, 2vw, 1.1rem)'
-                      }}
-                    />
-                    
-                    {/* Character Counter */}
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '6px',
-                      insetInlineStart: '12px',
-                      fontSize: '0.75rem',
-                      color: 'rgba(255,255,255,0.5)',
-                      pointerEvents: 'none',
-                      fontFamily: 'ui-monospace, monospace'
-                    }}>
-                      {charCount}/10
-                    </div>
-                  </div>
+            {/* Login Form */}
+            <form onSubmit={onSubmit} className="luxury-form" noValidate>
+              <div className="luxury-form-group">
+                <label htmlFor="national-id" className="luxury-label">
+                  الرقم الوطني
+                  <span className="luxury-label-required" aria-label="مطلوب">*</span>
                 </label>
-
-                {/* Helper Text / Error */}
-                <div 
-                  id={error ? "nid-error" : "nid-help"}
-                  role={error ? "alert" : "status"}
-                  style={{ 
-                    fontSize: '0.85rem', 
-                    marginTop: 6,
-                    textAlign: 'right',
-                    color: error ? '#ef4444' : isValid ? '#22c55e' : 'rgba(255,255,255,0.85)',
-                    fontWeight: error ? 500 : 400,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    gap: '4px'
-                  }}
-                >
-                  {error ? (
-                    <>
-                      <span>⚠</span>
-                      <span>{error}</span>
-                    </>
-                  ) : isValid ? (
-                    <>
-                      <span>✓</span>
-                      <span>الرقم صحيح</span>
-                    </>
-                  ) : (
-                    <span>يرجى التأكد من إدخال 10 أرقام صحيحة.</span>
-                  )}
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="btn"
-                  disabled={!isValid || busy}
-                  style={{ 
-                    width: '100%', 
-                    marginTop: 16,
-                    fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}
-                  aria-describedby="submit-help"
-                >
-                  {/* Button shine effect */}
-                  <div 
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-                      transform: 'translateX(-100%)',
-                      animation: busy ? 'none' : 'shine 3s ease-in-out infinite'
-                    }}
-                    aria-hidden="true"
+                
+                <div className="luxury-input-wrapper">
+                  <input
+                    id="national-id"
+                    dir="ltr"
+                    className="luxury-input"
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={10}
+                    placeholder="أدخل 10 أرقام"
+                    aria-label="الرقم الوطني"
+                    aria-describedby={error ? "nid-error" : "nid-help"}
+                    aria-invalid={!!error}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    disabled={busy}
+                    autoComplete="off"
+                    style={{ paddingInlineEnd: '44px' }}
                   />
                   
-                  <span style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {busy ? (
-                      <>
-                        <Loader2 size={20} style={{ animation: 'spin 1s linear infinite' }} />
-                        جاري التحقق…
-                      </>
-                    ) : (
-                      <>
-                        متابعة
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'scaleX(-1)' }}>
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                      </>
-                    )}
-                  </span>
-                </button>
-              </form>
-
-              {/* Dev Mode Notice */}
-              {process.env.NODE_ENV === 'development' && (
-                <div style={{
-                  marginTop: 16,
-                  padding: '12px 16px',
-                  background: 'rgba(245, 158, 11, 0.1)',
-                  border: '1px solid rgba(245, 158, 11, 0.2)',
-                  borderRadius: '16px',
-                  fontSize: '0.85rem',
-                  color: '#fbbf24',
-                  textAlign: 'center'
-                }}>
-                  <strong style={{ fontWeight: 600 }}>وضع التطوير:</strong> ادخل الرقم الخاص بك للاستمرار.
+                  {/* Icon */}
+                  <div className="luxury-input-icon">
+                    <CreditCard 
+                      size={20}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                      style={{
+                        color: error ? 'var(--error)' : isValid ? 'var(--success)' : 'inherit'
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Character Counter */}
+                  <div className="luxury-input-counter" aria-live="polite">
+                    {charCount}/10
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+
+                {/* Helper / Error Text */}
+                {error ? (
+                  <div 
+                    id="nid-error" 
+                    className="luxury-helper-text luxury-error-text"
+                    role="alert"
+                  >
+                    <span aria-hidden="true">⚠</span>
+                    <span>{error}</span>
+                  </div>
+                ) : isValid ? (
+                  <div 
+                    id="nid-help" 
+                    className="luxury-helper-text luxury-success-text"
+                  >
+                    <span aria-hidden="true">✓</span>
+                    <span>الرقم صحيح</span>
+                  </div>
+                ) : (
+                  <div id="nid-help" className="luxury-helper-text">
+                    <span>يرجى التأكد من إدخال 10 أرقام صحيحة</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="luxury-btn"
+                disabled={!isValid || busy}
+                aria-describedby="submit-help"
+              >
+                {busy ? (
+                  <>
+                    <Loader2 size={20} className="luxury-btn-spinner" />
+                    <span>جاري التحقق…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>متابعة</span>
+                    <ChevronLeft size={20} style={{ transform: 'scaleX(-1)' }} />
+                  </>
+                )}
+              </button>
+
+              <span id="submit-help" className="sr-only">
+                سيتم التحقق من الرقم الوطني والانتقال إلى الاختبار
+              </span>
+            </form>
+
+            {/* Dev Mode Notice */}
+            {process.env.NODE_ENV === 'development' && (
+              <div style={{
+                marginTop: 'var(--space-6)',
+                padding: 'var(--space-4)',
+                background: 'rgba(245, 158, 11, 0.1)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.875rem',
+                color: '#d97706',
+                textAlign: 'center'
+              }}>
+                <strong style={{ fontWeight: 600 }}>وضع التطوير:</strong> أدخل رقمك الوطني للمتابعة
+              </div>
+            )}
+          </section>
 
           {/* Benefits / Features */}
-          <ul className="grid-3" style={{ maxWidth: 980, margin: '24px auto 0' }}>
+          <ul className="luxury-features">
             {[
               {
                 icon: Shield,
                 title: 'آمن ومحمي',
                 description: 'بياناتك محمية بأعلى معايير الأمان والخصوصية',
-                color: '#3b82f6'
+                color: 'var(--luxury-blue)'
               },
               {
                 icon: Clock,
                 title: 'مرن وسريع',
                 description: 'يمكنك إيقاف الاختبار والعودة لاحقاً من حيث توقفت',
-                color: '#22c55e'
+                color: 'var(--luxury-green)'
               },
               {
                 icon: FileText,
                 title: 'تقرير شامل',
-                description: 'ستحصل على تقرير مفصل وتحليل شخصيتك',
-                color: '#a855f7'
+                description: 'ستحصل على تقرير مفصل وتحليل كامل لشخصيتك',
+                color: '#0d9488'
               }
             ].map((feature, index) => {
               const Icon = feature.icon;
               return (
                 <li 
                   key={index}
-                  className="feature"
+                  className="luxury-feature-card"
                   style={{
-                    animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
+                    animationDelay: `${index * 100}ms`
                   }}
                 >
-                  <div style={{ 
-                    display: 'inline-flex',
-                    padding: '10px',
-                    borderRadius: '12px',
-                    background: `${feature.color}20`,
-                    marginBottom: '12px'
-                  }}>
-                    <Icon size={24} style={{ color: feature.color }} aria-hidden="true" />
+                  <div className="luxury-feature-icon">
+                    <Icon 
+                      size={28} 
+                      strokeWidth={2}
+                      style={{ color: feature.color }} 
+                      aria-hidden="true" 
+                    />
                   </div>
-                  <strong>{feature.title}</strong>
-                  <p>{feature.description}</p>
+                  <h3 className="luxury-feature-title">{feature.title}</h3>
+                  <p className="luxury-feature-description">{feature.description}</p>
                 </li>
               );
             })}
           </ul>
-        </section>
+        </div>
       </main>
-
-      {/* Keyframe Animations */}
-      <style>{`
-        @keyframes shine {
-          0%, 100% { transform: translateX(-100%); }
-          50% { transform: translateX(100%); }
-        }
-        
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </>
   );
 }
