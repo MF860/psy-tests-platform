@@ -522,23 +522,23 @@ function ExamContent() {
       </div>
 
       {/* Header with logos and step indicator */}
-      <header className="absolute top-0 w-full flex justify-between items-center p-6 z-20 bg-gray-900/50 backdrop-blur-sm border-b border-white/10">
-        <div className="flex-1"></div>
+      <header className="absolute top-0 w-full flex justify-between items-center p-4 sm:p-6 z-20 bg-gray-900/80 backdrop-blur-md border-b border-white/10">
+        <div className="flex-1 hidden sm:block"></div>
         <div className="flex-1 flex justify-center">
           <img 
             src="/STEST.png" 
             alt="شعار المنصة" 
-            className="h-14 object-contain drop-shadow-lg"
+            className="h-10 sm:h-14 object-contain drop-shadow-lg"
           />
         </div>
-        <div className="flex-1 flex justify-end items-center gap-4">
-          <div className="px-4 py-2 bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 rounded-full text-indigo-300 text-sm font-medium">
+        <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
+          <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/40 rounded-full text-indigo-200 text-xs sm:text-sm font-medium">
             {headerTitle}
           </div>
           <img 
             src="/FB-ICON.png" 
             alt="أيقونة" 
-            className="h-10 object-contain drop-shadow-lg"
+            className="h-8 sm:h-10 object-contain drop-shadow-lg"
           />
         </div>
       </header>
@@ -628,15 +628,15 @@ function ExamContent() {
             )}
           </AnimatePresence>
 
-          {/* Top Status Bar */}
-          <div className="fixed top-20 left-0 right-0 z-10 bg-gray-900/70 backdrop-blur-md border-b border-white/10">
-            <div className="max-w-6xl mx-auto px-4 py-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Top Status Bar - Enhanced visibility */}
+          <div className="fixed top-16 sm:top-20 left-0 right-0 z-10 bg-gray-800/90 backdrop-blur-md border-b border-indigo-400/30 shadow-lg">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
                 {/* Progress & Counter */}
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className="flex-1 min-w-0 bg-gray-800/50 rounded-full h-3 overflow-hidden border border-white/10">
+                <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 bg-gray-700/70 rounded-full h-2.5 sm:h-3 overflow-hidden border border-indigo-400/40 shadow-inner">
                     <motion.div 
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                      className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full shadow-md"
                       initial={{ width: 0 }}
                       animate={{ width: `${progressPercent}%` }}
                       transition={{ duration: 0.5 }}
@@ -647,25 +647,25 @@ function ExamContent() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
-                    className="text-sm font-medium text-gray-300 whitespace-nowrap flex-shrink-0"
+                    className="text-xs sm:text-sm font-bold text-white whitespace-nowrap flex-shrink-0 bg-indigo-600/40 px-2 sm:px-3 py-1 rounded-lg border border-indigo-400/40"
                   >
-                    سؤال {currentIndex + 1} من {totalQuestions || "-"}
+                    {currentIndex + 1}/{totalQuestions || "-"}
                   </motion.span>
                 </div>
 
                 {/* Status Indicators */}
-                <div className="flex items-center justify-between sm:justify-end gap-3">
+                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
                   {/* Session Timer */}
                   <div className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200
+                    flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 shadow-md
                     ${sessionTimeLeft <= 60 
-                      ? 'bg-red-500/30 text-red-200 border border-red-400/50 animate-pulse' 
+                      ? 'bg-red-600/50 text-white border-2 border-red-400 animate-pulse' 
                       : sessionTimeLeft <= 300
-                      ? 'bg-orange-500/20 text-orange-200 border border-orange-400/30' 
-                      : 'bg-green-500/20 text-green-200 border border-green-400/30'
+                      ? 'bg-orange-600/40 text-orange-100 border border-orange-400' 
+                      : 'bg-green-600/40 text-green-100 border border-green-400'
                     }
                   `}>
-                    <Timer className="h-4 w-4" />
+                    <Timer className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="font-mono">
                       {Math.floor(sessionTimeLeft / 60)}:{String(sessionTimeLeft % 60).padStart(2, '0')}
                     </span>
@@ -676,15 +676,15 @@ function ExamContent() {
                   {/* Question Timer */}
                   {questionTimeLeft !== null && (
                     <div className={`
-                      flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200
+                      flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 shadow-md
                       ${questionTimeLeft <= 10 
-                        ? 'bg-red-500/30 text-red-200 border border-red-400/50 animate-pulse' 
+                        ? 'bg-red-600/50 text-white border-2 border-red-400 animate-pulse' 
                         : questionTimeLeft <= 30
-                        ? 'bg-red-500/20 text-red-200 border border-red-400/30' 
-                        : 'bg-blue-500/20 text-blue-200 border border-blue-400/30'
+                        ? 'bg-red-600/40 text-red-100 border border-red-400' 
+                        : 'bg-blue-600/40 text-blue-100 border border-blue-400'
                       }
                     `}>
-                      <Timer className="h-4 w-4" />
+                      <Timer className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="font-mono">{formatTime(questionTimeLeft)}</span>
                     </div>
                   )}
@@ -693,9 +693,9 @@ function ExamContent() {
             </div>
           </div>
 
-          {/* Main Content */}
-          <main className="relative z-10 pt-48 pb-32 px-4">
-            <div className="max-w-6xl mx-auto">
+          {/* Main Content - Improved spacing and responsiveness */}
+          <main className="relative z-10 pt-32 sm:pt-44 md:pt-48 pb-24 sm:pb-32 px-3 sm:px-4">
+            <div className="max-w-7xl mx-auto">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={current?.id || 'loading'}
@@ -703,26 +703,26 @@ function ExamContent() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -50 }}
                   transition={{ duration: 0.3 }}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6"
                 >
                   {/* Question Content - Left Column */}
                   <div className="lg:col-span-5">
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6">
-                      <div className="space-y-4">
-                        <h2 className="text-2xl font-bold leading-relaxed text-white">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6">
+                      <div className="space-y-3 sm:space-y-4">
+                        <h2 className="text-xl sm:text-2xl font-bold leading-relaxed text-white">
                           {current?.text ?? "لا يوجد نص للسؤال"}
                         </h2>
                         
                         {/* Question metadata */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           {current?.dimensionTags && (
-                            <span className="px-3 py-1 bg-indigo-500/20 border border-indigo-400/30 rounded-full text-xs text-indigo-200">
+                            <span className="px-2.5 sm:px-3 py-1 bg-indigo-500/30 border border-indigo-400/40 rounded-full text-xs text-indigo-100">
                               {current.dimensionTags}
                             </span>
                           )}
                           
                           {/* Question type indicator */}
-                          <div className="text-xs text-gray-400">
+                          <div className="text-xs text-gray-300 bg-gray-800/50 px-2.5 py-1 rounded-full">
                             {current?.type === 'MCQ' && 'اختيار متعدد'}
                             {current?.type === 'LikertAgreement' && 'ليكرت'}
                             {current?.type === 'Frequency' && 'تكرار'}
@@ -733,35 +733,35 @@ function ExamContent() {
                         </div>
 
                         {/* Question instructions */}
-                        <div className="pt-4 border-t border-white/10">
-                          <div className="text-sm text-gray-300">
+                        <div className="pt-3 sm:pt-4 border-t border-white/10">
+                          <div className="text-xs sm:text-sm text-gray-300">
                             {current?.type === 'MCQ' && (
                               <p className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                <span className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></span>
                                 <span>اختر إجابة واحدة من الخيارات التالية</span>
                               </p>
                             )}
                             {current?.type === 'ORDERING' && (
                               <p className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+                                <span className="w-2 h-2 bg-amber-400 rounded-full flex-shrink-0"></span>
                                 <span>رتّب الخيارات من الأولى إلى الأخيرة</span>
                               </p>
                             )}
                             {current?.type === 'TIMED_NUMERIC' && (
                               <p className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                                <span className="w-2 h-2 bg-red-400 rounded-full flex-shrink-0"></span>
                                 <span>أدخل رقماً صحيحاً أو عشرياً</span>
                               </p>
                             )}
                             {(current?.type === 'LikertAgreement' || current?.type === 'Frequency') && (
                               <p className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                                <span className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0"></span>
                                 <span>اختر درجة الموافقة أو التكرار المناسبة</span>
                               </p>
                             )}
                             {current?.type === 'TEXT' && (
                               <p className="flex items-center gap-2">
-                                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                                <span className="w-2 h-2 bg-purple-400 rounded-full flex-shrink-0"></span>
                                 <span>أجب بإيجاز ووضوح</span>
                               </p>
                             )}
@@ -773,7 +773,7 @@ function ExamContent() {
                   
                   {/* Answer Section - Right Column */}
                   <div className="lg:col-span-7">
-                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 min-h-[400px]">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-xl border border-white/20 p-4 sm:p-6 md:p-8 min-h-[300px] sm:min-h-[400px]">
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -787,10 +787,10 @@ function ExamContent() {
                         <motion.div
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="flex items-start gap-3 p-4 mt-6 bg-red-500/20 border border-red-400/50 rounded-lg text-red-200"
+                          className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 mt-4 sm:mt-6 bg-red-500/20 border border-red-400/50 rounded-lg text-red-200"
                         >
-                          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                          <p className="text-sm leading-relaxed">{errorMessage}</p>
+                          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs sm:text-sm leading-relaxed">{errorMessage}</p>
                         </motion.div>
                       )}
                     </div>
@@ -799,7 +799,7 @@ function ExamContent() {
               </AnimatePresence>
 
               {/* Keyboard shortcuts hint */}
-              <div className="mt-8 text-center hidden lg:block">
+              <div className="mt-6 sm:mt-8 text-center hidden lg:block">
                 <p className="text-xs text-gray-400">
                   <kbd className="px-2 py-1 bg-white/10 rounded text-xs border border-white/20">Enter</kbd> التالي • 
                   <kbd className="px-2 py-1 bg-white/10 rounded text-xs border border-white/20 ml-2">Shift+Enter</kbd> السابق • 
@@ -809,18 +809,18 @@ function ExamContent() {
             </div>
           </main>
 
-          {/* Bottom Action Bar */}
-          <div className="fixed bottom-0 left-0 right-0 z-20 bg-gray-900/70 backdrop-blur-md border-t border-white/10 p-4">
-            <div className="max-w-6xl mx-auto">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Bottom Action Bar - Enhanced responsiveness */}
+          <div className="fixed bottom-0 left-0 right-0 z-20 bg-gray-800/90 backdrop-blur-md border-t border-indigo-400/30 p-3 sm:p-4 shadow-lg">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
                 {/* Previous Button */}
                 <button
                   onClick={handlePrevious}
                   disabled={currentIndex === 0}
-                  className="sm:w-auto bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-3 px-6 rounded-lg hover:bg-white/20 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto bg-white/10 backdrop-blur-sm border border-white/30 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg hover:bg-white/20 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  <ArrowRight className="h-5 w-5" />
-                  {strings.exam.navigation.previous}
+                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-sm sm:text-base">{strings.exam.navigation.previous}</span>
                 </button>
                 
                 {/* Next/Finish Button */}
@@ -829,7 +829,7 @@ function ExamContent() {
                     onClick={() => setShowFinishDialog(true)}
                     disabled={!canSubmit || isSubmitting}
                     className={cn(
-                      "sm:w-auto font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2",
+                      "w-full sm:w-auto font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2",
                       !canSubmit 
                         ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
                         : 'bg-gradient-to-r from-green-500 to-emerald-400 text-white hover:scale-105 hover:shadow-2xl'
@@ -837,13 +837,13 @@ function ExamContent() {
                   >
                     {isSubmitting ? (
                       <>
-                        <Timer className="h-5 w-5 animate-spin" />
-                        جاري الإنهاء...
+                        <Timer className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                        <span className="text-sm sm:text-base">جاري الإنهاء...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircle className="h-5 w-5" />
-                        إنهاء الاختبار
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <span className="text-sm sm:text-base">إنهاء الاختبار</span>
                       </>
                     )}
                   </button>
@@ -851,17 +851,17 @@ function ExamContent() {
                   <button
                     onClick={canSubmit ? handleSubmitAnswer : handleNext}
                     disabled={isSubmitting}
-                    className="sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-400 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-400 text-white font-bold py-2.5 sm:py-3 px-6 sm:px-8 rounded-lg shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>
-                        <Timer className="h-4 w-4 animate-spin" />
-                        {strings.exam.submitting}
+                        <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                        <span className="text-sm sm:text-base">{strings.exam.submitting}</span>
                       </>
                     ) : (
                       <>
-                        {strings.exam.navigation.next}
-                        <ArrowLeft className="h-5 w-5" />
+                        <span className="text-sm sm:text-base">{strings.exam.navigation.next}</span>
+                        <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                       </>
                     )}
                   </button>

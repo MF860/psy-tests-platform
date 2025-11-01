@@ -83,39 +83,39 @@ function PrivacyContent() {
         <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
       </div>
 
-      {/* Header with logos */}
-      <header className="absolute top-0 w-full flex justify-between items-center p-8 z-10" dir="rtl">
-        <div className="flex-1"></div>
+      {/* Header with logos - Responsive */}
+      <header className="absolute top-0 w-full flex justify-between items-center p-4 sm:p-6 md:p-8 z-10" dir="rtl">
+        <div className="flex-1 hidden sm:block"></div>
         <div className="flex-1 flex justify-center">
           <img 
             src="/STEST.png" 
             alt="شعار المنصة" 
-            className="h-16 object-contain drop-shadow-lg"
+            className="h-12 sm:h-14 md:h-16 object-contain drop-shadow-lg"
           />
         </div>
-        <div className="flex-1 flex justify-end items-center gap-4">
-          <div className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-blue-300 text-sm font-medium">
+        <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
+          <div className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-blue-300 text-xs sm:text-sm font-medium">
             خصوصية البيانات
           </div>
           <img 
             src="/FB-ICON.png" 
             alt="أيقونة" 
-            className="h-12 object-contain drop-shadow-lg"
+            className="h-8 sm:h-10 md:h-12 object-contain drop-shadow-lg"
           />
         </div>
       </header>
 
-      {/* Main content - centered with scroll */}
-      <main className="relative z-10 h-full flex items-center justify-center px-4 pt-32 pb-8">
+      {/* Main content - centered with scroll - Responsive */}
+      <main className="relative z-10 h-full flex items-center justify-center px-3 sm:px-4 pt-24 sm:pt-28 md:pt-32 pb-6 sm:pb-8">
         <div className="w-full max-w-3xl">
           {/* Glassmorphism privacy card */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+          <div className="bg-white/10 backdrop-blur-lg rounded-xl sm:rounded-2xl shadow-xl border border-white/20 overflow-hidden">
             {/* Header */}
-            <div className="p-8 pb-4">
-              <h1 className="text-white font-bold text-3xl mb-2 text-center" dir="rtl">
+            <div className="p-4 sm:p-6 md:p-8 pb-3 sm:pb-4">
+              <h1 className="text-white font-bold text-2xl sm:text-3xl mb-2 text-center" dir="rtl">
                 {strings.privacy.title}
               </h1>
-              <p className="text-gray-300 text-center leading-relaxed" dir="rtl">
+              <p className="text-gray-300 text-sm sm:text-base text-center leading-relaxed" dir="rtl">
                 {strings.privacy.content.introduction}
               </p>
             </div>
@@ -124,34 +124,34 @@ function PrivacyContent() {
             <div 
               ref={scrollRef}
               onScroll={handleScroll}
-              className="px-8 overflow-y-auto overflow-x-hidden"
+              className="px-3 sm:px-6 md:px-8 overflow-y-auto overflow-x-hidden"
               style={{
-                maxHeight: 'calc(100vh - 450px)',
-                minHeight: '300px',
+                maxHeight: 'calc(100vh - 400px)',
+                minHeight: '250px',
                 scrollbarWidth: 'thin',
                 scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent'
               }}
             >
-              <div className="space-y-4 pb-4">
+              <div className="space-y-3 sm:space-y-4 pb-4">
                 {privacyContent.map((section, index) => {
                   const IconComponent = section.icon;
                   return (
                     <div 
                       key={index} 
-                      className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-300"
+                      className="bg-white/5 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-white/10 hover:bg-white/10 transition-all duration-300"
                     >
-                      <div className="flex gap-4" dir="rtl">
+                      <div className="flex gap-3 sm:gap-4" dir="rtl">
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                            <IconComponent className="h-5 w-5 text-blue-400" />
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <IconComponent className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
                           </div>
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-lg mb-2 text-white">
+                          <h3 className="font-semibold text-base sm:text-lg mb-1.5 sm:mb-2 text-white">
                             {section.title}
                           </h3>
                           {section.items ? (
-                            <ul className="space-y-2 text-sm text-gray-300">
+                            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-300">
                               {section.items.map((item, itemIndex) => (
                                 <li key={itemIndex} className="flex items-start gap-2 leading-relaxed">
                                   <span className="text-blue-400 mt-1 flex-shrink-0">•</span>
@@ -160,7 +160,7 @@ function PrivacyContent() {
                               ))}
                             </ul>
                           ) : (
-                            <p className="text-sm text-gray-300 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
                               {section.description}
                             </p>
                           )}
@@ -173,9 +173,9 @@ function PrivacyContent() {
             </div>
 
             {/* Consent and button section */}
-            <div className="border-t border-white/20 bg-white/5 backdrop-blur-sm p-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3" dir="rtl">
+            <div className="border-t border-white/20 bg-white/5 backdrop-blur-sm p-4 sm:p-5 md:p-6">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-start gap-2.5 sm:gap-3" dir="rtl">
                   <Checkbox
                     id="consent"
                     checked={isConsented}
@@ -187,14 +187,14 @@ function PrivacyContent() {
                     <Label 
                       id="consent-label"
                       htmlFor="consent" 
-                      className="text-sm leading-relaxed cursor-pointer text-white hover:text-gray-200 transition-colors duration-200 block"
+                      className="text-xs sm:text-sm leading-relaxed cursor-pointer text-white hover:text-gray-200 transition-colors duration-200 block"
                     >
                       {strings.privacy.consentText}
                     </Label>
                     {!hasScrolledToEnd && (
                       <p 
                         id="consent-helper" 
-                        className="text-xs text-yellow-300 mt-1 font-medium"
+                        className="text-[10px] sm:text-xs text-yellow-300 mt-1 font-medium"
                         aria-live="polite"
                         role="status"
                       >
@@ -203,7 +203,7 @@ function PrivacyContent() {
                     )}
                     {hasScrolledToEnd && !isConsented && (
                       <p 
-                        className="text-xs text-teal-300 mt-1 font-medium"
+                        className="text-[10px] sm:text-xs text-teal-300 mt-1 font-medium"
                         aria-live="polite"
                         role="status"
                       >
@@ -216,7 +216,7 @@ function PrivacyContent() {
                 <button
                   onClick={handleSubmit}
                   disabled={!canProceed}
-                  className="w-full bg-gradient-to-r from-blue-500 to-teal-400 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-full bg-gradient-to-r from-blue-500 to-teal-400 text-white font-bold py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm sm:text-base"
                   data-submit="true"
                   aria-describedby={!canProceed ? "button-helper" : undefined}
                 >
@@ -226,7 +226,7 @@ function PrivacyContent() {
                 {!canProceed && (
                   <p 
                     id="button-helper" 
-                    className="text-xs text-center text-gray-400"
+                    className="text-[10px] sm:text-xs text-center text-gray-400"
                     aria-live="polite"
                     dir="rtl"
                   >

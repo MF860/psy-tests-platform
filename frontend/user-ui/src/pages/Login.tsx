@@ -91,18 +91,18 @@ function LoginContent() {
       </header>
 
       {/* Main content - centered */}
-      <main className="relative z-10 h-full flex flex-col items-center justify-center px-4">
+      <main className="relative z-10 h-full flex flex-col items-center justify-center px-4 py-8">
         {/* Glassmorphism login card */}
-        <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-10 mb-10">
-          <h1 className="text-white font-bold text-3xl mb-2 text-center" dir="rtl">
+        <div className="w-full max-w-md bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6 sm:p-10 mb-6 sm:mb-10">
+          <h1 className="text-white font-bold text-2xl sm:text-3xl mb-2 text-center" dir="rtl">
             تسجيل الدخول
           </h1>
-          <p className="text-gray-300 mb-8 text-center" dir="rtl">
+          <p className="text-gray-300 text-sm sm:text-base mb-6 sm:mb-8 text-center" dir="rtl">
             أدخل الرقم الوطني للبدء في الاختبار النفسي المخصص لك
           </p>
 
           <form onSubmit={onSubmit} noValidate>
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <label 
                 htmlFor="national-id" 
                 className="block text-white text-sm font-medium mb-2 text-right"
@@ -139,28 +139,31 @@ function LoginContent() {
                 </span>
               </div>
 
-              {error ? (
-                <div 
-                  id="nid-error" 
-                  className="mt-2 text-red-400 text-sm text-right"
-                  role="alert"
-                  dir="rtl"
-                >
-                  ⚠ {error}
-                </div>
-              ) : isValid ? (
-                <div 
-                  id="nid-help" 
-                  className="mt-2 text-teal-400 text-sm text-right"
-                  dir="rtl"
-                >
-                  ✓ الرقم صحيح
-                </div>
-              ) : (
-                <div id="nid-help" className="mt-2 text-gray-400 text-sm text-right" dir="rtl">
-                  يرجى التأكد من إدخال 10 أرقام صحيحة
-                </div>
-              )}
+              {/* Validation messages below input */}
+              <div className="min-h-[24px] mt-2">
+                {error ? (
+                  <div 
+                    id="nid-error" 
+                    className="text-red-400 text-sm text-right animate-in fade-in slide-in-from-top-1 duration-200"
+                    role="alert"
+                    dir="rtl"
+                  >
+                    ⚠ {error}
+                  </div>
+                ) : isValid ? (
+                  <div 
+                    id="nid-help" 
+                    className="text-teal-400 text-sm text-right animate-in fade-in slide-in-from-top-1 duration-200"
+                    dir="rtl"
+                  >
+                    ✓ الرقم صحيح
+                  </div>
+                ) : (
+                  <div id="nid-help" className="text-gray-400 text-sm text-right" dir="rtl">
+                    يرجى التأكد من إدخال 10 أرقام صحيحة
+                  </div>
+                )}
+              </div>
             </div>
 
             <button
