@@ -1,12 +1,7 @@
-import { CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
 import { Clock, Timer, Shield, CheckCircle, MousePointer2, Type, Hash, List } from "lucide-react";
 import { GuardedRoute } from "../components/GuardedRoute";
 import { useFlowState } from "../lib/useFlowState";
 import { strings } from "../lib/strings";
-import UserHeader from "../components/layout/UserHeader";
-import ScreenContainer from "../components/layout/ScreenContainer";
-import SectionCard from "../components/layout/SectionCard";
 
 function InstructionsContent() {
   const { setInstructionsCompleted } = useFlowState();
@@ -58,101 +53,129 @@ function InstructionsContent() {
   ];
 
   return (
-    <>
-      <UserHeader showStep stepLabel="التعليمات" />
-      <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <ScreenContainer maxWidth="2xl" className="section-spacing">
-          <div className="space-2xl">
-            {/* Welcome Section */}
-            <div className="text-center space-lg">
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 leading-tight">
-                {strings.instructions.title}
-              </h1>
-              <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                {strings.instructions.subtitle}
-              </p>
-            </div>
+    <div className="relative min-h-screen w-screen overflow-y-auto bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+      </div>
 
-            {/* Main Instructions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
-              {mainInstructions.map((instruction, index) => {
-                const IconComponent = instruction.icon;
-                return (
-                  <SectionCard key={index} className="space-md hover:shadow-lg transition-all duration-200">
-                    <div className="flex items-start space-md">
-                      <div className="flex-shrink-0">
-                        <div className={`w-12 h-12 ${instruction.color.replace('text-', 'bg-').replace('600', '100')} rounded-xl flex items-center justify-center`}>
-                          <IconComponent className={`w-6 h-6 ${instruction.color}`} />
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900 leading-relaxed">
-                          {instruction.text}
-                        </p>
-                      </div>
+      {/* Header with logos */}
+      <header className="absolute top-0 w-full flex justify-between items-center p-8 z-10" dir="rtl">
+        <div className="flex-1"></div>
+        <div className="flex-1 flex justify-center">
+          <img 
+            src="/STEST.png" 
+            alt="شعار المنصة" 
+            className="h-16 object-contain drop-shadow-lg"
+          />
+        </div>
+        <div className="flex-1 flex justify-end items-center gap-4">
+          <div className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-blue-300 text-sm font-medium">
+            التعليمات
+          </div>
+          <img 
+            src="/FB-ICON.png" 
+            alt="أيقونة" 
+            className="h-12 object-contain drop-shadow-lg"
+          />
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="relative z-10 pt-32 pb-12 px-4">
+        <div className="max-w-5xl mx-auto space-y-8">
+          {/* Welcome Section */}
+          <div className="text-center space-y-4 mb-12">
+            <h1 className="text-4xl font-bold text-white leading-tight" dir="rtl">
+              {strings.instructions.title}
+            </h1>
+            <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed" dir="rtl">
+              {strings.instructions.subtitle}
+            </p>
+          </div>
+
+          {/* Main Instructions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {mainInstructions.map((instruction, index) => {
+              const IconComponent = instruction.icon;
+              return (
+                <div 
+                  key={index} 
+                  className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300"
+                >
+                  <div className="flex flex-col items-center text-center space-y-4" dir="rtl">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${instruction.color.replace('text-', 'bg-').replace('600', '500')}/20`}>
+                      <IconComponent className={`w-8 h-8 ${instruction.color.replace('600', '400')}`} />
                     </div>
-                  </SectionCard>
-                );
-              })}
-            </div>
+                    <p className="text-white font-medium leading-relaxed">
+                      {instruction.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-            {/* Question Types */}
-            <SectionCard>
-              <CardHeader className="text-center space-sm">
-                <CardTitle className="text-lg font-semibold text-slate-900">
-                  {strings.instructions.questionTypes.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
-                  {questionTypes.map((type, index) => {
-                    const IconComponent = type.icon;
-                    return (
-                      <div key={index} className="space-sm p-4 border border-border rounded-xl hover:bg-muted/30 transition-colors duration-200">
-                        <div className="flex items-center space-sm">
-                          <IconComponent className="h-5 w-5 text-primary flex-shrink-0" />
-                          <h4 className="font-semibold text-sm text-slate-900">{type.title}</h4>
+          {/* Question Types */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 overflow-hidden">
+            <div className="p-6 text-center border-b border-white/20">
+              <h2 className="text-xl font-semibold text-white" dir="rtl">
+                {strings.instructions.questionTypes.title}
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {questionTypes.map((type, index) => {
+                  const IconComponent = type.icon;
+                  return (
+                    <div 
+                      key={index} 
+                      className="bg-white/5 rounded-lg p-4 border border-white/10 hover:bg-white/10 transition-all duration-300"
+                    >
+                      <div className="space-y-2" dir="rtl">
+                        <div className="flex items-center gap-2">
+                          <IconComponent className="h-5 w-5 text-blue-400 flex-shrink-0" />
+                          <h4 className="font-semibold text-sm text-white">{type.title}</h4>
                         </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
+                        <p className="text-xs text-gray-300 leading-relaxed">
                           {type.description}
                         </p>
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </SectionCard>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
 
-            {/* Final Note */}
-            <SectionCard className="border-primary/20 bg-primary/5">
-              <CardContent className="space-sm">
-                <div className="flex items-start space-sm">
-                  <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                  <p className="text-primary font-medium text-sm leading-relaxed">
-                    {strings.instructions.finalNote}
-                  </p>
-                </div>
-              </CardContent>
-            </SectionCard>
-
-            {/* Start Button */}
-            <div className="text-center space-sm">
-              <Button 
-                onClick={handleStartExam}
-                size="lg"
-                className="touch-target text-lg font-semibold bg-primary hover:bg-primary/90 transition-colors duration-200 px-8"
-              >
-                <CheckCircle className="w-5 h-5 me-2" />
-                {strings.instructions.startButton}
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                بالضغط على "ابدأ الاختبار" فإنك تؤكد قراءتك لجميع التعليمات
+          {/* Final Note */}
+          <div className="bg-gradient-to-r from-blue-500/20 to-teal-500/20 backdrop-blur-sm rounded-xl p-6 border border-blue-400/30">
+            <div className="flex items-start gap-3" dir="rtl">
+              <CheckCircle className="h-6 w-6 text-teal-400 flex-shrink-0 mt-1" />
+              <p className="text-white font-medium leading-relaxed">
+                {strings.instructions.finalNote}
               </p>
             </div>
           </div>
-        </ScreenContainer>
+
+          {/* Start Button */}
+          <div className="text-center space-y-3 pt-4">
+            <button 
+              onClick={handleStartExam}
+              className="bg-gradient-to-r from-blue-500 to-teal-400 text-white font-bold py-4 px-12 rounded-lg shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 flex items-center gap-3 mx-auto text-lg"
+            >
+              <CheckCircle className="w-6 h-6" />
+              <span>{strings.instructions.startButton}</span>
+            </button>
+            <p className="text-xs text-gray-400" dir="rtl">
+              بالضغط على "ابدأ الاختبار" فإنك تؤكد قراءتك لجميع التعليمات
+            </p>
+          </div>
+        </div>
       </main>
-    </>
+    </div>
   );
 }
 

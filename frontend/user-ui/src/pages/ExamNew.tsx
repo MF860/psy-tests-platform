@@ -3,21 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../lib/utils";
 import { ApiError } from "../lib/api";
 import { strings, formatTime } from "../lib/strings";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Timer, CheckCircle, AlertCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { GuardedRoute } from "../components/GuardedRoute";
 import { useFlowState } from "../lib/useFlowState";
 import { getNextQuestion, submitAnswer, finishSession, submitSession } from "../lib/api-client";
-import UserHeader from "../components/layout/UserHeader";
-import ScreenContainer from "../components/layout/ScreenContainer";
-import SectionCard from "../components/layout/SectionCard";
 import AutosaveIndicator from "../components/Exam/AutosaveIndicator";
 import { ProgressiveLoader } from "../components/ui/progressive-loader";
-import { AnimatedEntrance, QuestionTransition, AnimatedProgress } from "../components/ui/micro-interactions";
-import { TouchButton, SwipeableCard } from "../components/ui/mobile-responsive";
 
 // Question components
 import MCQ from "../components/Question/MCQ";
@@ -521,83 +513,87 @@ function ExamContent() {
     : "الاختبار";
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50" dir="rtl">
-      {/* Single Global Header */}
-      <UserHeader showStep stepLabel={headerTitle} />
+    <div className="relative min-h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-900" dir="rtl">
+      {/* Animated background particles */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/3 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
+      </div>
+
+      {/* Header with logos and step indicator */}
+      <header className="absolute top-0 w-full flex justify-between items-center p-6 z-20 bg-gray-900/50 backdrop-blur-sm border-b border-white/10">
+        <div className="flex-1"></div>
+        <div className="flex-1 flex justify-center">
+          <img 
+            src="/STEST.png" 
+            alt="شعار المنصة" 
+            className="h-14 object-contain drop-shadow-lg"
+          />
+        </div>
+        <div className="flex-1 flex justify-end items-center gap-4">
+          <div className="px-4 py-2 bg-indigo-500/20 backdrop-blur-sm border border-indigo-400/30 rounded-full text-indigo-300 text-sm font-medium">
+            {headerTitle}
+          </div>
+          <img 
+            src="/FB-ICON.png" 
+            alt="أيقونة" 
+            className="h-10 object-contain drop-shadow-lg"
+          />
+        </div>
+      </header>
 
       {/* Loading State */}
       {isLoadingQuestion && !current && (
-        <main className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
-          <AnimatedEntrance animation="scaleIn">
-            <Card className="w-full max-w-2xl rounded-2xl shadow-lg">
-              <CardContent className="py-12">
-                <ProgressiveLoader 
-                  stage={isLoadingQuestion ? 'fetching' : 'complete'}
-                  className="min-h-[200px]"
-                >
-                  <div className="text-center">
-                    <p className="text-lg font-medium text-gray-900 mb-2">جاري تحضير السؤال التالي</p>
-                    <p className="text-muted-foreground">الرجاء الانتظار...</p>
-                  </div>
-                </ProgressiveLoader>
-              </CardContent>
-            </Card>
-          </AnimatedEntrance>
+        <main className="relative z-10 flex items-center justify-center min-h-screen pt-20 px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-2xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-12"
+          >
+            <ProgressiveLoader 
+              stage={isLoadingQuestion ? 'fetching' : 'complete'}
+              className="min-h-[200px]"
+            >
+              <div className="text-center">
+                <p className="text-lg font-medium text-white mb-2">جاري تحضير السؤال التالي</p>
+                <p className="text-gray-300">الرجاء الانتظار...</p>
+              </div>
+            </ProgressiveLoader>
+          </motion.div>
         </main>
       )}
 
       {/* Debug State */}
       {!isLoadingQuestion && !current && questions.length === 0 && (
-        <main className="flex items-center justify-center min-h-[calc(100vh-80px)] p-4">
-          <Card className="w-full max-w-4xl rounded-2xl shadow-lg">
-            <CardContent className="py-12">
-              <h2 className="text-xl font-bold text-red-600 mb-4">Debug: No Questions Loaded</h2>
-              <div className="space-y-4 text-left" dir="ltr">
-                <div>
-                  <strong>Session ID:</strong> {sessionId || 'null'}
+        <main className="relative z-10 flex items-center justify-center min-h-screen pt-20 px-4">
+          <div className="w-full max-w-4xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-12">
+            <h2 className="text-xl font-bold text-red-400 mb-4">Debug: No Questions Loaded</h2>
+            <div className="space-y-4 text-left text-gray-300" dir="ltr">
+              <div><strong>Session ID:</strong> {sessionId || 'null'}</div>
+              <div><strong>National ID:</strong> {nationalId || 'null'}</div>
+              <div><strong>Questions Array Length:</strong> {questions.length}</div>
+              <div><strong>Current Question:</strong> {current ? 'exists' : 'null'}</div>
+              <div><strong>Is Loading:</strong> {isLoadingQuestion ? 'true' : 'false'}</div>
+              <div><strong>Fetching Ref:</strong> {fetchingRef.current ? 'true' : 'false'}</div>
+              <div><strong>Current Index:</strong> {currentIndex}</div>
+              <div><strong>Flow State - Consented:</strong> {consented ? 'true' : 'false'}</div>
+              <div><strong>Flow State - Instructions:</strong> {instructionsCompleted ? 'true' : 'false'}</div>
+              <div><strong>Error Message:</strong> {errorMessage || 'none'}</div>
+              {errorMessage && (
+                <div className="bg-red-500/20 border border-red-400/50 text-red-300 px-4 py-3 rounded-lg">
+                  {errorMessage}
                 </div>
-                <div>
-                  <strong>National ID:</strong> {nationalId || 'null'}
-                </div>
-                <div>
-                  <strong>Questions Array Length:</strong> {questions.length}
-                </div>
-                <div>
-                  <strong>Current Question:</strong> {current ? 'exists' : 'null'}
-                </div>
-                <div>
-                  <strong>Is Loading:</strong> {isLoadingQuestion ? 'true' : 'false'}
-                </div>
-                <div>
-                  <strong>Fetching Ref:</strong> {fetchingRef.current ? 'true' : 'false'}
-                </div>
-                <div>
-                  <strong>Current Index:</strong> {currentIndex}
-                </div>
-                <div>
-                  <strong>Flow State - Consented:</strong> {consented ? 'true' : 'false'}
-                </div>
-                <div>
-                  <strong>Flow State - Instructions:</strong> {instructionsCompleted ? 'true' : 'false'}
-                </div>
-                <div>
-                  <strong>Error Message:</strong> {errorMessage || 'none'}
-                </div>
-                {errorMessage && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    {errorMessage}
-                  </div>
-                )}
-                <button
-                  onClick={() => sessionId && fetchNextFromApi()}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
-                  disabled={!sessionId || isLoadingQuestion}
-                >
-                  Retry Loading Question
-                </button>
-              </div>
-            </CardContent>
-          </Card>
+              )}
+              <button
+                onClick={() => sessionId && fetchNextFromApi()}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg mt-4 transition-all"
+                disabled={!sessionId || isLoadingQuestion}
+              >
+                Retry Loading Question
+              </button>
+            </div>
+          </div>
         </main>
       )}
 
@@ -605,353 +601,304 @@ function ExamContent() {
       {current && (
         <>
           {/* Resume banner */}
-      <AnimatePresence>
-        {resumeBanner && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-16 sm:top-18 left-1/2 transform -translate-x-1/2 z-50 bg-blue-100 text-blue-800 px-3 sm:px-4 py-2 rounded-lg shadow-lg border border-blue-200 max-w-md mx-auto text-center text-sm"
-          >
-            {strings.exam.resume.banner}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Session warning banner */}
-      <AnimatePresence>
-        {showSessionWarning && (
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-16 sm:top-18 left-1/2 transform -translate-x-1/2 z-50 bg-orange-100 text-orange-900 px-4 py-3 rounded-lg shadow-lg border-2 border-orange-300 max-w-md mx-auto text-center text-sm font-semibold"
-          >
-            {sessionWarningMessage}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Top Status Bar - Responsive */}
-      <div className="sticky top-14 sm:top-16 z-10 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 border-b">
-        <ScreenContainer maxWidth="4xl" className="py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
-            {/* Progress & Counter - Full width on mobile */}
-            <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
-              <div className="flex-1 min-w-0">
-                <AnimatedProgress 
-                  value={progressPercent} 
-                  max={100}
-                  color="primary"
-                  className="h-2 sm:h-2.5" 
-                />
-              </div>
-              <motion.span 
-                key={currentIndex}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
-                className="text-xs sm:text-sm font-medium text-slate-600 whitespace-nowrap flex-shrink-0"
+          <AnimatePresence>
+            {resumeBanner && (
+              <motion.div
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-blue-500/20 backdrop-blur-sm border border-blue-400/30 text-blue-200 px-6 py-3 rounded-lg shadow-lg max-w-md mx-auto text-center text-sm"
               >
-                سؤال {currentIndex + 1} من {totalQuestions || "-"}
-              </motion.span>
-            </div>
+                {strings.exam.resume.banner}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            {/* Status Indicators - Responsive layout */}
-            <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
-              {/* Session Timer - Always visible */}
-              <div className={`
-                flex items-center space-xs px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shadow-sm
-                ${sessionTimeLeft <= 60 
-                  ? 'bg-red-500 text-white animate-pulse' 
-                  : sessionTimeLeft <= 300
-                  ? 'bg-orange-100 text-orange-700 border border-orange-300' 
-                  : 'bg-green-100 text-green-700 border border-green-200'
-                }
-              `}>
-                <Timer className="h-4 w-4 flex-shrink-0" />
-                <span className="font-mono tracking-wide">
-                  {Math.floor(sessionTimeLeft / 60)}:{String(sessionTimeLeft % 60).padStart(2, '0')}
-                </span>
-              </div>
-              
-              <AutosaveIndicator state={autosaveState} />
-              
-              {/* Question Timer - Enhanced with clear warning states */}
-              {questionTimeLeft !== null && (
-                <div className={`
-                  flex items-center space-xs px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 shadow-sm
-                  ${questionTimeLeft <= 10 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : questionTimeLeft <= 30
-                    ? 'bg-red-100 text-red-700 border border-red-200' 
-                    : 'bg-blue-100 text-blue-700 border border-blue-200'
-                  }
-                `}>
-                  <Timer className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-mono tracking-wide">{formatTime(questionTimeLeft)}</span>
+          {/* Session warning banner */}
+          <AnimatePresence>
+            {showSessionWarning && (
+              <motion.div
+                initial={{ opacity: 0, y: -50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-orange-500/20 backdrop-blur-sm border-2 border-orange-400/50 text-orange-200 px-6 py-3 rounded-lg shadow-lg max-w-md mx-auto text-center text-sm font-semibold"
+              >
+                {sessionWarningMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Top Status Bar */}
+          <div className="fixed top-20 left-0 right-0 z-10 bg-gray-900/70 backdrop-blur-md border-b border-white/10">
+            <div className="max-w-6xl mx-auto px-4 py-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                {/* Progress & Counter */}
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 bg-gray-800/50 rounded-full h-3 overflow-hidden border border-white/10">
+                    <motion.div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progressPercent}%` }}
+                      transition={{ duration: 0.5 }}
+                    />
+                  </div>
+                  <motion.span 
+                    key={currentIndex}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-sm font-medium text-gray-300 whitespace-nowrap flex-shrink-0"
+                  >
+                    سؤال {currentIndex + 1} من {totalQuestions || "-"}
+                  </motion.span>
                 </div>
-              )}
+
+                {/* Status Indicators */}
+                <div className="flex items-center justify-between sm:justify-end gap-3">
+                  {/* Session Timer */}
+                  <div className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200
+                    ${sessionTimeLeft <= 60 
+                      ? 'bg-red-500/30 text-red-200 border border-red-400/50 animate-pulse' 
+                      : sessionTimeLeft <= 300
+                      ? 'bg-orange-500/20 text-orange-200 border border-orange-400/30' 
+                      : 'bg-green-500/20 text-green-200 border border-green-400/30'
+                    }
+                  `}>
+                    <Timer className="h-4 w-4" />
+                    <span className="font-mono">
+                      {Math.floor(sessionTimeLeft / 60)}:{String(sessionTimeLeft % 60).padStart(2, '0')}
+                    </span>
+                  </div>
+                  
+                  <AutosaveIndicator state={autosaveState} />
+                  
+                  {/* Question Timer */}
+                  {questionTimeLeft !== null && (
+                    <div className={`
+                      flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200
+                      ${questionTimeLeft <= 10 
+                        ? 'bg-red-500/30 text-red-200 border border-red-400/50 animate-pulse' 
+                        : questionTimeLeft <= 30
+                        ? 'bg-red-500/20 text-red-200 border border-red-400/30' 
+                        : 'bg-blue-500/20 text-blue-200 border border-blue-400/30'
+                      }
+                    `}>
+                      <Timer className="h-4 w-4" />
+                      <span className="font-mono">{formatTime(questionTimeLeft)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </ScreenContainer>
-      </div>
 
-      {/* Main Content - Responsive Container with Two-Column Layout */}
-      <div style={{ paddingTop: '2rem' }}>
-      <ScreenContainer maxWidth="4xl" className="py-4 sm:py-6 pb-24 sm:pb-32">
-        <AnimatePresence mode="wait">
-          <SwipeableCard
-            onSwipeLeft={handleNext}
-            onSwipeRight={handlePrevious}
-            disabled={isSubmitting || currentIndex === 0}
-          >
-            <QuestionTransition
-              questionId={current?.id || 'loading'}
-              className="grid grid-cols-1 lg:grid-cols-12 gap-md"
-            >
-            {/* Question Content - Left Column (Right in RTL) */}
-            <div className="lg:col-span-5 space-lg">
-              <SectionCard className="shadow-md">
-                <CardHeader className="space-md">
-                  <div className="space-sm">
-                    <CardTitle className="text-lg sm:text-xl lg:text-2xl leading-relaxed text-slate-900">
-                      {current?.text ?? "لا يوجد نص للسؤال"}
-                    </CardTitle>
-                    {!current && (
-                      <p className="text-red-600 text-sm">تحذير: لا يوجد سؤال نشط</p>
-                    )}
-                    {current && !current.text && (
-                      <p className="text-orange-600 text-sm">تحذير: السؤال موجود لكن لا يوجد نص</p>
-                    )}
-                    
-                    {/* Question metadata */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-xs">
-                        {current?.dimensionTags && (
-                          <Badge variant="secondary" className="text-xs">
-                            {current.dimensionTags}
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      {/* Question type indicator */}
-                      <div className="text-xs text-muted-foreground">
-                        {current?.type === 'MCQ' && 'اختيار متعدد'}
-                        {current?.type === 'LikertAgreement' && 'ليكرت'}
-                        {current?.type === 'Frequency' && 'تكرار'}
-                        {current?.type === 'ORDERING' && 'ترتيب'}
-                        {current?.type === 'TIMED_NUMERIC' && 'رقمي مؤقت'}
-                        {current?.type === 'TEXT' && 'نصي'}
+          {/* Main Content */}
+          <main className="relative z-10 pt-48 pb-32 px-4">
+            <div className="max-w-6xl mx-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={current?.id || 'loading'}
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -50 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+                >
+                  {/* Question Content - Left Column */}
+                  <div className="lg:col-span-5">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-6">
+                      <div className="space-y-4">
+                        <h2 className="text-2xl font-bold leading-relaxed text-white">
+                          {current?.text ?? "لا يوجد نص للسؤال"}
+                        </h2>
+                        
+                        {/* Question metadata */}
+                        <div className="flex items-center justify-between">
+                          {current?.dimensionTags && (
+                            <span className="px-3 py-1 bg-indigo-500/20 border border-indigo-400/30 rounded-full text-xs text-indigo-200">
+                              {current.dimensionTags}
+                            </span>
+                          )}
+                          
+                          {/* Question type indicator */}
+                          <div className="text-xs text-gray-400">
+                            {current?.type === 'MCQ' && 'اختيار متعدد'}
+                            {current?.type === 'LikertAgreement' && 'ليكرت'}
+                            {current?.type === 'Frequency' && 'تكرار'}
+                            {current?.type === 'ORDERING' && 'ترتيب'}
+                            {current?.type === 'TIMED_NUMERIC' && 'رقمي مؤقت'}
+                            {current?.type === 'TEXT' && 'نصي'}
+                          </div>
+                        </div>
+
+                        {/* Question instructions */}
+                        <div className="pt-4 border-t border-white/10">
+                          <div className="text-sm text-gray-300">
+                            {current?.type === 'MCQ' && (
+                              <p className="flex items-center gap-2">
+                                <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                                <span>اختر إجابة واحدة من الخيارات التالية</span>
+                              </p>
+                            )}
+                            {current?.type === 'ORDERING' && (
+                              <p className="flex items-center gap-2">
+                                <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+                                <span>رتّب الخيارات من الأولى إلى الأخيرة</span>
+                              </p>
+                            )}
+                            {current?.type === 'TIMED_NUMERIC' && (
+                              <p className="flex items-center gap-2">
+                                <span className="w-2 h-2 bg-red-400 rounded-full"></span>
+                                <span>أدخل رقماً صحيحاً أو عشرياً</span>
+                              </p>
+                            )}
+                            {(current?.type === 'LikertAgreement' || current?.type === 'Frequency') && (
+                              <p className="flex items-center gap-2">
+                                <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                                <span>اختر درجة الموافقة أو التكرار المناسبة</span>
+                              </p>
+                            )}
+                            {current?.type === 'TEXT' && (
+                              <p className="flex items-center gap-2">
+                                <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                                <span>أجب بإيجاز ووضوح</span>
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </CardHeader>
-                
-                {/* Question instructions or hints based on type */}
-                <CardContent>
-                  <div className="text-sm text-muted-foreground space-xs">
-                    {current?.type === 'MCQ' && (
-                      <p className="flex items-center space-xs">
-                        <span className="w-2 h-2 bg-primary rounded-full"></span>
-                        <span>اختر إجابة واحدة من الخيارات التالية</span>
-                      </p>
-                    )}
-                    {current?.type === 'ORDERING' && (
-                      <p className="flex items-center space-xs">
-                        <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
-                        <span>رتّب الخيارات من الأولى إلى الأخيرة</span>
-                      </p>
-                    )}
-                    {current?.type === 'TIMED_NUMERIC' && (
-                      <p className="flex items-center space-xs">
-                        <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                        <span>أدخل رقماً صحيحاً أو عشرياً</span>
-                      </p>
-                    )}
-                    {(current?.type === 'LikertAgreement' || current?.type === 'Frequency') && (
-                      <p className="flex items-center space-xs">
-                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                        <span>اختر درجة الموافقة أو التكرار المناسبة</span>
-                      </p>
-                    )}
-                    {current?.type === 'TEXT' && (
-                      <p className="flex items-center space-xs">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                        <span>أجب بإيجاز ووضوح</span>
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </SectionCard>
-            </div>
-            
-            {/* Answer Section - Right Column (Left in RTL) */}
-            <div className="lg:col-span-7 space-lg">
-              <SectionCard className="shadow-md min-h-[400px]">
-                <CardContent className="space-lg">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="w-full"
-                  >
-                    {renderQuestionInput()}
-                  </motion.div>
                   
-                  {errorMessage && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="flex items-start space-sm p-4 bg-red-50 border border-red-200 rounded-xl text-red-700"
-                    >
-                      <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm leading-relaxed">{errorMessage}</p>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </SectionCard>
-            </div>
-            </QuestionTransition>
-          </SwipeableCard>
-        </AnimatePresence>
+                  {/* Answer Section - Right Column */}
+                  <div className="lg:col-span-7">
+                    <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8 min-h-[400px]">
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="w-full"
+                      >
+                        {renderQuestionInput()}
+                      </motion.div>
+                      
+                      {errorMessage && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="flex items-start gap-3 p-4 mt-6 bg-red-500/20 border border-red-400/50 rounded-lg text-red-200"
+                        >
+                          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm leading-relaxed">{errorMessage}</p>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
 
-        {/* Keyboard shortcuts hint */}
-        <div className="mt-lg text-center hidden lg:block">
-          <p className="text-xs text-muted-foreground">
-            <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> التالي • 
-            <kbd className="px-2 py-1 bg-muted rounded text-xs ml-2">Shift+Enter</kbd> السابق • 
-            <kbd className="px-2 py-1 bg-muted rounded text-xs ml-2">1-9</kbd> اختيار سريع
-          </p>
-        </div>
-      </ScreenContainer>
-
-      {/* Bottom Action Bar - Responsive with safe area */}
-      <div className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur border-t p-3 sm:p-4 pb-[max(1rem,var(--safe-bottom))]">
-        <ScreenContainer maxWidth="4xl" className="p-0">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            {/* Previous Button - Mobile optimized */}
-            <TouchButton
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-              variant="outline"
-              size="lg"
-              fullWidth
-              className="sm:w-auto"
-            >
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-              {strings.exam.navigation.previous}
-            </TouchButton>
-            
-            {/* Center info - Mobile only timer display */}
-            <div className="sm:hidden">
-              {questionTimeLeft !== null && (
-                <div className="text-xs text-center text-muted-foreground py-1">
-                  الوقت للسؤال: {formatTime(questionTimeLeft)}
-                </div>
-              )}
+              {/* Keyboard shortcuts hint */}
+              <div className="mt-8 text-center hidden lg:block">
+                <p className="text-xs text-gray-400">
+                  <kbd className="px-2 py-1 bg-white/10 rounded text-xs border border-white/20">Enter</kbd> التالي • 
+                  <kbd className="px-2 py-1 bg-white/10 rounded text-xs border border-white/20 ml-2">Shift+Enter</kbd> السابق • 
+                  <kbd className="px-2 py-1 bg-white/10 rounded text-xs border border-white/20 ml-2">1-9</kbd> اختيار سريع
+                </p>
+              </div>
             </div>
-            
-            {/* Next/Finish Button - Full width on mobile, enhanced finish button */}
-            <div className="w-full sm:w-auto flex gap-2 sm:gap-3">
-              {isLastQuestion ? (
-                <TouchButton
-                  onClick={() => setShowFinishDialog(true)}
-                  disabled={!canSubmit || isSubmitting}
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  className={cn(
-                    "sm:w-auto font-semibold shadow-lg",
-                    !canSubmit ? 'bg-muted hover:bg-muted' : 'bg-green-600 hover:bg-green-700 text-white'
-                  )}
+          </main>
+
+          {/* Bottom Action Bar */}
+          <div className="fixed bottom-0 left-0 right-0 z-20 bg-gray-900/70 backdrop-blur-md border-t border-white/10 p-4">
+            <div className="max-w-6xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                {/* Previous Button */}
+                <button
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  className="sm:w-auto bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold py-3 px-6 rounded-lg hover:bg-white/20 transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex items-center gap-2"
-                    >
-                      <Timer className="h-5 w-5 animate-spin" />
-                      جاري الإنهاء...
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex items-center gap-2"
-                    >
-                      <CheckCircle className="h-5 w-5" />
-                      إنهاء الاختبار
-                    </motion.div>
-                  )}
-                </TouchButton>
-              ) : (
-                <TouchButton
-                  onClick={canSubmit ? handleSubmitAnswer : handleNext}
-                  disabled={isSubmitting}
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  className="sm:w-auto"
-                >
-                  {isSubmitting ? (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex items-center gap-2"
-                    >
-                      <Timer className="h-4 w-4 animate-spin" />
-                      {strings.exam.submitting}
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex items-center gap-2"
-                    >
-                      {strings.exam.navigation.next}
-                      <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </motion.div>
-                  )}
-                </TouchButton>
-              )}
+                  <ArrowRight className="h-5 w-5" />
+                  {strings.exam.navigation.previous}
+                </button>
+                
+                {/* Next/Finish Button */}
+                {isLastQuestion ? (
+                  <button
+                    onClick={() => setShowFinishDialog(true)}
+                    disabled={!canSubmit || isSubmitting}
+                    className={cn(
+                      "sm:w-auto font-bold py-3 px-8 rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2",
+                      !canSubmit 
+                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                        : 'bg-gradient-to-r from-green-500 to-emerald-400 text-white hover:scale-105 hover:shadow-2xl'
+                    )}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Timer className="h-5 w-5 animate-spin" />
+                        جاري الإنهاء...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-5 w-5" />
+                        إنهاء الاختبار
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    onClick={canSubmit ? handleSubmitAnswer : handleNext}
+                    disabled={isSubmitting}
+                    className="sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-400 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Timer className="h-4 w-4 animate-spin" />
+                        {strings.exam.submitting}
+                      </>
+                    ) : (
+                      <>
+                        {strings.exam.navigation.next}
+                        <ArrowLeft className="h-5 w-5" />
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </ScreenContainer>
-      </div>
 
-      {/* Finish confirmation dialog - Responsive */}
-      <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
-        <DialogContent className="sm:max-w-md mx-3 sm:mx-auto rounded-2xl">
-          <DialogHeader className="text-center">
-            <DialogTitle className="text-[clamp(18px,2vw,20px)] font-bold">
-              {strings.exam.confirmFinish.title}
-            </DialogTitle>
-            <DialogDescription className="text-sm sm:text-base mt-2 leading-relaxed">
-              {strings.exam.confirmFinish.message}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setShowFinishDialog(false)}
-              className="w-full sm:w-auto h-11 sm:h-10 min-h-[44px] order-2 sm:order-1"
-            >
-              {strings.exam.confirmFinish.cancel}
-            </Button>
-            <Button
-              onClick={confirmFinish}
-              disabled={isSubmitting}
-              className="w-full sm:w-auto h-11 sm:h-10 min-h-[44px] gap-2 order-1 sm:order-2"
-            >
-              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-              {strings.exam.confirmFinish.confirm}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      </div>
+          {/* Finish confirmation dialog */}
+          <Dialog open={showFinishDialog} onOpenChange={setShowFinishDialog}>
+            <DialogContent className="sm:max-w-md mx-3 sm:mx-auto rounded-2xl bg-gray-900/95 backdrop-blur-lg border border-white/20 text-white">
+              <DialogHeader className="text-center">
+                <DialogTitle className="text-xl font-bold text-white">
+                  {strings.exam.confirmFinish.title}
+                </DialogTitle>
+                <DialogDescription className="text-sm sm:text-base mt-2 leading-relaxed text-gray-300">
+                  {strings.exam.confirmFinish.message}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4">
+                <button
+                  onClick={() => setShowFinishDialog(false)}
+                  className="w-full sm:w-auto bg-white/10 border border-white/20 text-white font-bold py-3 px-6 rounded-lg hover:bg-white/20 transition-all duration-300"
+                >
+                  {strings.exam.confirmFinish.cancel}
+                </button>
+                <button
+                  onClick={confirmFinish}
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-400 text-white font-bold py-3 px-6 rounded-lg hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                  {strings.exam.confirmFinish.confirm}
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>

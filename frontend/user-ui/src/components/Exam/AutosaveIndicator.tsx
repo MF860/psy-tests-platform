@@ -38,11 +38,11 @@ export default function AutosaveIndicator({ state, className = "" }: AutosaveInd
   const getStyles = () => {
     switch (state) {
       case "saving":
-        return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-blue-500/20 text-blue-200 border-blue-400/30";
       case "saved":
-        return "bg-green-100 text-green-700 border-green-200";
+        return "bg-green-500/20 text-green-200 border-green-400/30";
       case "error":
-        return "bg-red-100 text-red-700 border-red-200";
+        return "bg-red-500/20 text-red-200 border-red-400/30";
       default:
         return "invisible";
     }

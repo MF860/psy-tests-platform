@@ -59,7 +59,7 @@ export default function TimedNumeric({ value, onChange, questionId }: TimedNumer
 
   return (
     <div className="space-y-3 sm:space-y-4 w-full max-w-sm mx-auto">
-      <Label htmlFor={`numeric-${questionId}`} className="text-right block text-sm sm:text-base font-medium">
+      <Label htmlFor={`numeric-${questionId}`} className="text-right block text-sm sm:text-base font-medium text-white">
         {strings.exam.placeholders.numericAnswer}
       </Label>
       <Input
@@ -72,18 +72,19 @@ export default function TimedNumeric({ value, onChange, questionId }: TimedNumer
         onBlur={handleBlur}
         placeholder="مثال: 25 أو 3.5"
         className={`
-          h-12 sm:h-12 text-center font-mono text-base sm:text-xl w-full
-          focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary
-          ${error ? 'border-destructive focus-visible:ring-destructive' : ''}
+          h-14 sm:h-16 text-center font-mono text-xl sm:text-2xl w-full
+          bg-white/10 border-2 text-white rounded-xl
+          focus:border-blue-400 focus:bg-white/15
+          ${error ? 'border-red-400 focus:border-red-400' : 'border-white/20'}
         `}
         dir="ltr"
       />
       {error && (
-        <p className="text-destructive text-sm sm:text-base text-right font-medium bg-destructive/10 p-2 rounded-lg">
+        <p className="text-red-300 text-sm sm:text-base text-right font-medium bg-red-500/20 border border-red-400/30 p-3 rounded-lg">
           {error}
         </p>
       )}
-      <p className="text-xs sm:text-sm text-muted-foreground text-right leading-relaxed">
+      <p className="text-xs sm:text-sm text-gray-400 text-right leading-relaxed">
         أدخل رقماً صحيحاً أو عشرياً (استخدم النقطة للفاصل العشري)
       </p>
     </div>

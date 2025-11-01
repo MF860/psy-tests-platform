@@ -14,26 +14,26 @@ export default function MCQ({ options, value, onChange, questionId }: MCQProps) 
       <RadioGroup 
         value={value} 
         onValueChange={onChange}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
       >
         {options.map((option, index) => (
           <div 
             key={`${questionId}-${index}`} 
-            className={`flex items-start gap-3 p-3 sm:p-4 min-h-12 rounded-xl border transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-soft ${
+            className={`flex items-start gap-3 p-3 sm:p-4 min-h-12 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
               value === option.value 
-                ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-soft' 
-                : 'border-border hover:border-primary/30'
+                ? 'border-blue-400 bg-blue-500/20 backdrop-blur-sm shadow-lg' 
+                : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-blue-400/50'
             }`}
             onClick={() => onChange(option.value)}
           >
             <RadioGroupItem 
               value={option.value} 
               id={`mcq-${questionId}-${index}`}
-              className="mt-0.5 flex-shrink-0 min-w-[20px] min-h-[20px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="mt-0.5 flex-shrink-0 min-w-[20px] min-h-[20px] border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
             />
             <Label 
               htmlFor={`mcq-${questionId}-${index}`} 
-              className="cursor-pointer text-right leading-relaxed flex-1 text-sm sm:text-base break-words"
+              className="cursor-pointer text-right leading-relaxed flex-1 text-sm sm:text-base break-words text-white"
             >
               {option.label}
             </Label>

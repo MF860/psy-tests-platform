@@ -23,34 +23,34 @@ export default function Ordering({ choices, labels, value, onChange, questionId 
 
     return (
       <div className="space-y-3 sm:space-y-4">
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <p className="text-sm sm:text-base text-gray-300">
           اختر الترتيب الصحيح من الخيارات التالية:
         </p>
         <RadioGroup 
           value={value} 
           onValueChange={onChange}
-          className="grid grid-cols-1 gap-3 sm:gap-4"
+          className="grid grid-cols-1 gap-3"
         >
           {multipleChoiceOptions.map((option, index) => (
             <div 
               key={`${questionId}-choice-${index}`} 
-              className={`flex items-start gap-3 p-3 sm:p-4 min-h-12 rounded-xl border transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-soft ${
+              className={`flex items-start gap-3 p-4 min-h-14 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
                 value === option.value 
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-soft' 
-                  : 'border-border hover:border-primary/30'
+                  ? 'border-blue-400 bg-blue-500/20 backdrop-blur-sm shadow-lg' 
+                  : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-blue-400/50'
               }`}
               onClick={() => onChange(option.value)}
             >
               <RadioGroupItem 
                 value={option.value} 
                 id={`choice-${questionId}-${index}`}
-                className="flex-shrink-0 min-w-[20px] min-h-[20px] mt-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="flex-shrink-0 min-w-[20px] min-h-[20px] mt-0.5 border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
               />
               <Label 
                 htmlFor={`choice-${questionId}-${index}`} 
-                className="cursor-pointer text-right flex-1 text-sm sm:text-base break-words leading-relaxed"
+                className="cursor-pointer text-right flex-1 text-sm sm:text-base break-words leading-relaxed text-white"
               >
-                <span className="font-medium text-primary mr-2">{option.value}.</span>
+                <span className="font-medium text-blue-300 mr-2">{option.value}.</span>
                 {option.label}
               </Label>
             </div>
@@ -70,32 +70,32 @@ export default function Ordering({ choices, labels, value, onChange, questionId 
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      <p className="text-sm sm:text-base text-muted-foreground">
+      <p className="text-sm sm:text-base text-gray-300">
         اختر الترتيب المناسب من الخيارات التالية:
       </p>
       <RadioGroup 
         value={value} 
         onValueChange={onChange}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
+        className="grid grid-cols-1 gap-3"
       >
         {fallbackOptions.map((option, index) => (
           <div 
             key={`${questionId}-order-${index}`} 
-            className={`flex items-center gap-3 p-3 sm:p-4 min-h-12 rounded-xl border transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-soft ${
+            className={`flex items-center gap-3 p-4 min-h-14 rounded-xl border-2 transition-all duration-200 cursor-pointer ${
               value === option.value 
-                ? 'border-primary bg-primary/5 ring-1 ring-primary/20 shadow-soft' 
-                : 'border-border hover:border-primary/30'
+                ? 'border-blue-400 bg-blue-500/20 backdrop-blur-sm shadow-lg' 
+                : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-blue-400/50'
             }`}
             onClick={() => onChange(option.value)}
           >
             <RadioGroupItem 
               value={option.value} 
               id={`order-${questionId}-${index}`}
-              className="flex-shrink-0 min-w-[20px] min-h-[20px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex-shrink-0 min-w-[20px] min-h-[20px] border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
             />
             <Label 
               htmlFor={`order-${questionId}-${index}`} 
-              className="cursor-pointer text-right flex-1 text-sm sm:text-base break-words leading-relaxed"
+              className="cursor-pointer text-right flex-1 text-sm sm:text-base break-words leading-relaxed text-white"
             >
               {option.label}
             </Label>
