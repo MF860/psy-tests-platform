@@ -2,12 +2,26 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>واجهة الاختبار</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" type="image/png" href="/FB-ICON.png" />
+    <title>منصة الاختبارات القياسية</title>
+    
+    <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Arabic-optimized font with fallbacks -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Prevent flash of unstyled content -->
+    <style>
+      html { visibility: hidden; opacity: 0; }
+      html.fonts-loaded { visibility: visible; opacity: 1; transition: opacity 0.3s; }
+    </style>
+    <script>
+      document.fonts.ready.then(() => document.documentElement.classList.add('fonts-loaded'));
+    </script>
   </head>
   <body>
     <div id="root"></div>
