@@ -507,11 +507,6 @@ function ExamContent() {
     }
   };
 
-  // Single header component - avoid duplication
-  const headerTitle = !isLoadingQuestion && !current && questions.length === 0 
-    ? "الاختبار - تصحيح الأخطاء" 
-    : "الاختبار";
-
   return (
     <div className="relative min-h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-900 via-indigo-900 to-gray-900" dir="rtl">
       {/* Animated background particles */}
@@ -521,25 +516,90 @@ function ExamContent() {
         <div className="absolute bottom-20 left-1/3 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl animate-pulse animation-delay-4000"></div>
       </div>
 
-      {/* Header with logos and step indicator */}
-      <header className="absolute top-0 w-full flex justify-between items-center p-4 sm:p-6 z-20 bg-gray-900/80 backdrop-blur-md border-b border-white/10">
-        <div className="flex-1 hidden sm:block"></div>
-        <div className="flex-1 flex justify-center">
-          <img 
-            src="/STEST.png" 
-            alt="شعار المنصة" 
-            className="h-10 sm:h-14 object-contain drop-shadow-lg"
-          />
-        </div>
-        <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
-          <div className="px-3 sm:px-4 py-1.5 sm:py-2 bg-indigo-500/30 backdrop-blur-sm border border-indigo-400/40 rounded-full text-indigo-200 text-xs sm:text-sm font-medium">
-            {headerTitle}
+      {/* UNIFIED Header with logos, timers, and progress - All in ONE header */}
+      <header className="fixed top-0 left-0 right-0 w-full z-20 bg-gray-900/90 backdrop-blur-md border-b border-indigo-400/30 shadow-lg">
+        {/* Top Row: Logos */}
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-white/10">
+          <div className="flex-1 hidden sm:block"></div>
+          <div className="flex-1 flex justify-center">
+            <img 
+              src="/STEST.png" 
+              alt="شعار المنصة" 
+              className="h-10 sm:h-12 object-contain drop-shadow-lg"
+            />
           </div>
-          <img 
-            src="/FB-ICON.png" 
-            alt="أيقونة" 
-            className="h-8 sm:h-10 object-contain drop-shadow-lg"
-          />
+          <div className="flex-1 flex justify-end items-center gap-2">
+            <img 
+              src="/FB-ICON.png" 
+              alt="أيقونة" 
+              className="h-8 sm:h-10 object-contain drop-shadow-lg"
+            />
+          </div>
+        </div>
+
+        {/* Bottom Row: Progress, Timers, Question Counter */}
+        <div className="px-3 sm:px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
+              {/* Progress Bar & Counter */}
+              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="flex-1 min-w-0 bg-gray-700/70 rounded-full h-2.5 sm:h-3 overflow-hidden border border-indigo-400/40 shadow-inner">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full shadow-md"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercent}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+                <motion.span 
+                  key={currentIndex}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-xs sm:text-sm font-bold text-white whitespace-nowrap flex-shrink-0 bg-indigo-600/50 px-2 sm:px-3 py-1 rounded-lg border border-indigo-400/50"
+                >
+                  {currentIndex + 1}/{totalQuestions || "-"}
+                </motion.span>
+              </div>
+
+              {/* Timers Section */}
+              <div className="flex items-center justify-between sm:justify-end gap-2">
+                {/* Session Timer (1 hour) */}
+                <div className={`
+                  flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 shadow-md
+                  ${sessionTimeLeft <= 60 
+                    ? 'bg-red-600/60 text-white border-2 border-red-400 animate-pulse' 
+                    : sessionTimeLeft <= 300
+                    ? 'bg-orange-600/50 text-orange-100 border border-orange-400' 
+                    : 'bg-green-600/50 text-green-100 border border-green-400'
+                  }
+                `}>
+                  <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="font-mono">
+                    {Math.floor(sessionTimeLeft / 60)}:{String(sessionTimeLeft % 60).padStart(2, '0')}
+                  </span>
+                </div>
+                
+                <AutosaveIndicator state={autosaveState} />
+                
+                {/* Question Timer */}
+                {questionTimeLeft !== null && (
+                  <div className={`
+                    flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 shadow-md
+                    ${questionTimeLeft <= 10 
+                      ? 'bg-red-600/60 text-white border-2 border-red-400 animate-pulse' 
+                      : questionTimeLeft <= 30
+                      ? 'bg-orange-600/50 text-orange-100 border border-orange-400' 
+                      : 'bg-blue-600/50 text-blue-100 border border-blue-400'
+                    }
+                  `}>
+                    <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="font-mono">{formatTime(questionTimeLeft)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -628,73 +688,8 @@ function ExamContent() {
             )}
           </AnimatePresence>
 
-          {/* Top Status Bar - Enhanced visibility */}
-          <div className="fixed top-16 sm:top-20 left-0 right-0 z-10 bg-gray-800/90 backdrop-blur-md border-b border-indigo-400/30 shadow-lg">
-            <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3">
-                {/* Progress & Counter */}
-                <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-                  <div className="flex-1 min-w-0 bg-gray-700/70 rounded-full h-2.5 sm:h-3 overflow-hidden border border-indigo-400/40 shadow-inner">
-                    <motion.div 
-                      className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full shadow-md"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${progressPercent}%` }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                  <motion.span 
-                    key={currentIndex}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="text-xs sm:text-sm font-bold text-white whitespace-nowrap flex-shrink-0 bg-indigo-600/40 px-2 sm:px-3 py-1 rounded-lg border border-indigo-400/40"
-                  >
-                    {currentIndex + 1}/{totalQuestions || "-"}
-                  </motion.span>
-                </div>
-
-                {/* Status Indicators */}
-                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
-                  {/* Session Timer */}
-                  <div className={`
-                    flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 shadow-md
-                    ${sessionTimeLeft <= 60 
-                      ? 'bg-red-600/50 text-white border-2 border-red-400 animate-pulse' 
-                      : sessionTimeLeft <= 300
-                      ? 'bg-orange-600/40 text-orange-100 border border-orange-400' 
-                      : 'bg-green-600/40 text-green-100 border border-green-400'
-                    }
-                  `}>
-                    <Timer className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="font-mono">
-                      {Math.floor(sessionTimeLeft / 60)}:{String(sessionTimeLeft % 60).padStart(2, '0')}
-                    </span>
-                  </div>
-                  
-                  <AutosaveIndicator state={autosaveState} />
-                  
-                  {/* Question Timer */}
-                  {questionTimeLeft !== null && (
-                    <div className={`
-                      flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 shadow-md
-                      ${questionTimeLeft <= 10 
-                        ? 'bg-red-600/50 text-white border-2 border-red-400 animate-pulse' 
-                        : questionTimeLeft <= 30
-                        ? 'bg-red-600/40 text-red-100 border border-red-400' 
-                        : 'bg-blue-600/40 text-blue-100 border border-blue-400'
-                      }
-                    `}>
-                      <Timer className="h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="font-mono">{formatTime(questionTimeLeft)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Main Content - Improved spacing and responsiveness */}
-          <main className="relative z-10 pt-32 sm:pt-44 md:pt-48 pb-24 sm:pb-32 px-3 sm:px-4">
+          <main className="relative z-10 pt-32 sm:pt-36 md:pt-40 pb-24 sm:pb-32 px-3 sm:px-4">
             <div className="max-w-7xl mx-auto">
               <AnimatePresence mode="wait">
                 <motion.div

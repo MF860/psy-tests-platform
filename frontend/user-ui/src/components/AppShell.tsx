@@ -17,7 +17,8 @@ export default function AppShell({ children }: AppShellProps) {
   const [totalQuestions, setTotalQuestions] = useState<number | null>(null);
 
   const isExamPage = location.pathname === '/exam';
-  const showHeader = isExamPage;
+  // Disable AppShell header on exam page - ExamNew has its own complete header
+  const showHeader = false; // isExamPage;
 
   useEffect(() => {
     // Initialize global timer when exam starts
