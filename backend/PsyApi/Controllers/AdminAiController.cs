@@ -125,7 +125,7 @@ namespace PsyApi.Controllers
 
                 // Check if this is an SDJ result
                 bool isSdj = false;
-                SdjScoreSummary? sdjScores = null;
+                SdjDataPayload? sdjScores = null;
 
                 try
                 {
@@ -137,8 +137,8 @@ namespace PsyApi.Controllers
                         {
                             isSdj = true;
                             
-                            // Parse full SDJ scores from payload
-                            sdjScores = JsonSerializer.Deserialize<SdjScoreSummary>(sdjData.GetRawText(), JsonOptions);
+                            // Parse SDJ data from payload (uses SdjDataPayload structure)
+                            sdjScores = JsonSerializer.Deserialize<SdjDataPayload>(sdjData.GetRawText(), JsonOptions);
                             
                             _logger.LogInformation("[AI] Parsed SdjData for result {ResultId}: Patterns={PatternCount}, SubDims={SubDimCount}", 
                                 request.ResultId, 
@@ -165,7 +165,7 @@ namespace PsyApi.Controllers
                         });
                     }
 
-                    if (sdjScores == null || !sdjScores.SevenPatternScores.Any())
+                    if (sdjScores == null || sdjScores.SevenPatternScores == null || !sdjScores.SevenPatternScores.Any())
                     {
                         _logger.LogWarning("[AI] Result {ResultId} has SdjData but SevenPatternScores is empty. Parsed: {HasScores}", 
                             request.ResultId, sdjScores != null);
@@ -190,9 +190,9 @@ namespace PsyApi.Controllers
                 }
 
                 // Build analysis payload
-                var patterns = sdjScores.SevenPatternScores.Select(p => new SdjAiPatternPayload
+                var patterns = sdjScores.SevenPatternScores!.Select(p => new SdjAiPatternPayload
                 {
-                    Key = p.PatternNameEn ?? p.PatternKey, // Use PatternNameEn (from V2) or PatternKey (from V1)
+                    Key = p.PatternNameEn, // Use PatternNameEn from SdjDataPayload
                     Label = p.PatternNameAr,
                     TScore = p.TScore
                 }).ToList();
