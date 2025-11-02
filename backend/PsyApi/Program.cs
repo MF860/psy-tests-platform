@@ -291,7 +291,7 @@ builder.Services.Configure<PsyApi.Services.AI.DeepSeekConfiguration>(config =>
     config.BaseUrl = Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? 
                      "https://api.deepseek.com/v1";
     
-    config.TimeoutSeconds = 30;
+    config.TimeoutSeconds = 120; // Increased for SDJ-7 analysis (80 questions + comprehensive insights)
     config.MaxRetries = 3;
     config.CacheDurationHours = 24;
     
@@ -310,7 +310,7 @@ builder.Services.Configure<PsyApi.Services.AI.OpenRouterConfiguration>(config =>
     config.MaxTokens = 1500;
     config.Temperature = 0.2;
     config.BaseUrl = Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? "https://api.deepseek.com/v1";
-    config.TimeoutSeconds = 30;
+    config.TimeoutSeconds = 120; // Increased for SDJ-7 analysis
     config.MaxRetries = 3;
     config.CacheDurationHours = 24;
 });

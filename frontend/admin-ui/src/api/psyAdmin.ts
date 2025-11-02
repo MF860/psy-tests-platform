@@ -8,7 +8,7 @@ const getApiBaseUrl = () => {
 
 const api = axios.create({
   baseURL: getApiBaseUrl(),
-  timeout: 15000,
+  timeout: 150000, // 150 seconds for AI analysis (DeepSeek needs time for comprehensive SDJ-7 analysis)
 })
 
 api.interceptors.request.use((config) => {

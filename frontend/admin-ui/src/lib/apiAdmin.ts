@@ -75,7 +75,7 @@ const api = {
       return mockAdminApi('GET', url);
     }
     // AI analysis can take longer, so increase timeout
-    const timeout = url.includes('/ai-analyze') ? 60000 : 15000;
+    const timeout = url.includes('/ai-analyze') ? 150000 : 15000; // 150s for AI, 15s for other requests
     const axiosInstance = axios.create({
       baseURL: getApiBaseUrl(),
       timeout: timeout,
@@ -100,7 +100,7 @@ const api = {
       return mockAdminApi('POST', url, data);
     }
     // AI analysis can take longer, so increase timeout
-    const timeout = url.includes('/ai-analyze') ? 60000 : 15000;
+    const timeout = url.includes('/ai-analyze') ? 150000 : 15000; // 150s for AI, 15s for other requests
     const axiosInstance = axios.create({
       baseURL: getApiBaseUrl(),
       timeout: timeout,
