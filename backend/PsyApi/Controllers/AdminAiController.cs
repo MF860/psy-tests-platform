@@ -139,23 +139,54 @@ namespace PsyApi.Controllers
                             
                             // Parse full SDJ scores from payload
                             sdjScores = JsonSerializer.Deserialize<SdjScoreSummary>(sdjData.GetRawText(), JsonOptions);
+                            
+                            _logger.LogInformation("[AI] Parsed SdjData for result {ResultId}: Patterns={PatternCount}, SubDims={SubDimCount}", 
+                                request.ResultId, 
+                                sdjScores?.SevenPatternScores?.Count ?? 0,
+                                sdjScores?.SubDimensions?.Count ?? 0);
                         }
+                        else
+                        {
+                            _logger.LogWarning("[AI] Result {ResultId} has payload but no SdjData property. Session may have been created before scoring updates.", request.ResultId);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("[AI] Result {ResultId} has empty Session.Payload", request.ResultId);
                     }
 
                     if (!isSdj)
                     {
-                        return BadRequest(new { error = "هذه النتيجة ليست من نوع SDJ - التحليل الذكي متاح فقط لنتائج SDJ" });
+                        return BadRequest(new { 
+                            error = "هذه النتيجة ليست من نوع SDJ - التحليل الذكي متاح فقط لنتائج SDJ",
+                            details = "Session payload does not contain SdjData. Please re-submit the test.",
+                            sessionId = entity.Session.SessionId,
+                            resultId = request.ResultId
+                        });
                     }
 
                     if (sdjScores == null || !sdjScores.SevenPatternScores.Any())
                     {
-                        return BadRequest(new { error = "لا توجد بيانات أنماط SDJ-7 لهذه النتيجة" });
+                        _logger.LogWarning("[AI] Result {ResultId} has SdjData but SevenPatternScores is empty. Parsed: {HasScores}", 
+                            request.ResultId, sdjScores != null);
+                        return BadRequest(new { 
+                            error = "لا توجد بيانات أنماط SDJ-7 لهذه النتيجة",
+                            details = "SevenPatternScores array is empty. The session may need to be re-submitted.",
+                            sessionId = entity.Session.SessionId,
+                            resultId = request.ResultId
+                        });
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "[AI] Failed to parse SDJ data from payload for result {ResultId}", request.ResultId);
-                    return BadRequest(new { error = "فشل في قراءة بيانات SDJ لهذه النتيجة" });
+                    _logger.LogError(ex, "[AI] Failed to parse SDJ data from payload for result {ResultId}. PayloadLength={Length}", 
+                        request.ResultId, entity.Session.Payload?.Length ?? 0);
+                    return BadRequest(new { 
+                        error = "فشل في قراءة بيانات SDJ لهذه النتيجة",
+                        details = $"Parse error: {ex.Message}",
+                        sessionId = entity.Session.SessionId,
+                        resultId = request.ResultId
+                    });
                 }
 
                 // Build analysis payload
