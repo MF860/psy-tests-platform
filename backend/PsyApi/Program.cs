@@ -282,7 +282,7 @@ builder.Services.Configure<PsyApi.Services.AI.DeepSeekConfiguration>(config =>
     
     config.MaxTokens = int.TryParse(Environment.GetEnvironmentVariable("DEEPSEEK_MAX_TOKENS"), out int maxTokens) 
                        ? maxTokens 
-                       : 1500;
+                       : 4000; // Increased for SDJ-7 comprehensive analysis (7 patterns + 21 subdimensions)
     
     config.Temperature = double.TryParse(Environment.GetEnvironmentVariable("DEEPSEEK_TEMPERATURE"), out double temp)
                          ? temp
@@ -307,7 +307,7 @@ builder.Services.Configure<PsyApi.Services.AI.OpenRouterConfiguration>(config =>
                    Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ?? 
                    string.Empty;
     config.Model = Environment.GetEnvironmentVariable("DEEPSEEK_MODEL") ?? "deepseek-chat";
-    config.MaxTokens = 1500;
+    config.MaxTokens = 4000; // Increased for SDJ-7 analysis
     config.Temperature = 0.2;
     config.BaseUrl = Environment.GetEnvironmentVariable("DEEPSEEK_BASE_URL") ?? "https://api.deepseek.com/v1";
     config.TimeoutSeconds = 120; // Increased for SDJ-7 analysis

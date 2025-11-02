@@ -300,9 +300,20 @@ namespace PsyApi.Services.AI
             // Strip markdown code blocks
             content = StripMarkdown(content);
 
+            // Log content for debugging malformed JSON
+            _logger.LogInformation("[SDJ-AI] Raw content length: {Length}, first 500 chars: {Preview}", 
+                content.Length, content.Length > 500 ? content.Substring(0, 500) : content);
+
             try
             {
-                var jsonDoc = JsonDocument.Parse(content);
+                // Try to parse with more lenient settings
+                var jsonOptions = new JsonDocumentOptions
+                {
+                    AllowTrailingCommas = true,
+                    CommentHandling = JsonCommentHandling.Skip,
+                    MaxDepth = 64
+                };
+                var jsonDoc = JsonDocument.Parse(content, jsonOptions);
                 var root = jsonDoc.RootElement;
 
                 // Extract summary
