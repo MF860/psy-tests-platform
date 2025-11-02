@@ -161,7 +161,7 @@ namespace PsyApi.Controllers
                 // Build analysis payload
                 var patterns = sdjScores.SevenPatternScores.Select(p => new SdjAiPatternPayload
                 {
-                    Key = p.PatternKey,
+                    Key = p.PatternNameEn ?? p.PatternKey, // Use PatternNameEn (from V2) or PatternKey (from V1)
                     Label = p.PatternNameAr,
                     TScore = p.TScore
                 }).ToList();
@@ -176,8 +176,8 @@ namespace PsyApi.Controllers
 
                 var items = entity.Session.SessionItems
                     .Where(si => si.Item != null && 
-                               !string.IsNullOrEmpty(si.Item.SubDimension) &&
-                               (si.Item.Type == "LikertAgreement" || si.Item.Type == "Frequency"))
+                               !string.IsNullOrEmpty(si.Answer) &&
+                               (si.Item.Type == "LikertAgreement" || si.Item.Type == "Frequency" || si.Item.Type == "MCQ"))
                     .Select(si => new SdjAiItemPayload
                     {
                         ItemCode = si.Item.ItemCode ?? "",
@@ -187,7 +187,7 @@ namespace PsyApi.Controllers
                         IsReverse = si.Item.Reverse,
                         Answer = int.TryParse(si.Answer, out int ans) ? ans : 3
                     })
-                    .Take(120) // Limit to avoid huge payloads
+                    .Take(150) // Flexible limit - supports 80, 120, or more questions
                     .ToList();
 
                 var analysisPayload = new SdjAnalysisPayload
