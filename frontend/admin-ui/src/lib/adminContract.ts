@@ -539,6 +539,61 @@ export interface CategoryAnalysis {
   note: string
 }
 
+// ==========================================
+// SDJ-7 AI Analysis Interfaces
+// ==========================================
+
+export interface SdjPatternAnalysis {
+  key: string
+  label: string
+  tScore: number
+  band: string  // "ضعيف", "متوسط", "قوي"
+  insights: string[]
+  risks: string[]
+  recommendations: string[]
+}
+
+export interface SdjSubDimensionAnalysis {
+  key: string
+  label: string
+  patternKey: string
+  tScore: number
+  band: string
+  comment: string
+}
+
+export interface SdjChartData {
+  radar: {
+    series: Array<{
+      name: string
+      data: number[]  // 7 values for the 7 patterns
+    }>
+    labels: string[]  // 7 pattern labels in Arabic
+  }
+  bars: {
+    data: Array<{
+      label: string
+      t: number
+    }>
+  }
+}
+
+export interface SdjAiAnalysisResponse {
+  summary: string
+  patterns: SdjPatternAnalysis[]
+  subDimensions: SdjSubDimensionAnalysis[]
+  charts: SdjChartData
+  model: string
+  usage?: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+    latencyMs: number
+  }
+  generatedAt: string
+}
+
+// Legacy AI Analysis interfaces (keep for backward compatibility)
 export interface AiAnalysis {
   strengths: string[]
   weaknesses: string[]

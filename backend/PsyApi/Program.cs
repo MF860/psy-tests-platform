@@ -267,6 +267,7 @@ builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 // AI Analyzer (now using DeepSeek direct API)
 builder.Services.AddScoped<IAiAnalyzerService, AiAnalyzerService>();
+builder.Services.AddScoped<ISdjDeepSeekService, SdjDeepSeekService>();
 
 // DeepSeek AI Analyzer Configuration
 builder.Services.Configure<PsyApi.Services.AI.DeepSeekConfiguration>(config =>
@@ -316,6 +317,14 @@ builder.Services.Configure<PsyApi.Services.AI.OpenRouterConfiguration>(config =>
 
 // Register DeepSeek HTTP client with proper configuration
 builder.Services.AddHttpClient<IDeepSeekClient, DeepSeekClient>()
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate
+    });
+
+// Register SDJ-7 specialized DeepSeek service with HTTP client
+builder.Services.AddHttpClient<ISdjDeepSeekService, SdjDeepSeekService>()
     .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
     {

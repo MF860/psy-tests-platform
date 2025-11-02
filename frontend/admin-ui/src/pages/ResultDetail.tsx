@@ -445,7 +445,7 @@ interface AIAnalyzerProps {
 function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [analysis, setAnalysis] = useState<AiAnalysisResponse | null>(null)
+  const [analysis, setAnalysis] = useState<import('../lib/adminContract').SdjAiAnalysisResponse | null>(null)
   const [hasTriedGeneration, setHasTriedGeneration] = useState(false)
   const [aiHealthStatus, setAiHealthStatus] = useState<{enabled: boolean, message: string} | null>(null)
 
@@ -511,16 +511,16 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
           <div className="space-y-4">
             <div className="h-32 bg-gray-300 rounded"></div>
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="h-24 bg-gray-300 rounded"></div>
-              <div className="h-24 bg-gray-300 rounded"></div>
-              <div className="h-24 bg-gray-300 rounded"></div>
+              {[1,2,3,4,5,6,7].map(i => (
+                <div key={i} className="h-40 bg-gray-300 rounded"></div>
+              ))}
             </div>
           </div>
         </div>
         <div className="flex items-center justify-center p-4">
           <div className="flex items-center gap-2 text-blue-600">
             <Brain className="h-5 w-5 animate-pulse" />
-            <span className="text-sm">جاري توليد التحليل بالذكاء الاصطناعي...</span>
+            <span className="text-sm">جاري توليد التحليل المتقدم (SDJ-7)...</span>
           </div>
         </div>
       </div>
@@ -570,9 +570,9 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
         <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="font-medium text-gray-900 mb-2">التحليل الذكي</h3>
-        <p className="text-gray-600 text-sm mb-4">
-          احصل على تحليل مخصص مدعوم بالذكاء الاصطناعي
+        <h3 className="font-medium text-gray-900 mb-2">التحليل الذكي المتقدم (SDJ-7)</h3>
+        <p className="text-gray-600 text-sm mb-4" dir="rtl">
+          احصل على تحليل شامل للأنماط السبعة مدعوم بالذكاء الاصطناعي
         </p>
         <Button onClick={() => generateAnalysis()}>
           <Brain className="h-4 w-4 ml-2" />
@@ -582,197 +582,157 @@ function AIAnalyzer({ resultId, data }: AIAnalyzerProps) {
     )
   }
 
+  // Render SDJ-7 analysis
   return (
     <div className="space-y-6">
       {/* Header with metadata */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-blue-600" />
-            <div>
-              <h3 className="font-medium text-blue-900">
-                تحليل مدعوم بـ {analysis.model}
-                {(analysis.model === 'demo-mock' || analysis.model === 'fallback-sdj-rules') && (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">
-                    {analysis.model === 'fallback-sdj-rules' ? 'تحليل احتياطي' : 'تجريبي'}
-                  </span>
-                )}
-              </h3>
-              <p className="text-xs text-blue-700">
-                تم توليد التحليل في {formatters.dateTime(analysis.generatedAt || new Date().toISOString())}
-                {analysis.usage && ` • ${analysis.usage.totalTokens} رمز`}
-              </p>
-            </div>
+            <span className="font-medium text-blue-900">تحليل ذكي متقدم (SDJ-7)</span>
           </div>
-          <Button 
-            onClick={() => generateAnalysis(true)} 
-            size="sm" 
-            variant="outline"
-            disabled={loading}
-          >
-            تجديد التحليل
-          </Button>
+          <div className="text-xs text-blue-700">
+            {analysis.model} • {analysis.usage?.latencyMs.toFixed(0)}ms
+          </div>
+        </div>
+        
+        {/* Summary */}
+        <div className="bg-white rounded-lg p-4">
+          <p className="text-sm text-gray-800 leading-relaxed" dir="rtl">
+            {analysis.summary}
+          </p>
         </div>
       </div>
 
-      {/* Summary Section (New for SDJ) */}
-      {analysis.analysis.summary && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4" dir="rtl">
-          <div className="flex items-center gap-2 mb-2">
-            <Brain className="h-5 w-5 text-indigo-600" />
-            <h4 className="font-semibold text-indigo-900">ملخص التحليل</h4>
-          </div>
-          <p className="text-sm text-indigo-800 leading-relaxed">{analysis.analysis.summary}</p>
-        </div>
-      )}
+      {/* 7-Pattern Cards */}
+      <div>
+        <h4 className="font-medium text-gray-900 mb-4" dir="rtl">الأنماط السبعة (SDJ-7)</h4>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {analysis.patterns.map((pattern, idx) => (
+            <div
+              key={pattern.key}
+              className={`border rounded-lg p-4 ${
+                pattern.band === 'قوي'
+                  ? 'border-green-300 bg-green-50'
+                  : pattern.band === 'متوسط'
+                  ? 'border-yellow-300 bg-yellow-50'
+                  : 'border-red-300 bg-red-50'
+              }`}
+            >
+              {/* Pattern header */}
+              <div className="flex items-start justify-between mb-3">
+                <h5 className="font-medium text-gray-900 text-sm" dir="rtl">
+                  {idx + 1}. {pattern.label}
+                </h5>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${
+                    pattern.band === 'قوي'
+                      ? 'bg-green-100 text-green-800'
+                      : pattern.band === 'متوسط'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {pattern.band} ({pattern.tScore.toFixed(1)})
+                </span>
+              </div>
 
-      {/* Three-column analysis */}
-      <div className="grid md:grid-cols-3 gap-6" dir="rtl">
-        {/* Strengths */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="h-5 w-5 text-green-600" />
-            <h3 className="font-semibold text-green-900">نقاط القوة</h3>
-          </div>
-          <ul className="space-y-2">
-            {analysis.analysis.strengths.map((strength, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-green-800">
-                <span className="w-1 h-1 bg-green-600 rounded-full mt-2 flex-shrink-0"></span>
-                <span>{strength}</span>
-              </li>
-            ))}
-          </ul>
-          {!analysis.analysis.strengths.length && (
-            <p className="text-sm text-green-700">لا توجد نقاط قوة واضحة</p>
-          )}
-        </div>
+              {/* Insights */}
+              {pattern.insights.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-xs font-medium text-gray-700 mb-1" dir="rtl">✓ رؤى:</p>
+                  <ul className="space-y-1">
+                    {pattern.insights.slice(0, 2).map((insight, i) => (
+                      <li key={i} className="text-xs text-gray-700" dir="rtl">
+                        • {insight}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-        {/* Weaknesses */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Target className="h-5 w-5 text-orange-600" />
-            <h3 className="font-semibold text-orange-900">مجالات التطوير</h3>
-          </div>
-          <ul className="space-y-2">
-            {analysis.analysis.weaknesses.map((weakness, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-orange-800">
-                <span className="w-1 h-1 bg-orange-600 rounded-full mt-2 flex-shrink-0"></span>
-                <span>{weakness}</span>
-              </li>
-            ))}
-          </ul>
-          {!analysis.analysis.weaknesses.length && (
-            <p className="text-sm text-orange-700">لا توجد مجالات ضعف واضحة</p>
-          )}
-        </div>
+              {/* Risks (if any) */}
+              {pattern.risks.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-xs font-medium text-orange-700 mb-1" dir="rtl">⚠ تحديات:</p>
+                  <ul className="space-y-1">
+                    {pattern.risks.slice(0, 1).map((risk, i) => (
+                      <li key={i} className="text-xs text-orange-700" dir="rtl">
+                        • {risk}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
-        {/* Recommendations */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Award className="h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-blue-900">التوصيات</h3>
-          </div>
-          <ul className="space-y-2">
-            {analysis.analysis.recommendations.map((recommendation, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm text-blue-800">
-                <span className="w-1 h-1 bg-blue-600 rounded-full mt-2 flex-shrink-0"></span>
-                <span>{recommendation}</span>
-              </li>
-            ))}
-          </ul>
+              {/* Recommendations */}
+              {pattern.recommendations.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-blue-700 mb-1" dir="rtl">💡 توصيات:</p>
+                  <ul className="space-y-1">
+                    {pattern.recommendations.slice(0, 2).map((rec, i) => (
+                      <li key={i} className="text-xs text-blue-700" dir="rtl">
+                        • {rec}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* SDJ Categories Table (New) */}
-      {analysis.analysis.categories && analysis.analysis.categories.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4" dir="rtl">
-          <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-gray-600" />
-            <h4 className="font-semibold text-gray-900">تحليل الأبعاد السبعة (SDJ)</h4>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-700">البعد</th>
-                  <th className="text-center py-2 px-3 font-semibold text-gray-700">T-Score</th>
-                  <th className="text-right py-2 px-3 font-semibold text-gray-700">الملاحظة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analysis.analysis.categories.map((cat, index) => {
-                  const colorClass = cat.t >= 60 ? 'bg-green-50' : cat.t < 45 ? 'bg-red-50' : 'bg-yellow-50';
-                  const textClass = cat.t >= 60 ? 'text-green-800' : cat.t < 45 ? 'text-red-800' : 'text-yellow-800';
-                  
-                  return (
-                    <tr key={index} className={`${colorClass} border-b border-gray-100`}>
-                      <td className="py-2 px-3 font-medium text-gray-900">{cat.name}</td>
-                      <td className={`py-2 px-3 text-center font-bold ${textClass}`}>
-                        {cat.t.toFixed(1)}
-                      </td>
-                      <td className="py-2 px-3 text-gray-700 text-sm">{cat.note}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      {/* Chart Visualization (Text fallback) */}
+      <div className="border rounded-lg p-4 bg-gray-50">
+        <h4 className="font-medium text-gray-900 mb-4" dir="rtl">التمثيل البصري للأنماط</h4>
+        
+        {/* Simple bar representation */}
+        <div className="space-y-2">
+          {analysis.patterns.map((pattern) => (
+            <div key={pattern.key} className="flex items-center gap-2">
+              <span className="text-xs text-gray-700 w-32 text-right" dir="rtl">
+                {pattern.label.split(' ').slice(-2).join(' ')}:
+              </span>
+              <div className="flex-1 bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${
+                    pattern.tScore >= 55
+                      ? 'bg-green-500'
+                      : pattern.tScore >= 40
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500'
+                  }`}
+                  style={{ width: `${Math.min(pattern.tScore, 100)}%` }}
+                ></div>
+              </div>
+              <span className="text-xs font-medium text-gray-900 w-12">
+                {pattern.tScore.toFixed(1)}
+              </span>
+            </div>
+          ))}
         </div>
-      )}
+        
+        <p className="text-xs text-gray-500 mt-3" dir="rtl">
+          * T-Score: ضعيف (&lt;40)، متوسط (40-54)، قوي (≥55)
+        </p>
+      </div>
 
-      {/* Methodology */}
-      {analysis.analysis.methodology && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4" dir="rtl">
-          <div className="flex items-center gap-2 mb-2">
-            <Brain className="h-4 w-4 text-gray-600" />
-            <h4 className="font-medium text-gray-900">المنهجية</h4>
-          </div>
-          <p className="text-sm text-gray-700">{analysis.analysis.methodology}</p>
-        </div>
-      )}
-
-      {/* Rationale */}
-      {analysis.analysis.rationale && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4" dir="rtl">
-          <div className="flex items-center gap-2 mb-2">
-            <Brain className="h-4 w-4 text-gray-600" />
-            <h4 className="font-medium text-gray-900">التبرير</h4>
-          </div>
-          <p className="text-sm text-gray-700">{analysis.analysis.rationale}</p>
-        </div>
-      )}
-
-      {/* Performance metrics */}
-      {analysis.usage && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="h-4 w-4 text-gray-600" />
-            <h4 className="font-medium text-gray-900">مقاييس الأداء</h4>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-            <div>
-              <span className="block font-medium">الإدخال</span>
-              <span>{analysis.usage.promptTokens} رمز</span>
-            </div>
-            <div>
-              <span className="block font-medium">الإخراج</span>
-              <span>{analysis.usage.completionTokens} رمز</span>
-            </div>
-            <div>
-              <span className="block font-medium">الإجمالي</span>
-              <span>{analysis.usage.totalTokens} رمز</span>
-            </div>
-            <div>
-              <span className="block font-medium">الزمن</span>
-              <span>{Math.round(analysis.usage.latencyMs)} مللي ثانية</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Regenerate button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={() => generateAnalysis(true)} 
+          size="sm" 
+          variant="outline"
+        >
+          <Brain className="h-4 w-4 ml-2" />
+          إعادة توليد التحليل
+        </Button>
+      </div>
     </div>
   )
 }
-
 // Fallback component for basic insights when AI fails
 function FallbackInsights({ data }: { data: ResultDetailUI }) {
   const topStrengths = data.dimensions.filter(d => d.t >= 60).slice(0, 3)

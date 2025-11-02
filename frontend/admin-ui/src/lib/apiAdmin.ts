@@ -309,38 +309,147 @@ export const AdminApi = {
   },
 
   /**
-   * AI analysis for result using OpenRouter/DeepSeek
+   * AI analysis for result using DeepSeek with SDJ-7 patterns
    */
-  aiAnalyze: async (id: number): Promise<import('./adminContract').AiAnalysisResponse> => {
+  aiAnalyze: async (id: number): Promise<import('./adminContract').SdjAiAnalysisResponse> => {
     if (isDemoMode()) {
-      // Return mock data in demo mode
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000)); // Simulate network delay
+      // Return mock SDJ-7 data in demo mode
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
       
       const result = getMockResultDetail(id);
-      const topStrengths = result.dimensions.filter(d => d.t >= 60).slice(0, 3);
-      const weaknesses = result.dimensions.filter(d => d.t < 40).slice(0, 3);
       
-      return {
-        analysis: {
-          strengths: topStrengths.length > 0 
-            ? topStrengths.map(d => `قوة متميزة في ${d.dimension}`)
-            : ['نتائج متوازنة بشكل عام'],
-          weaknesses: weaknesses.length > 0
-            ? weaknesses.map(d => `مجال للتطوير في ${d.dimension}`)
-            : ['لا توجد مجالات ضعف واضحة'],
-          recommendations: [
-            'ركز على تطوير نقاط القوة في مجالات العمل',
-            'استمر في التدريب والتطوير المستمر',
-            'استشر متخصص لوضع خطة تطوير شاملة'
+      // Generate mock 7-pattern data
+      const patterns: import('./adminContract').SdjPatternAnalysis[] = [
+        {
+          key: "personality_patterns",
+          label: "الأنماط الشخصية",
+          tScore: 58.3,
+          band: "قوي",
+          insights: [
+            "يظهر توازن جيد بين الانفتاح والضمير الحي",
+            "قدرة على التكيف مع المواقف المختلفة"
           ],
-          rationale: 'تحليل تجريبي مبني على النتائج الإحصائية'
+          risks: ["قد تحتاج إلى تطوير الثقة بالنفس في مواقف جديدة"],
+          recommendations: [
+            "شارك في ورش عمل تطوير الذات",
+            "اعمل على تحديد أهداف شخصية واضحة"
+          ]
         },
-        model: 'demo-mock',
+        {
+          key: "cognitive_mental",
+          label: "القدرات المعرفية والعقلية",
+          tScore: 62.1,
+          band: "قوي",
+          insights: [
+            "قدرات تحليلية ممتازة",
+            "مهارات حل المشكلات فوق المتوسط"
+          ],
+          risks: [],
+          recommendations: [
+            "استثمر في التدريب المتخصص",
+            "شارك معرفتك مع الآخرين"
+          ]
+        },
+        {
+          key: "psychological_patterns",
+          label: "الأنماط النفسية",
+          tScore: 49.7,
+          band: "متوسط",
+          insights: ["مستوى متوازن من المرونة النفسية"],
+          risks: ["قد تواجه تحديات في إدارة الضغوط العالية"],
+          recommendations: [
+            "مارس تقنيات الاسترخاء",
+            "احصل على دعم نفسي عند الحاجة"
+          ]
+        },
+        {
+          key: "behavioral_patterns",
+          label: "الأنماط السلوكية",
+          tScore: 55.4,
+          band: "قوي",
+          insights: [
+            "مهارات تواصل جيدة",
+            "قدرة على بناء علاقات فعالة"
+          ],
+          risks: [],
+          recommendations: ["طور مهارات القيادة الجماعية"]
+        },
+        {
+          key: "numerical_logical",
+          label: "الأنماط العددية والمنطقية",
+          tScore: 51.0,
+          band: "متوسط",
+          insights: ["قدرات منطقية أساسية جيدة"],
+          risks: ["قد تحتاج لتحسين المهارات الكمية"],
+          recommendations: [
+            "تدرب على التحليل الإحصائي",
+            "حل تمارين منطقية منتظمة"
+          ]
+        },
+        {
+          key: "leadership_organizational",
+          label: "الأنماط القيادية والتنظيمية",
+          tScore: 57.2,
+          band: "قوي",
+          insights: [
+            "إمكانيات قيادية واعدة",
+            "مهارات تنظيمية جيدة"
+          ],
+          risks: [],
+          recommendations: [
+            "شارك في برامج تطوير القيادة",
+            "تدرب على اتخاذ القرارات المعقدة"
+          ]
+        },
+        {
+          key: "professional_readiness",
+          label: "الاستعدادات المهنية العامة",
+          tScore: 46.8,
+          band: "متوسط",
+          insights: ["استعداد أساسي للبيئة المهنية"],
+          risks: ["قد تحتاج لمزيد من الخبرة العملية"],
+          recommendations: [
+            "ابحث عن فرص تدريبية",
+            "طور مهارات التعامل مع ضغوط العمل"
+          ]
+        }
+      ];
+
+      const charts: import('./adminContract').SdjChartData = {
+        radar: {
+          series: [{
+            name: "T-Score",
+            data: patterns.map(p => p.tScore)
+          }],
+          labels: patterns.map(p => p.label)
+        },
+        bars: {
+          data: result.dimensions.slice(0, 10).map(d => ({
+            label: d.dimension,
+            t: d.t
+          }))
+        }
+      };
+
+      return {
+        summary: `التحليل يظهر أداءً إجمالياً جيداً مع نقاط قوة واضحة في القدرات المعرفية والأنماط القيادية. 
+                  يُنصح بالتركيز على تطوير الاستعدادات المهنية والمرونة النفسية لتحقيق التوازن الأمثل.`,
+        patterns,
+        subDimensions: result.dimensions.slice(0, 15).map(d => ({
+          key: d.dimension,
+          label: d.dimension,
+          patternKey: "personality_patterns",
+          tScore: d.t,
+          band: d.t >= 55 ? "قوي" : d.t >= 40 ? "متوسط" : "ضعيف",
+          comment: `الأداء ${d.t >= 55 ? "جيد جداً" : d.t >= 40 ? "متوسط" : "يحتاج تطوير"} في هذا البعد`
+        })),
+        charts,
+        model: 'demo-sdj7-mock',
         usage: {
-          promptTokens: 120,
-          completionTokens: 80,
-          totalTokens: 200,
-          latencyMs: 1500
+          promptTokens: 450,
+          completionTokens: 320,
+          totalTokens: 770,
+          latencyMs: 1800
         },
         generatedAt: new Date().toISOString()
       };
@@ -348,13 +457,12 @@ export const AdminApi = {
     
     try {
       const response = await api.post('/admin/ai/analyze', { resultId: id });
-      return response.data;
+      return response.data as import('./adminContract').SdjAiAnalysisResponse;
     } catch (error: any) {
       console.error('[AdminApi] AI analyze failed:', error);
       
       // Map backend errors to frontend-friendly messages
       if (error?.response?.status === 400) {
-        // Extract error message from backend
         const backendError = error?.response?.data?.error;
         throw new Error(backendError || 'طلب غير صالح - تحقق من نوع النتيجة');
       } else if (error?.response?.status === 502 || error?.response?.status === 503) {

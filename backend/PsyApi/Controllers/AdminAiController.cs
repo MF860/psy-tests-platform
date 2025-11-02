@@ -6,6 +6,7 @@ using PsyApi.Data;
 using PsyApi.Models;
 using PsyApi.Services.AI;
 using PsyApi.Services.Audit;
+using PsyApi.Services.Scoring;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
@@ -113,56 +114,42 @@ namespace PsyApi.Controllers
             {
                 var entity = await _db.Results
                     .Include(r => r.Session)
-                    .ThenInclude(s => s.User)
+                        .ThenInclude(s => s.User)
+                    .Include(r => r.Session)
+                        .ThenInclude(s => s.SessionItems)
+                            .ThenInclude(si => si.Item)
                     .FirstOrDefaultAsync(r => r.Id == request.ResultId);
 
                 if (entity == null)
                     return NotFound(new { error = "لم يتم العثور على النتيجة" });
 
-                // Parse SDJ dimensions from DimensionScoresJson
-                var dims = new List<PsyApi.Models.DimensionScore>();
-                
-                // First check if this is an SDJ result by checking the Payload
+                // Check if this is an SDJ result
+                bool isSdj = false;
+                SdjScoreSummary? sdjScores = null;
+
                 try
                 {
                     if (!string.IsNullOrWhiteSpace(entity.Session.Payload))
                     {
-                        var payload = JsonSerializer.Deserialize<System.Text.Json.JsonElement>(entity.Session.Payload, JsonOptions);
+                        var payloadEl = JsonSerializer.Deserialize<System.Text.Json.JsonElement>(entity.Session.Payload, JsonOptions);
                         
-                        // Check if it's SDJ mode
-                        bool isSdj = false;
-                        if (payload.TryGetProperty("SdjData", out var sdjData) && sdjData.ValueKind != System.Text.Json.JsonValueKind.Null)
+                        if (payloadEl.TryGetProperty("SdjData", out var sdjData) && sdjData.ValueKind != System.Text.Json.JsonValueKind.Null)
                         {
                             isSdj = true;
                             
-                            // Try to parse dimensions from sdjData
-                            if (sdjData.TryGetProperty("Dimensions", out var dimensions) && dimensions.ValueKind == System.Text.Json.JsonValueKind.Array)
-                            {
-                                foreach (var dim in dimensions.EnumerateArray())
-                                {
-                                    if (dim.TryGetProperty("Dimension", out var dimName) &&
-                                        dim.TryGetProperty("Raw", out var raw) &&
-                                        dim.TryGetProperty("T", out var t))
-                                    {
-                                        dims.Add(new PsyApi.Models.DimensionScore
-                                        {
-                                            Dimension = dimName.GetString() ?? "",
-                                            Raw = raw.GetDouble(),
-                                            T = t.GetDouble()
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (!isSdj)
-                        {
-                            return BadRequest(new { error = "هذه النتيجة ليست من نوع SDJ - التحليل الذكي متاح فقط لنتائج SDJ" });
+                            // Parse full SDJ scores from payload
+                            sdjScores = JsonSerializer.Deserialize<SdjScoreSummary>(sdjData.GetRawText(), JsonOptions);
                         }
                     }
-                    else
+
+                    if (!isSdj)
                     {
-                        return BadRequest(new { error = "لا توجد بيانات جلسة لهذه النتيجة" });
+                        return BadRequest(new { error = "هذه النتيجة ليست من نوع SDJ - التحليل الذكي متاح فقط لنتائج SDJ" });
+                    }
+
+                    if (sdjScores == null || !sdjScores.SevenPatternScores.Any())
+                    {
+                        return BadRequest(new { error = "لا توجد بيانات أنماط SDJ-7 لهذه النتيجة" });
                     }
                 }
                 catch (Exception ex)
@@ -171,15 +158,57 @@ namespace PsyApi.Controllers
                     return BadRequest(new { error = "فشل في قراءة بيانات SDJ لهذه النتيجة" });
                 }
 
-                // Validate we have dimension data
-                if (!dims.Any())
+                // Build analysis payload
+                var patterns = sdjScores.SevenPatternScores.Select(p => new SdjAiPatternPayload
                 {
-                    return BadRequest(new { error = "لا توجد بيانات أبعاد SDJ لهذه النتيجة" });
-                }
+                    Key = p.PatternKey,
+                    Label = p.PatternNameAr,
+                    TScore = p.TScore
+                }).ToList();
 
-                var response = await _ai.AnalyzeAsync(entity, dims);
+                var subDims = sdjScores.SubDimensions.Select(sd => new SdjAiSubDimensionPayload
+                {
+                    Key = sd.SubDimension,
+                    Label = sd.SubDimension,
+                    PatternKey = DeterminePatternKey(sd.SubDimension),
+                    TScore = sd.T
+                }).ToList();
 
-                await _audit.LogAsync(null, "AI_ANALYZE", $"ResultId={entity.Id};SessionId={entity.SessionId};Model={response.Model};Tokens={response.Usage?.TotalTokens ?? 0}", HttpContext.Connection.RemoteIpAddress?.ToString());
+                var items = entity.Session.SessionItems
+                    .Where(si => si.Item != null && 
+                               !string.IsNullOrEmpty(si.Item.SubDimension) &&
+                               (si.Item.Type == "LikertAgreement" || si.Item.Type == "Frequency"))
+                    .Select(si => new SdjAiItemPayload
+                    {
+                        ItemCode = si.Item.ItemCode ?? "",
+                        TextAr = si.Item.TextAr ?? "",
+                        DimensionKey = si.Item.Dimension ?? "",
+                        SubDimensionKey = si.Item.SubDimension ?? "",
+                        IsReverse = si.Item.Reverse,
+                        Answer = int.TryParse(si.Answer, out int ans) ? ans : 3
+                    })
+                    .Take(120) // Limit to avoid huge payloads
+                    .ToList();
+
+                var analysisPayload = new SdjAnalysisPayload
+                {
+                    ResultId = entity.Id,
+                    Language = "ar",
+                    Sdj = new SdjAiPayloadData
+                    {
+                        Patterns = patterns,
+                        SubDimensions = subDims
+                    },
+                    Items = items
+                };
+
+                // Call SDJ-7 specialized service
+                var sdjService = HttpContext.RequestServices.GetRequiredService<ISdjDeepSeekService>();
+                var response = await sdjService.AnalyzeSdjAsync(analysisPayload);
+
+                await _audit.LogAsync(null, "AI_ANALYZE_SDJ7", 
+                    $"ResultId={entity.Id};Patterns={response.Patterns.Count};Tokens={response.Usage?.TotalTokens ?? 0}", 
+                    HttpContext.Connection.RemoteIpAddress?.ToString());
 
                 return Ok(response);
             }
@@ -188,11 +217,11 @@ namespace PsyApi.Controllers
                 _logger.LogError(ex, "[AI] Analysis failed for resultId={ResultId}. Error type: {ExType}, Message: {Message}", 
                     request.ResultId, ex.GetType().Name, ex.Message);
                 
-                // Return user-friendly error with more details for debugging
+                // Return user-friendly error
                 var errorMsg = ex.Message.Contains("DEEPSEEK_API_KEY") || ex.Message.Contains("not configured") ? 
                     "خدمة الذكاء الاصطناعي غير متوفرة - مفتاح API غير مكوّن بشكل صحيح" :
-                    ex.Message.Contains("DeepSeek API error") ?
-                    $"خطأ في الاتصال بخدمة الذكاء الاصطناعي: {ex.Message}" :
+                    ex.Message.Contains("DeepSeek API error") || ex.Message.Contains("API error") ?
+                    "خطأ في الاتصال بخدمة الذكاء الاصطناعي - يرجى المحاولة لاحقاً" :
                     ex.Message.Contains("timeout") || ex.Message.Contains("Timeout") ?
                     "انتهت مهلة الاتصال بخدمة الذكاء الاصطناعي - يرجى المحاولة لاحقاً" :
                     "فشل في توليد التحليل - يرجى المحاولة لاحقاً";
@@ -204,6 +233,21 @@ namespace PsyApi.Controllers
                     timestamp = DateTime.UtcNow
                 });
             }
+        }
+
+        // Helper: Determine pattern key from sub-dimension name
+        private static string DeterminePatternKey(string subDimension)
+        {
+            return subDimension switch
+            {
+                "الوعي الذاتي" or "الثقة بالنفس" or "التعلم المستمر" => "personality_patterns",
+                "التنظيم الذاتي" or "حل المشكلات" or "الإبداع والابتكار" => "cognitive_mental",
+                "المرونة النفسية" or "الذكاء العاطفي" or "الصحة النفسية" or "إدارة الضغوط" => "psychological_patterns",
+                "التواصل الفعال" or "التعاون" or "حل النزاعات" or "بناء العلاقات" => "behavioral_patterns",
+                "التخطيط الاستراتيجي" or "إدارة الوقت" => "numerical_logical",
+                "القيادة" => "leadership_organizational",
+                _ => "professional_readiness"
+            };
         }
 
         [HttpPost("chat")]
