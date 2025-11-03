@@ -6,8 +6,8 @@ using System.Globalization;
 namespace PsyApi.Services.Reports
 {
     /// <summary>
-    /// مخطط أعمدة أفقي محسّن مع HarfBuzz للعربية وتنسيق احترافي
-    /// vNext: 520-600px width, 14-18px bars, RTL labels 11-12pt, T-values at end
+    /// Ultra Hi-Fi Horizontal Bar Chart with Design Tokens Integration
+    /// Upgraded to 450 DPI vector quality with halos, RTL support, and DesignTokens palette
     /// </summary>
     public static class HorizontalBarChartRenderer
     {
@@ -16,16 +16,18 @@ namespace PsyApi.Services.Reports
         private static readonly object _lock = new();
 
         /// <summary>
-        /// رسم مخطط أعمدة أفقي مرتب تصاعدياً (الأضعف أولاً)
+        /// Render horizontal bar chart with 450 DPI quality and text halos
         /// </summary>
-        /// <param name="dimensions">قائمة الأبعاد</param>
-        /// <param name="width">عرض المخطط (520-600px مثالي)</param>
-        /// <param name="maxDimensions">حد أقصى للأبعاد (default 12)</param>
-        /// <returns>صورة PNG</returns>
+        /// <param name="dimensions">Dimension scores</param>
+        /// <param name="width">Chart width (520-600px ideal)</param>
+        /// <param name="maxDimensions">Maximum dimensions to show (default 12)</param>
+        /// <param name="dpi">Rendering DPI (default 450 for print quality)</param>
+        /// <returns>PNG image</returns>
         public static byte[] RenderHorizontalBars(
             IEnumerable<DimensionScore> dimensions,
             int width = 580,
-            int maxDimensions = 12)
+            int maxDimensions = 12,
+            int dpi = 450)
         {
             EnsureArabicFont();
 
@@ -48,8 +50,8 @@ namespace PsyApi.Services.Reports
             var plotHeight = sortedDimensions.Count * (barHeight + barSpacing);
             var totalHeight = (int)(topMargin + plotHeight + bottomMargin);
 
-            // HiFi settings: 3× scale for maximum quality
-            var scaleFactor = HiFiSettings.GetScaleFactor();
+            // Ultra Hi-Fi settings: 450 DPI for print quality (3x scale minimum)
+            var scaleFactor = Math.Max(3f, dpi / 150f); // 450 DPI = 3x scale
             var actualWidth = (int)(width * scaleFactor);
             var actualHeight = (int)(totalHeight * scaleFactor);
 
@@ -122,10 +124,19 @@ namespace PsyApi.Services.Reports
 
         private static void DrawTitle(SKCanvas canvas, string title, float x, float y)
         {
+            // Halo effect for title text
+            using var haloPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = SKColors.White,
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 4f
+            };
+
             using var paint = new SKPaint
             {
                 IsAntialias = true,
-                Color = SKColor.Parse("#1F2937")
+                Color = SKColor.Parse(DesignTokens.Colors.Text)
             };
 
             var font = new SKFont(_arabicTypeface ?? SKTypeface.Default, 16f) { Embolden = true };
@@ -136,7 +147,12 @@ namespace PsyApi.Services.Reports
                 if (result?.Points != null && result.Points.Length > 0)
                 {
                     var textWidth = result.Points.LastOrDefault().X;
-                    canvas.DrawShapedText(_arabicShaper, title, x - textWidth / 2f, y, font, paint);
+                    var textX = x - textWidth / 2f;
+                    
+                    // Draw halo
+                    canvas.DrawShapedText(_arabicShaper, title, textX, y, font, haloPaint);
+                    // Draw text
+                    canvas.DrawShapedText(_arabicShaper, title, textX, y, font, paint);
                     return;
                 }
             }
@@ -258,24 +274,24 @@ namespace PsyApi.Services.Reports
                 };
                 canvas.DrawRect(barRect, strokePaint);
 
-                // رسم القيمة T في نهاية الشريط
+                // رسم القيمة T في نهاية الشريط مع halo
                 var tValue = $"T={dim.T.ToString("F1", CultureInfo.InvariantCulture)}";
                 var textX = leftMargin + barWidth + 5;
                 var textY = y + barHeight / 2f + 4;
 
-                // خلفية بيضاء خفيفة للقيمة
-                using var bgPaint = new SKPaint
+                // Halo for better readability
+                using var haloValuePaint = new SKPaint
                 {
                     IsAntialias = true,
-                    Color = SKColors.White.WithAlpha(230)
+                    Color = SKColors.White,
+                    Style = SKPaintStyle.Stroke,
+                    StrokeWidth = 3f
                 };
                 
-                var textBounds = valueFont.MeasureText(tValue);
-                var bgRect = SKRect.Create(textX - 3, textY - 12, textBounds + 6, 14);
-                canvas.DrawRect(bgRect, bgPaint);
+                canvas.DrawText(tValue, textX, textY, SKTextAlign.Left, valueFont, haloValuePaint);
 
                 // النص
-                using var tValuePaint = new SKPaint { IsAntialias = true, Color = SKColor.Parse("#1F2937") };
+                using var tValuePaint = new SKPaint { IsAntialias = true, Color = SKColor.Parse(DesignTokens.Colors.Text) };
                 canvas.DrawText(tValue, textX, textY, SKTextAlign.Left, valueFont, tValuePaint);
             }
         }
@@ -307,9 +323,11 @@ namespace PsyApi.Services.Reports
 
         private static SKColor GetBandColor(double tScore)
         {
-            if (tScore < 40) return SKColor.Parse("#E53935"); // Red
-            if (tScore < 55) return SKColor.Parse("#FF8C00"); // Orange
-            return SKColor.Parse("#14A44D"); // Green
+            // Use DesignTokens performance band colors
+            if (tScore >= 65) return SKColor.Parse(DesignTokens.Colors.ChartExcellent);  // ≥65: Excellent
+            if (tScore >= 55) return SKColor.Parse(DesignTokens.Colors.ChartGood);       // 55-64: Good
+            if (tScore >= 40) return SKColor.Parse(DesignTokens.Colors.ChartAverage);    // 40-54: Average
+            return SKColor.Parse(DesignTokens.Colors.ChartWeak);                          // <40: Weak
         }
 
         private static string FormatDimensionName(string name, int maxLength)
