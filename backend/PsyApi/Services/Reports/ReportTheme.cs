@@ -77,25 +77,29 @@ namespace PsyApi.Services.Reports
         }
 
         /// <summary>
-        /// Typography scale for consistent text hierarchy v2.0
+        /// Typography scale for consistent text hierarchy v3.0 HiFi
+        /// All sizes optimized for Noto Naskh Arabic at 300 DPI
         /// </summary>
         public static class Typography
         {
-            // Heading sizes (Arabic-optimized)
-            public const float H1 = 22f;     // Page titles, major headings
+            // Heading sizes (Arabic-optimized for HiFi)
+            public const float H1 = 24f;     // Page titles, major headings (increased for impact)
             public const float H2 = 18f;     // Section titles
-            public const float H3 = 16f;     // Subsection titles
-            public const float H4 = 14f;     // Minor headings
+            public const float H3 = 14f;     // Subsection titles (was 16, adjusted for balance)
+            public const float H4 = 12f;     // Minor headings
             
             // Body text sizes
-            public const float Body = 12f;   // Standard body text
+            public const float Body = 12f;   // Standard body text (perfect readability)
             public const float BodyLarge = 14f; // Emphasized body text
             public const float BodySmall = 10f; // Secondary/fine print
             
-            // Special purpose sizes
-            public const float KPI = 28f;    // Large numbers (KPI cards)
+            // Special purpose sizes (HiFi enhanced)
+            public const float KPI = 32f;    // Large numbers (KPI cards) - increased for prominence
+            public const float KPILabel = 11f; // KPI labels
             public const float Caption = 9f; // Captions, footnotes
             public const float Label = 11f;  // Form labels, chart labels
+            public const float Badge = 10f;  // Badge text
+            public const float Icon = 16f;   // Unicode icons size
         }
 
         /// <summary>

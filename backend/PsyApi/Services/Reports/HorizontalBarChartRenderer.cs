@@ -48,7 +48,8 @@ namespace PsyApi.Services.Reports
             var plotHeight = sortedDimensions.Count * (barHeight + barSpacing);
             var totalHeight = (int)(topMargin + plotHeight + bottomMargin);
 
-            var scaleFactor = 2f; // للدقة العالية
+            // HiFi settings: 3× scale for maximum quality
+            var scaleFactor = HiFiSettings.GetScaleFactor();
             var actualWidth = (int)(width * scaleFactor);
             var actualHeight = (int)(totalHeight * scaleFactor);
 
@@ -72,7 +73,7 @@ namespace PsyApi.Services.Reports
             // رسم الأعمدة
             DrawBars(canvas, sortedDimensions, leftMargin, topMargin, plotWidth, barHeight, barSpacing);
 
-            // تحويل إلى PNG بدقة عالية
+            // تحويل إلى JPEG بجودة HiFi
             using var image = surface.Snapshot();
             using var resizedBitmap = new SKBitmap(width, totalHeight);
             var pixmap = resizedBitmap.PeekPixels();
@@ -80,7 +81,7 @@ namespace PsyApi.Services.Reports
             image.ScalePixels(pixmap, samplingOptions);
 
             using var finalImage = SKImage.FromBitmap(resizedBitmap);
-            using var data = finalImage.Encode(SKEncodedImageFormat.Jpeg, 85);
+            using var data = finalImage.Encode(SKEncodedImageFormat.Jpeg, HiFiSettings.GetJpegQuality());
             return data.ToArray();
         }
 

@@ -71,32 +71,39 @@ namespace PsyApi.Services.Reports
                 // Generate PDF
                 var pdf = Document.Create(document =>
                 {
-                    // Page 1: Cover with STEST logo, participant info, professional intro
+                    // Page 1: Cover with STEST logo, participant info, professional intro, status badge
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
-                        ComposePage1_CoverAndIntro(page, user, result);
+                        ComposePage1_CoverAndIntro(page, user, result, patterns);
                     });
 
-                    // Page 2: Visual analytics - charts (subdimensions bar + 7-pattern radar)
+                    // Page 2: Executive Summary with 4 KPI cards (HiFi)
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
-                        ComposePage2_ChartsAndVisualizations(page, patterns, sdjData.SubDimensions);
+                        ComposePage2_ExecutiveSummary(page, patterns, sdjData.SubDimensions);
                     });
 
-                    // Page 3: Seven Tracks Summary (NEW - as per requirements)
+                    // Page 3: Visual analytics - charts (subdimensions bar + 7-pattern radar)
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
-                        ComposePage3_SevenTracksSummary(page, patterns, sdjData.SubDimensions);
+                        ComposePage3_ChartsAndVisualizations(page, patterns, sdjData.SubDimensions);
                     });
 
-                    // Page 4: Detailed track analyses with courses (restructured)
+                    // Page 4: Seven Tracks Summary
                     document.Page(page =>
                     {
                         ConfigurePageDefaults(page);
-                        ComposePage4_DetailedTrackAnalysesAndCourses(page, patterns, sdjData.SubDimensions, courseRecommendations);
+                        ComposePage4_SevenTracksSummary(page, patterns, sdjData.SubDimensions);
+                    });
+
+                    // Page 5: Detailed track analyses with courses
+                    document.Page(page =>
+                    {
+                        ConfigurePageDefaults(page);
+                        ComposePage5_DetailedTrackAnalysesAndCourses(page, patterns, sdjData.SubDimensions, courseRecommendations);
                     });
                 });
 
@@ -105,7 +112,7 @@ namespace PsyApi.Services.Reports
                 var duration = endTime - startTime;
 
                 Console.WriteLine($"\n✅ SDJ 7-PATTERN PDF COMPLETE");
-                Console.WriteLine($"   Pages: 4 (Cover + Charts + Seven Tracks + Courses)");
+                Console.WriteLine($"   Pages: 5 (Cover + Executive Summary + Charts + Seven Tracks + Courses)");
                 Console.WriteLine($"   Size: {pdfBytes.Length / 1024:F1} KB");
                 Console.WriteLine($"   Duration: {duration.TotalMilliseconds:F0}ms");
                 Console.WriteLine($"{'═',70}\n");
@@ -123,367 +130,690 @@ namespace PsyApi.Services.Reports
         #region Page Composition
 
         /// <summary>
-        /// Page 1: Professional cover with STEST logo, Arabic title, participant info, and professional intro
+        /// Page 1: Professional HiFi cover with large logo, title, participant grid, and status badge
+        /// v3.0 Enhanced with overall performance indicator
         /// </summary>
         private void ComposePage1_CoverAndIntro(
             PageDescriptor page,
             User user,
-            Result result)
+            Result result,
+            List<SevenPatternScore> patterns)
         {
+            // Calculate overall performance for status badge
+            var avgTScore = patterns.Average(p => p.TScore);
+            var overallStatus = avgTScore >= 55 ? "أداء متقدم" : avgTScore >= 45 ? "أداء متوسط" : "يحتاج تطوير";
+            var statusColor = ReportTheme.GetBandColor(avgTScore);
+
             page.Content().Column(column =>
             {
-                // CENTERED LOGO AT TOP (STEST.PNG - high DPI, professional placement)
+                column.Spacing(HiFiSettings.Spacing.LG);
+
+                // LARGE CENTERED LOGO (Enhanced size for impact)
                 if (_logoBytes != null && _logoBytes.Length > 0)
                 {
                     column.Item()
                         .AlignCenter()
-                        .PaddingBottom(12)
-                        .Width(100)
+                        .Width(140) // Increased from 100
                         .Image(_logoBytes);
                 }
 
-                // MAIN TITLE - as specified: "التقرير النفسي الشامل — نتائج القياس والتحليل"
+                column.Item().PaddingTop(HiFiSettings.Spacing.XL);
+
+                // MAIN TITLE (Enhanced typography)
                 column.Item().AlignCenter()
-                    .Text("التقرير النفسي الشامل — نتائج القياس والتحليل")
-                    .Style(ReportTheme.ArabicTextStyle(22, true, "#1e40af"));
+                    .Text(UnicodeTextHelper.NormalizeNfc("التقرير النفسي الشامل — نتائج القياس والتحليل"))
+                    .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H1, true, ReportTheme.Colors.Primary));
 
-                column.Item().PaddingTop(24);
-
-                // PARTICIPANT INFO BLOCK - centered title, RTL table layout
+                // SUBTITLE
                 column.Item()
-                    .Background("#f9fafb")
-                    .Border(1)
-                    .BorderColor("#e5e7eb")
-                    .Padding(16)
+                    .PaddingTop(HiFiSettings.Spacing.SM)
+                    .AlignCenter()
+                    .Text(UnicodeTextHelper.NormalizeNfc("تقرير تحليل الأنماط النفسية السبعة - SDJ v2.1"))
+                    .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H3, false, ReportTheme.Colors.TextSecondary));
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.XXL);
+
+                // OVERALL STATUS BADGE (New - shows overall performance)
+                column.Item()
+                    .AlignCenter()
+                    .BadgeWithIcon(
+                        $"{overallStatus} • {UnicodeTextHelper.FormatTScore(avgTScore, 1)}",
+                        statusColor,
+                        icon: avgTScore >= 55 ? "⭐" : avgTScore >= 45 ? "📊" : "📈",
+                        textColor: "#FFFFFF",
+                        fontSize: ReportTheme.Typography.H3
+                    );
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.XXL);
+
+                // PARTICIPANT INFO GRID (Enhanced with better spacing)
+                column.Item()
+                    .Background(ReportTheme.Colors.Surface)
+                    .Border(2)
+                    .BorderColor(ReportTheme.Colors.Primary)
+                    .Padding(HiFiSettings.Spacing.XL)
                     .Column(info =>
                     {
                         // Centered block title
-                        info.Item().AlignCenter().Text("بيانات المشارك")
-                            .Style(ReportTheme.ArabicTextStyle(16, true, "#111827"));
+                        info.Item().AlignCenter()
+                            .Text(UnicodeTextHelper.NormalizeNfc("بيانات المشارك"))
+                            .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H2, true, ReportTheme.Colors.Text));
                         
-                        info.Item().PaddingTop(12);
+                        info.Item().PaddingTop(HiFiSettings.Spacing.MD);
                         
-                        // RTL table-style layout with labels on right, values on left
-                        info.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(cols =>
-                            {
-                                cols.RelativeColumn(2); // Label column (right)
-                                cols.RelativeColumn(3); // Value column (left)
-                            });
+                        // Divider
+                        info.Item()
+                            .Height(2)
+                            .Background(ReportTheme.Colors.Primary);
 
-                            // Row 1: Full Name
-                            table.Cell().AlignRight().PaddingVertical(4).Text("الاسم الكامل:")
-                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
-                            table.Cell().AlignRight().PaddingVertical(4).Text(user.FullName ?? "غير محدد")
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
-
-                            // Row 2: National ID
-                            table.Cell().AlignRight().PaddingVertical(4).Text("الرقم الوطني:")
-                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
-                            table.Cell().AlignRight().PaddingVertical(4).Text(user.NationalId ?? "N/A")
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
-
-                            // Row 3: Session ID
-                            table.Cell().AlignRight().PaddingVertical(4).Text("رقم الجلسة:")
-                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
-                            var sessionDisplay = result.SessionId.ToString();
-                            if (sessionDisplay.Length > 15) sessionDisplay = sessionDisplay[..15] + "...";
-                            table.Cell().AlignRight().PaddingVertical(4).Text(sessionDisplay)
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
-
-                            // Row 4: Date/Time
-                            table.Cell().AlignRight().PaddingVertical(4).Text("التاريخ/الوقت:")
-                                .Style(ReportTheme.ArabicTextStyle(12, true, "#6b7280"));
-                            table.Cell().AlignRight().PaddingVertical(4).Text(result.CreatedAt.ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture))
-                                .Style(ReportTheme.ArabicTextStyle(12, false, "#111827"));
-                        });
+                        info.Item().PaddingTop(HiFiSettings.Spacing.LG);
+                        
+                        // Use StatRow components for cleaner layout
+                        info.Item().StatRow("الاسم الكامل", UnicodeTextHelper.NormalizeNfc(user.FullName ?? "غير محدد"));
+                        info.Item().StatRow("الرقم الوطني", user.NationalId ?? "N/A");
+                        info.Item().StatRow("رقم الجلسة", result.SessionId.ToString());
+                        info.Item().StatRow("التاريخ والوقت", 
+                            UnicodeTextHelper.NormalizeNfc(result.CreatedAt.ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture)));
                     });
 
-                column.Item().PaddingTop(20);
+                column.Item().PaddingTop(HiFiSettings.Spacing.XXL);
 
-                // PROFESSIONAL INTRO PARAGRAPH - as specified
-                column.Item().AlignRight()
-                    .Padding(12)
-                    .Background("#eef2ff")
-                    .Border(0.5f).BorderColor("#c7d2fe")
-                    .Column(intro =>
+                // PROFESSIONAL INTRO (Enhanced with icon)
+                column.Item()
+                    .Background(ReportTheme.Colors.SurfaceHover)
+                    .Border(1)
+                    .BorderColor(ReportTheme.Colors.Border)
+                    .Padding(HiFiSettings.Spacing.LG)
+                    .Row(row =>
                     {
-                        intro.Item().Text(
-                            "يُقدم هذا التقرير تحليلاً شاملاً لسماتك النفسية وقدراتك المهنية بناءً على إطار التنمية المستدامة SDJ. " +
-                            "تم تقييم أدائك عبر سبعة أنماط رئيسية و24 بُعداً فرعياً، وتمثل الدرجات كنسب معيارية T-Scores حيث " +
-                            "50 هي المتوسط، وكلما ارتفعت الدرجة دل ذلك على قوة أكبر في البُعد المقاس. يتضمن التقرير توصيات تطويرية " +
-                            "ودورات تدريبية مخصصة لتعزيز جوانب القوة ومعالجة مجالات التحسين."
-                        ).Style(ReportTheme.ArabicTextStyle(11, false, "#1e3a8a")).LineHeight(1.6f);
+                        row.AutoItem()
+                            .PaddingLeft(HiFiSettings.Spacing.MD)
+                            .Text("ℹ️")
+                            .FontSize(ReportTheme.Typography.KPI);
+
+                        row.RelativeItem()
+                            .Text(UnicodeTextHelper.NormalizeNfc(
+                                "يُقدم هذا التقرير تحليلاً شاملاً لسماتك النفسية وقدراتك المهنية بناءً على إطار التنمية المستدامة SDJ. " +
+                                "تم تقييم أدائك عبر سبعة أنماط رئيسية و٢٤ بُعداً فرعياً، وتمثل الدرجات كنسب معيارية T-Scores حيث " +
+                                "٥٠ هي المتوسط. يتضمن التقرير توصيات تطويرية مخصصة لتعزيز جوانب القوة ومعالجة مجالات التحسين."
+                            ))
+                            .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.Body, false, ReportTheme.Colors.Text))
+                            .LineHeight(1.7f);
                     });
             });
         }
 
         /// <summary>
-        /// Page 2: Visual analytics - horizontal bar chart (subdimensions) + radar chart (7 patterns)
+        /// Page 2: Executive Summary with 4 HiFi KPI cards and professional insight paragraph
+        /// v3.0 HiFi: Large KPI values, trend indicators, balanced performance metrics
         /// </summary>
-        private void ComposePage2_ChartsAndVisualizations(
+        private void ComposePage2_ExecutiveSummary(
             PageDescriptor page,
             List<SevenPatternScore> patterns,
             List<SdjSubDimensionScore> subDimensions)
         {
             page.Content().Column(column =>
             {
-                // MAIN SECTION TITLE
-                column.Item().AlignCenter().Text("التحليل البصري للأنماط")
-                    .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
+                column.Spacing(HiFiSettings.Spacing.LG);
 
-                column.Item().PaddingTop(12);
+                // SECTION HEADER
+                column.Item().SectionHeader(
+                    title: UnicodeTextHelper.NormalizeNfc("الملخص التنفيذي"),
+                    subtitle: UnicodeTextHelper.NormalizeNfc("لمحة سريعة عن الأداء النفسي الشامل"),
+                    icon: "📊"
+                );
 
-                // ✨ KPI CARDS: Average T-Score, Variance, Top/Bottom Dimensions
+                column.Item().PaddingTop(HiFiSettings.Spacing.XL);
+
+                // Calculate metrics for KPI cards
                 var avgTScore = patterns.Average(p => p.TScore);
-                var variance = Math.Round(patterns.Select(p => p.TScore).Max() - patterns.Select(p => p.TScore).Min(), 1);
-                var topDim = subDimensions.OrderByDescending(s => s.T).First();
-                var bottomDim = subDimensions.OrderBy(s => s.T).First();
-
-                column.Item().Row(row =>
-                {
-                    row.RelativeItem().Kpi(ReportTheme.FormatNum(avgTScore, 1), "متوسط T-Score", ReportTheme.GetBandColor(avgTScore));
-                    row.RelativeItem().PaddingHorizontal(8);
-                    row.RelativeItem().Kpi(ReportTheme.FormatNum(variance, 1), "التباين", ReportTheme.Colors.Info);
-                    row.RelativeItem().PaddingHorizontal(8);
-                    row.RelativeItem().Column(col =>
-                    {
-                        col.Item().Badge("أقوى: " + topDim.SubDimension, ReportTheme.Colors.Success, "#FFFFFF", 10f);
-                        col.Item().PaddingTop(4);
-                        col.Item().Badge("أضعف: " + bottomDim.SubDimension, ReportTheme.Colors.Warning, "#FFFFFF", 10f);
-                    });
-                });
-
-                column.Item().PaddingTop(16);
-
-                // SUB-SECTION 1: Horizontal Bar Chart for Subdimensions (restored as requested)
-                column.Item().AlignRight().Text("توزيع الدرجات التفصيلي عبر الأبعاد الفرعية - T-Score")
-                    .Style(ReportTheme.ArabicTextStyle(14, true, "#374151"));
-
-                column.Item().PaddingTop(8);
-
-                try
-                {
-                    // Sort subdimensions ascending by T-score (weakest first, strongest last)
-                    var sortedSubDims = subDimensions
-                        .OrderBy(s => s.T)
-                        .Take(18) // Max 18 for readability on one page
-                        .ToList();
-
-                    // Convert to DimensionScore format for the renderer
-                    var dimensionScores = sortedSubDims.Select(s => new DimensionScore
-                    {
-                        Dimension = s.SubDimension,
-                        T = s.T,
-                        Percentile = s.Percentile
-                    }).ToList();
-
-                    var barChartBytes = HorizontalBarChartRenderer.RenderHorizontalBars(
-                        dimensionScores,
-                        width: 540,
-                        maxDimensions: 18);
-                    
-                    column.Item().AlignCenter().Image(barChartBytes);
-                    Console.WriteLine($"   ✓ Horizontal subdimension bar chart rendered ({sortedSubDims.Count} dimensions)");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"   ⚠ Bar chart rendering failed: {ex.Message}");
-                    Console.WriteLine($"   Stack: {ex.StackTrace}");
-                    column.Item().AlignCenter().PaddingVertical(20)
-                        .Text($"[خطأ في رسم المخطط الشريطي: {ex.Message}]")
-                        .Style(TextStyle.Default.FontSize(10).FontColor("#ef4444"));
-                }
-
-                column.Item().PaddingTop(24);
-
-                // SUB-SECTION 2: Heptagon Radar Chart for 7 Patterns (fixed Arabic labels with HarfBuzz)
-                column.Item().AlignRight().Text("التحليل البصري للأنماط الرئيسية")
-                    .Style(ReportTheme.ArabicTextStyle(14, true, "#374151"));
-
-                column.Item().PaddingTop(8).AlignCenter()
-                    .Text("الرسم البياني السباعي يُظهر توزيع الأنماط السبعة الرئيسية")
-                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
-
-                column.Item().PaddingTop(12);
-
-                try
-                {
-                    var heptagonBytes = HeptagonRadarChartRenderer.RenderHeptagonChart(
-                        patterns, 
-                        size: 420, 
-                        title: "الخريطة النفسية السباعية");
-                    
-                    column.Item().AlignCenter().Height(420).Image(heptagonBytes);
-                    Console.WriteLine("   ✓ Heptagon radar chart rendered with Arabic labels (HarfBuzz enabled)");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"   ⚠ Heptagon chart rendering failed: {ex.Message}");
-                    column.Item().AlignCenter().PaddingVertical(20)
-                        .Text("[خطأ في رسم المخطط السباعي]")
-                        .Style(TextStyle.Default.FontSize(11).FontColor("#ef4444"));
-                }
-            });
-        }
-
-        /// <summary>
-        /// Page 3: Seven Tracks Summary with statistical insights and detailed analysis
-        /// Shows all 7 SDJ tracks with T-scores, bands, interpretations, and modern analytics
-        /// </summary>
-        private void ComposePage3_SevenTracksSummary(
-            PageDescriptor page,
-            List<SevenPatternScore> patterns,
-            List<SdjSubDimensionScore> subDimensions)
-        {
-            page.Content().Column(column =>
-            {
-                // MAIN TITLE
-                column.Item().AlignCenter().Text("ملخص الأنماط الرئيسية")
-                    .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
-
-                column.Item().PaddingTop(6).AlignCenter()
-                    .Text("(تحليل متقدم للأنماط السبعة مع رؤى إحصائية وتفسيرات احترافية)")
-                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
-
-                column.Item().PaddingTop(12);
-
-                // STATISTICAL OVERVIEW PANEL (Modern Analytics)
-                var avgTScore = patterns.Average(p => p.TScore);
+                var advancedCount = patterns.Count(p => p.TScore >= 55);
                 var maxTScore = patterns.Max(p => p.TScore);
                 var minTScore = patterns.Min(p => p.TScore);
+                var variance = maxTScore - minTScore;
+                
+                // Balance Index: 100% means perfect balance (no variance), 0% means max variance (100 points)
+                // Formula: 100 - (variance * 100 / 100) → simplified to 100 - variance
+                var balanceIndex = Math.Max(0, 100 - variance);
+
+                // Determine trend based on performance level
+                string avgTrend = avgTScore >= 55 ? "أداء متميز" : avgTScore >= 45 ? "أداء متوسط" : "يحتاج دعم";
+                string avgIcon = avgTScore >= 55 ? "⭐" : avgTScore >= 45 ? "📊" : "📈";
+                
+                string balanceTrend = balanceIndex >= 70 ? "توازن ممتاز" : balanceIndex >= 50 ? "توازن مقبول" : "يحتاج موازنة";
+                string balanceIcon = balanceIndex >= 70 ? "⚖️" : "⚠️";
+
+                // Row 1: Average T-Score + Advanced Patterns Count
+                column.Item().Row(row =>
+                {
+                    row.Spacing(HiFiSettings.Spacing.MD);
+                    
+                    // KPI 1: Average T-Score
+                    row.RelativeItem().KpiCard(
+                        value: UnicodeTextHelper.FormatTScore(avgTScore, 1),
+                        label: UnicodeTextHelper.NormalizeNfc("متوسط T-Score الشامل"),
+                        valueColor: ReportTheme.GetBandColor(avgTScore),
+                        trendIcon: avgIcon,
+                        trendText: UnicodeTextHelper.NormalizeNfc(avgTrend)
+                    );
+
+                    // KPI 2: Advanced Patterns Count
+                    row.RelativeItem().KpiCard(
+                        value: UnicodeTextHelper.FormatTScore(advancedCount, 0) + " / ٧",
+                        label: UnicodeTextHelper.NormalizeNfc("الأنماط المتقدمة"),
+                        valueColor: advancedCount >= 5 ? ReportTheme.Colors.Success : 
+                                   advancedCount >= 3 ? ReportTheme.Colors.Warning : ReportTheme.Colors.Danger,
+                        trendIcon: advancedCount >= 5 ? "🎯" : advancedCount >= 3 ? "📌" : "🔄",
+                        trendText: UnicodeTextHelper.NormalizeNfc(
+                            advancedCount >= 5 ? "أغلبية متميزة" : 
+                            advancedCount >= 3 ? "أداء جيد" : "يحتاج تطوير"
+                        )
+                    );
+                });
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.MD);
+
+                // Row 2: Variance + Balance Index
+                column.Item().Row(row =>
+                {
+                    row.Spacing(HiFiSettings.Spacing.MD);
+                    
+                    // KPI 3: Variance (Range)
+                    row.RelativeItem().KpiCard(
+                        value: UnicodeTextHelper.FormatTScore(variance, 1),
+                        label: UnicodeTextHelper.NormalizeNfc("التفاوت (المدى)"),
+                        valueColor: variance <= 15 ? ReportTheme.Colors.Success : 
+                                   variance <= 25 ? ReportTheme.Colors.Warning : ReportTheme.Colors.Danger,
+                        trendIcon: variance <= 15 ? "✓" : variance <= 25 ? "⚠" : "⚡",
+                        trendText: UnicodeTextHelper.NormalizeNfc(
+                            variance <= 15 ? "تفاوت منخفض" : 
+                            variance <= 25 ? "تفاوت متوسط" : "تفاوت عالٍ"
+                        )
+                    );
+
+                    // KPI 4: Balance Index
+                    row.RelativeItem().KpiCard(
+                        value: UnicodeTextHelper.FormatTScore(balanceIndex, 0) + "%",
+                        label: UnicodeTextHelper.NormalizeNfc("مؤشر التوازن"),
+                        valueColor: balanceIndex >= 70 ? ReportTheme.Colors.Success : 
+                                   balanceIndex >= 50 ? ReportTheme.Colors.Warning : ReportTheme.Colors.Info,
+                        trendIcon: balanceIcon,
+                        trendText: UnicodeTextHelper.NormalizeNfc(balanceTrend)
+                    );
+                });
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.XL);
+
+                // INSIGHT PARAGRAPH (Professional 2-3 line summary)
+                column.Item()
+                    .Background(ReportTheme.Colors.SurfaceHover)
+                    .Border(2)
+                    .BorderColor(ReportTheme.Colors.Primary)
+                    .Padding(HiFiSettings.Spacing.LG)
+                    .Column(insightBox =>
+                    {
+                        insightBox.Item().Row(titleRow =>
+                        {
+                            titleRow.AutoItem()
+                                .PaddingLeft(HiFiSettings.Spacing.SM)
+                                .Text("💡")
+                                .Style(TextStyle.Default.FontSize(ReportTheme.Typography.KPI));
+                            
+                            titleRow.RelativeItem()
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc("الرؤية الإحصائية"))
+                                .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H3, true, ReportTheme.Colors.Primary));
+                        });
+
+                        insightBox.Item().PaddingTop(HiFiSettings.Spacing.SM);
+
+                        // Generate insight based on metrics
+                        string insightText = GenerateExecutiveInsight(avgTScore, advancedCount, variance, balanceIndex);
+                        
+                        insightBox.Item()
+                            .AlignRight()
+                            .Text(UnicodeTextHelper.NormalizeNfc(insightText))
+                            .Style(ReportTheme.ArabicTextStyle(
+                                ReportTheme.Typography.Body, 
+                                false, 
+                                ReportTheme.Colors.Text
+                            ))
+                            .LineHeight(1.7f);
+                    });
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.LG);
+
+                // SUB-STATISTICS: Top 3 Strongest and Weakest Dimensions
+                column.Item().Row(row =>
+                {
+                    row.Spacing(HiFiSettings.Spacing.LG);
+
+                    // Strongest Dimensions
+                    row.RelativeItem()
+                        .Background(ReportTheme.Colors.Surface)
+                        .Border(1)
+                        .BorderColor(ReportTheme.Colors.Success)
+                        .Padding(HiFiSettings.Spacing.MD)
+                        .Column(strongCol =>
+                        {
+                            strongCol.Item()
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc("🏆 أقوى ٣ أنماط"))
+                                .Style(ReportTheme.ArabicTextStyle(
+                                    ReportTheme.Typography.H4, 
+                                    true, 
+                                    ReportTheme.Colors.Success
+                                ));
+
+                            strongCol.Item().PaddingTop(HiFiSettings.Spacing.SM);
+
+                            var topPatterns = patterns.OrderByDescending(p => p.TScore).Take(3).ToList();
+                            foreach (var pattern in topPatterns)
+                            {
+                                strongCol.Item().StatRow(
+                                    label: UnicodeTextHelper.NormalizeNfc(pattern.PatternNameAr),
+                                    value: UnicodeTextHelper.FormatTScore(pattern.TScore, 1),
+                                    valueColor: ReportTheme.GetBandColor(pattern.TScore)
+                                );
+                            }
+                        });
+
+                    // Weakest Dimensions (Needs Development)
+                    row.RelativeItem()
+                        .Background(ReportTheme.Colors.Surface)
+                        .Border(1)
+                        .BorderColor(ReportTheme.Colors.Warning)
+                        .Padding(HiFiSettings.Spacing.MD)
+                        .Column(weakCol =>
+                        {
+                            weakCol.Item()
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc("📈 أنماط تحتاج دعم"))
+                                .Style(ReportTheme.ArabicTextStyle(
+                                    ReportTheme.Typography.H4, 
+                                    true, 
+                                    ReportTheme.Colors.Warning
+                                ));
+
+                            weakCol.Item().PaddingTop(HiFiSettings.Spacing.SM);
+
+                            var bottomPatterns = patterns.OrderBy(p => p.TScore).Take(3).ToList();
+                            foreach (var pattern in bottomPatterns)
+                            {
+                                weakCol.Item().StatRow(
+                                    label: UnicodeTextHelper.NormalizeNfc(pattern.PatternNameAr),
+                                    value: UnicodeTextHelper.FormatTScore(pattern.TScore, 1),
+                                    valueColor: ReportTheme.GetBandColor(pattern.TScore)
+                                );
+                            }
+                        });
+                });
+            });
+        }
+
+        /// <summary>
+        /// Generate professional insight paragraph based on executive metrics
+        /// </summary>
+        private string GenerateExecutiveInsight(double avgTScore, int advancedCount, double variance, double balanceIndex)
+        {
+            string performanceLevel = avgTScore >= 55 ? "متميز" : avgTScore >= 45 ? "متوسط" : "يحتاج تطوير";
+            string balanceStatus = balanceIndex >= 70 ? "متوازنة بشكل ممتاز" : 
+                                  balanceIndex >= 50 ? "متوازنة بشكل مقبول" : "تحتاج إعادة موازنة";
+            
+            if (avgTScore >= 55 && advancedCount >= 5)
+            {
+                return $"يُظهر المشارك أداءً {performanceLevel} مع {advancedCount} أنماط متقدمة من أصل ٧، والدرجات {balanceStatus}. " +
+                       $"هذا المستوى يعكس قدرات نفسية قوية وثبات في الأداء عبر الأنماط المختلفة. يُنصح بالاستمرار في التعزيز مع التركيز على الأنماط الأضعف لتحقيق التوازن الكامل.";
+            }
+            else if (avgTScore >= 45 && variance <= 20)
+            {
+                return $"الأداء العام {performanceLevel} مع تفاوت معتدل ({variance:F1} نقطة)، والدرجات {balanceStatus}. " +
+                       $"يوجد ({advancedCount}) نمط متقدم، مما يشير إلى قدرات جيدة في مجالات محددة. " +
+                       $"التركيز على تطوير الأنماط الأضعف من خلال البرامج التدريبية سيرفع الأداء الكلي بشكل ملحوظ.";
+            }
+            else
+            {
+                return $"الأداء العام {performanceLevel} مع تفاوت عالٍ ({variance:F1} نقطة)، والدرجات {balanceStatus}. " +
+                       $"يوجد ({advancedCount}) نمط متقدم فقط من أصل ٧. " +
+                       $"يُوصى بخطة تطوير شاملة تستهدف الأنماط الأضعف أولاً مع تعزيز نقاط القوة الموجودة لتحقيق توازن أفضل وأداء أكثر استقراراً.";
+            }
+        }
+
+        /// <summary>
+        /// Page 3: Visual analytics - horizontal bar chart (subdimensions) + radar chart (7 patterns)
+        /// v3.0 HiFi: Enhanced with SectionHeader, interpretation text, Unicode formatting
+        /// </summary>
+        private void ComposePage3_ChartsAndVisualizations(
+            PageDescriptor page,
+            List<SevenPatternScore> patterns,
+            List<SdjSubDimensionScore> subDimensions)
+        {
+            page.Content().Column(column =>
+            {
+                column.Spacing(HiFiSettings.Spacing.LG);
+
+                // MAIN SECTION HEADER
+                column.Item().SectionHeader(
+                    title: UnicodeTextHelper.NormalizeNfc("التحليل البصري المتقدم"),
+                    subtitle: UnicodeTextHelper.NormalizeNfc("رسوم بيانية عالية الجودة للأنماط والأبعاد الفرعية"),
+                    icon: "📊"
+                );
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.MD);
+
+                // SUB-SECTION 1: Horizontal Bar Chart for Subdimensions
+                column.Item()
+                    .Background(ReportTheme.Colors.Surface)
+                    .Border(2)
+                    .BorderColor(ReportTheme.Colors.Primary)
+                    .Padding(HiFiSettings.Spacing.MD)
+                    .Column(barSection =>
+                    {
+                        // Title with icon
+                        barSection.Item().Row(titleRow =>
+                        {
+                            titleRow.AutoItem()
+                                .PaddingLeft(HiFiSettings.Spacing.SM)
+                                .Text("📊")
+                                .Style(TextStyle.Default.FontSize(ReportTheme.Typography.H3));
+                            
+                            titleRow.RelativeItem()
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc("التوزيع التفصيلي للأبعاد الفرعية"))
+                                .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H3, true, ReportTheme.Colors.Primary));
+                        });
+
+                        barSection.Item().PaddingTop(HiFiSettings.Spacing.XS);
+                        
+                        barSection.Item()
+                            .AlignRight()
+                            .Text(UnicodeTextHelper.NormalizeNfc("مخطط شريطي يوضح أداء جميع الأبعاد الفرعية مرتبة من الأضعف إلى الأقوى (T-Score)"))
+                            .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.BodySmall, false, ReportTheme.Colors.TextSecondary))
+                            .LineHeight(1.5f);
+
+                        barSection.Item().PaddingTop(HiFiSettings.Spacing.MD);
+
+                        try
+                        {
+                            // Sort subdimensions ascending by T-score (weakest first, strongest last)
+                            var sortedSubDims = subDimensions
+                                .OrderBy(s => s.T)
+                                .Take(18) // Max 18 for readability on one page
+                                .ToList();
+
+                            // Convert to DimensionScore format for the renderer
+                            var dimensionScores = sortedSubDims.Select(s => new DimensionScore
+                            {
+                                Dimension = s.SubDimension,
+                                T = s.T,
+                                Percentile = s.Percentile
+                            }).ToList();
+
+                            var barChartBytes = HorizontalBarChartRenderer.RenderHorizontalBars(
+                                dimensionScores,
+                                width: 540,
+                                maxDimensions: 18);
+                            
+                            barSection.Item().AlignCenter().Image(barChartBytes);
+                            Console.WriteLine($"   ✓ HiFi horizontal bar chart rendered ({sortedSubDims.Count} dimensions at 3× scale)");
+                            
+                            // Chart interpretation
+                            barSection.Item().PaddingTop(HiFiSettings.Spacing.MD);
+                            
+                            var avgSubDimTScore = sortedSubDims.Average(s => s.T);
+                            var highPerformers = sortedSubDims.Count(s => s.T >= 55);
+                            var lowPerformers = sortedSubDims.Count(s => s.T < 45);
+                            
+                            string interpretation = $"المخطط يُظهر {UnicodeTextHelper.FormatTScore(sortedSubDims.Count, 0)} بُعد فرعي بمتوسط " +
+                                                  $"{UnicodeTextHelper.FormatTScore(avgSubDimTScore, 1)} نقطة. " +
+                                                  $"هناك {UnicodeTextHelper.FormatTScore(highPerformers, 0)} بُعد متقدم (≥٥٥) و" +
+                                                  $"{UnicodeTextHelper.FormatTScore(lowPerformers, 0)} بُعد يحتاج دعم (<٤٥).";
+                            
+                            barSection.Item()
+                                .Background(ReportTheme.Colors.SurfaceHover)
+                                .Padding(HiFiSettings.Spacing.SM)
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc(interpretation))
+                                .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.BodySmall, false, ReportTheme.Colors.Text))
+                                .LineHeight(1.6f);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"   ⚠ Bar chart rendering failed: {ex.Message}");
+                            Console.WriteLine($"   Stack: {ex.StackTrace}");
+                            barSection.Item().AlignCenter().PaddingVertical(HiFiSettings.Spacing.MD)
+                                .Text($"[خطأ في رسم المخطط الشريطي: {ex.Message}]")
+                                .Style(TextStyle.Default.FontSize(10).FontColor(ReportTheme.Colors.Danger));
+                        }
+                    });
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.LG);
+
+                // SUB-SECTION 2: Heptagon Radar Chart for 7 Patterns
+                column.Item()
+                    .Background(ReportTheme.Colors.Surface)
+                    .Border(2)
+                    .BorderColor(ReportTheme.Colors.Primary)
+                    .Padding(HiFiSettings.Spacing.MD)
+                    .Column(radarSection =>
+                    {
+                        // Title with icon
+                        radarSection.Item().Row(titleRow =>
+                        {
+                            titleRow.AutoItem()
+                                .PaddingLeft(HiFiSettings.Spacing.SM)
+                                .Text("🔷")
+                                .Style(TextStyle.Default.FontSize(ReportTheme.Typography.H3));
+                            
+                            titleRow.RelativeItem()
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc("الخريطة النفسية السباعية"))
+                                .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H3, true, ReportTheme.Colors.Primary));
+                        });
+
+                        radarSection.Item().PaddingTop(HiFiSettings.Spacing.XS);
+                        
+                        radarSection.Item()
+                            .AlignRight()
+                            .Text(UnicodeTextHelper.NormalizeNfc("مخطط رادار يُظهر التوزيع المتوازن للأنماط السبعة الرئيسية بشكل بصري"))
+                            .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.BodySmall, false, ReportTheme.Colors.TextSecondary))
+                            .LineHeight(1.5f);
+
+                        radarSection.Item().PaddingTop(HiFiSettings.Spacing.MD);
+
+                        try
+                        {
+                            var heptagonBytes = HeptagonRadarChartRenderer.RenderHeptagonChart(
+                                patterns, 
+                                size: 420, 
+                                title: UnicodeTextHelper.NormalizeNfc("الخريطة النفسية السباعية"));
+                            
+                            radarSection.Item().AlignCenter().Height(420).Image(heptagonBytes);
+                            Console.WriteLine("   ✓ HiFi heptagon radar chart rendered (3× scale, Quality=100, Arabic HarfBuzz)");
+                            
+                            // Chart interpretation
+                            radarSection.Item().PaddingTop(HiFiSettings.Spacing.MD);
+                            
+                            var avgPatternTScore = patterns.Average(p => p.TScore);
+                            var strongPatterns = patterns.Where(p => p.TScore >= 55).ToList();
+                            var weakPatterns = patterns.Where(p => p.TScore < 45).ToList();
+                            
+                            string shapeAnalysis = "متوازنة" ;
+                            if (strongPatterns.Count >= 5)
+                                shapeAnalysis = "قوية ومتماسكة";
+                            else if (weakPatterns.Count >= 4)
+                                shapeAnalysis = "غير متوازنة وتحتاج تطوير";
+                            
+                            string interpretation = $"الخريطة السباعية تكشف شكل {shapeAnalysis} بمتوسط " +
+                                                  $"{UnicodeTextHelper.FormatTScore(avgPatternTScore, 1)} نقطة. " +
+                                                  $"الأنماط القوية ({strongPatterns.Count}): " +
+                                                  string.Join("، ", strongPatterns.Select(p => UnicodeTextHelper.NormalizeNfc(p.PatternNameAr)).Take(3)) +
+                                                  (strongPatterns.Count > 3 ? "..." : ".") +
+                                                  (weakPatterns.Any() 
+                                                    ? $" الأنماط تحتاج دعم ({weakPatterns.Count}): " +
+                                                      string.Join("، ", weakPatterns.Select(p => UnicodeTextHelper.NormalizeNfc(p.PatternNameAr)).Take(2)) +
+                                                      (weakPatterns.Count > 2 ? "..." : ".")
+                                                    : "");
+                            
+                            radarSection.Item()
+                                .Background(ReportTheme.Colors.SurfaceHover)
+                                .Padding(HiFiSettings.Spacing.SM)
+                                .AlignRight()
+                                .Text(UnicodeTextHelper.NormalizeNfc(interpretation))
+                                .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.BodySmall, false, ReportTheme.Colors.Text))
+                                .LineHeight(1.6f);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"   ⚠ Heptagon chart rendering failed: {ex.Message}");
+                            radarSection.Item().AlignCenter().PaddingVertical(HiFiSettings.Spacing.MD)
+                                .Text("[خطأ في رسم المخطط السباعي]")
+                                .Style(TextStyle.Default.FontSize(11).FontColor(ReportTheme.Colors.Danger));
+                        }
+                    });
+            });
+        }
+
+        /// <summary>
+        /// Page 4: Seven Tracks Summary with statistical insights and detailed analysis
+        /// v3.0 HiFi: Using PatternCard components for professional card-based layout
+        /// </summary>
+        private void ComposePage4_SevenTracksSummary(
+            PageDescriptor page,
+            List<SevenPatternScore> patterns,
+            List<SdjSubDimensionScore> subDimensions)
+        {
+            page.Content().Column(column =>
+            {
+                column.Spacing(HiFiSettings.Spacing.MD);
+
+                // SECTION HEADER
+                column.Item().SectionHeader(
+                    title: UnicodeTextHelper.NormalizeNfc("تحليل الأنماط السبعة"),
+                    subtitle: UnicodeTextHelper.NormalizeNfc("بطاقات شاملة لكل نمط مع التفسير والتوصيات المهنية"),
+                    icon: "🔷"
+                );
+
+                column.Item().PaddingTop(HiFiSettings.Spacing.SM);
+
+                // STATISTICAL OVERVIEW (Quick stats bar)
+                var avgTScore = patterns.Average(p => p.TScore);
                 var excellentCount = patterns.Count(p => p.TScore >= 55);
                 var averageCount = patterns.Count(p => p.TScore >= 45 && p.TScore < 55);
                 var needsDevelopmentCount = patterns.Count(p => p.TScore < 45);
 
                 column.Item()
-                    .Background("#f0f9ff")
-                    .Border(1).BorderColor("#bae6fd")
-                    .Padding(12)
-                    .Column(statsPanel =>
+                    .Background(ReportTheme.Colors.SurfaceHover)
+                    .Border(1)
+                    .BorderColor(ReportTheme.Colors.Border)
+                    .Padding(HiFiSettings.Spacing.SM)
+                    .Row(statsRow =>
                     {
-                        statsPanel.Item().Row(statsRow =>
-                        {
-                            statsRow.RelativeItem().AlignCenter().Column(stat =>
-                            {
-                                stat.Item().Text(ReportTheme.FormatNum(avgTScore, 1))
-                                    .Style(TextStyle.Default.FontSize(18).FontColor("#0369a1").Bold());
-                                stat.Item().Text("المتوسط العام")
-                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
-                            });
-
-                            statsRow.RelativeItem().AlignCenter().Column(stat =>
-                            {
-                                stat.Item().Text($"{excellentCount} / {patterns.Count}")
-                                    .Style(TextStyle.Default.FontSize(18).FontColor("#10b981").Bold());
-                                stat.Item().Text("أنماط متقدمة")
-                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
-                            });
-
-                            statsRow.RelativeItem().AlignCenter().Column(stat =>
-                            {
-                                stat.Item().Text(ReportTheme.FormatNum(maxTScore - minTScore, 1))
-                                    .Style(TextStyle.Default.FontSize(18).FontColor("#f59e0b").Bold());
-                                stat.Item().Text("التفاوت")
-                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
-                            });
-
-                            statsRow.RelativeItem().AlignCenter().Column(stat =>
-                            {
-                                var balanceScore = CalculateBalanceScore(patterns);
-                                stat.Item().Text($"{balanceScore}%")
-                                    .Style(TextStyle.Default.FontSize(18).FontColor("#8b5cf6").Bold());
-                                stat.Item().Text("التوازن النفسي")
-                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
-                            });
-                        });
+                        statsRow.RelativeItem().AlignCenter().StatRow(
+                            label: UnicodeTextHelper.NormalizeNfc("المتوسط العام"),
+                            value: UnicodeTextHelper.FormatTScore(avgTScore, 1),
+                            valueColor: ReportTheme.GetBandColor(avgTScore)
+                        );
+                        
+                        statsRow.RelativeItem().AlignCenter().StatRow(
+                            label: UnicodeTextHelper.NormalizeNfc("أنماط متقدمة"),
+                            value: $"{UnicodeTextHelper.FormatTScore(excellentCount, 0)} / ٧",
+                            valueColor: ReportTheme.Colors.Success
+                        );
+                        
+                        statsRow.RelativeItem().AlignCenter().StatRow(
+                            label: UnicodeTextHelper.NormalizeNfc("أنماط متوسطة"),
+                            value: UnicodeTextHelper.FormatTScore(averageCount, 0),
+                            valueColor: ReportTheme.Colors.Warning
+                        );
+                        
+                        statsRow.RelativeItem().AlignCenter().StatRow(
+                            label: UnicodeTextHelper.NormalizeNfc("تحتاج دعم"),
+                            value: UnicodeTextHelper.FormatTScore(needsDevelopmentCount, 0),
+                            valueColor: ReportTheme.Colors.Danger
+                        );
                     });
 
-                column.Item().PaddingTop(14);
+                column.Item().PaddingTop(HiFiSettings.Spacing.LG);
 
-                // Sort patterns by T-score descending (best first)
+                // Sort patterns by T-score descending (best first for positive tone)
                 var sortedPatterns = patterns.OrderByDescending(p => p.TScore).ToList();
 
-                // Display all 7 tracks with enhanced interpretations
+                // Display all 7 patterns using PatternCard component
                 foreach (var pattern in sortedPatterns)
                 {
-                    column.Item().PaddingBottom(12)
-                        .Border(1)
-                        .BorderColor("#e5e7eb")
-                        .Background(GetPatternBackgroundColor(pattern.TScore))
-                        .Padding(12)
-                        .Column(trackCard =>
-                        {
-                            // Track header: Name + T-score badge + Band + Percentile
-                            trackCard.Item().Row(header =>
-                            {
-                                header.RelativeItem(4).Column(nameCol =>
-                                {
-                                    nameCol.Item().Text(pattern.PatternNameAr)
-                                        .Style(ReportTheme.ArabicTextStyle(13, true, "#111827"));
-                                    nameCol.Item().PaddingTop(2).Text(pattern.PatternNameEn)
-                                        .Style(TextStyle.Default.FontSize(8).FontColor("#9ca3af").Italic());
-                                });
-                                
-                                header.AutoItem().PaddingHorizontal(8).Column(scoreCol =>
-                                {
-                                    scoreCol.Item().AlignCenter()
-                                        .Background(ReportTheme.GetBandColor(pattern.TScore))
-                                        .PaddingVertical(3)
-                                        .PaddingHorizontal(8)
-                                        .Text($"T = {ReportTheme.FormatNum(pattern.TScore, 1)}")
-                                        .Style(TextStyle.Default.FontSize(11).FontColor("#ffffff").Bold());
-                                    
-                                    scoreCol.Item().PaddingTop(2).AlignCenter()
-                                        .Text($"المئين: {ReportTheme.FormatNum(pattern.Percentile * 100, 0)}%")
-                                        .Style(TextStyle.Default.FontSize(7).FontColor("#6b7280"));
-                                });
-                                
-                                var bandLabel = GetBandLabel(pattern.TScore);
-                                header.AutoItem().AlignMiddle().PaddingLeft(6)
-                                    .Background(GetBandLabelBg(pattern.TScore))
-                                    .PaddingVertical(4)
-                                    .PaddingHorizontal(8)
-                                    .Text(bandLabel)
-                                    .Style(ReportTheme.ArabicTextStyle(10, true, GetBandColor(pattern.TScore)));
-                            });
+                    // Generate description (2-3 lines about the pattern)
+                    var description = GeneratePatternDescription(pattern, subDimensions);
+                    
+                    // Generate professional recommendation
+                    var recommendation = GeneratePatternRecommendation(pattern, subDimensions);
 
-                            // Enhanced interpretation with professional insights
-                            trackCard.Item().PaddingTop(8).Text(GetEnhancedTrackInterpretation(pattern, subDimensions))
-                                .Style(ReportTheme.ArabicTextStyle(10, false, "#374151")).LineHeight(1.6f);
-
-                            // Key competencies from this pattern
-                            if (pattern.SubDimensions.Any())
-                            {
-                                var topSubDims = pattern.SubDimensions.OrderByDescending(s => s.T).Take(3).ToList();
-                                trackCard.Item().PaddingTop(6).Row(compRow =>
-                                {
-                                    compRow.AutoItem().Text("• الكفاءات الرئيسية: ")
-                                        .Style(ReportTheme.ArabicTextStyle(9, true, "#6b7280"));
-                                    compRow.RelativeItem().Text(string.Join(" • ", topSubDims.Select(s => s.SubDimension)))
-                                        .Style(ReportTheme.ArabicTextStyle(9, false, "#4b5563"));
-                                });
-                            }
-
-                            // Professional implications
-                            trackCard.Item().PaddingTop(4).Row(implRow =>
-                            {
-                                implRow.AutoItem().Text("• التطبيق المهني: ")
-                                    .Style(ReportTheme.ArabicTextStyle(9, true, "#6b7280"));
-                                implRow.RelativeItem().Text(GetProfessionalImplication(pattern))
-                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#4b5563"));
-                            });
-                        });
+                    // Create the PatternCard
+                    column.Item().PatternCard(
+                        title: UnicodeTextHelper.NormalizeNfc(pattern.PatternNameAr),
+                        tScore: pattern.TScore,
+                        description: UnicodeTextHelper.NormalizeNfc(description),
+                        recommendation: UnicodeTextHelper.NormalizeNfc(recommendation)
+                    );
                 }
             });
+        }
+
+        /// <summary>
+        /// Generate a 2-3 line description for a pattern based on its score and subdimensions
+        /// </summary>
+        private string GeneratePatternDescription(SevenPatternScore pattern, List<SdjSubDimensionScore> subDimensions)
+        {
+            var topSubDims = pattern.SubDimensions.OrderByDescending(s => s.T).Take(3).ToList();
+            var strengths = string.Join("، ", topSubDims.Select(s => s.SubDimension));
+            
+            if (pattern.TScore >= 55)
+            {
+                return $"يُظهر المشارك قدرات متميزة في هذا النمط بدرجة {pattern.TScore:F1} نقطة. " +
+                       $"الكفاءات البارزة: {strengths}. " +
+                       $"يشير هذا المستوى إلى استعداد عالٍ للأداء في المجالات ذات الصلة والقدرة على التفوق المهني في هذا النمط.";
+            }
+            else if (pattern.TScore >= 45)
+            {
+                return $"يُظهر المشارك أداءً متوسطاً في هذا النمط بدرجة {pattern.TScore:F1} نقطة. " +
+                       $"الكفاءات الرئيسية: {strengths}. " +
+                       $"هناك قاعدة جيدة يمكن البناء عليها من خلال التدريب الموجه والممارسة المنتظمة.";
+            }
+            else
+            {
+                return $"يحتاج هذا النمط إلى دعم وتطوير بدرجة حالية {pattern.TScore:F1} نقطة. " +
+                       $"المجالات الرئيسية: {strengths}. " +
+                       $"التركيز على برامج تدريبية مُستهدفة وتمارين عملية سيساعد في رفع الأداء بشكل تدريجي وملموس.";
+            }
+        }
+
+        /// <summary>
+        /// Generate a professional recommendation for a pattern
+        /// </summary>
+        private string GeneratePatternRecommendation(SevenPatternScore pattern, List<SdjSubDimensionScore> subDimensions)
+        {
+            if (pattern.TScore >= 55)
+            {
+                return "الحفاظ على المستوى الحالي من خلال التطبيق المستمر والتحدي بمهام أكثر تعقيداً. " +
+                       "يمكن استثمار هذا التميز في تدريب الآخرين أو قيادة مشاريع متخصصة في هذا المجال.";
+            }
+            else if (pattern.TScore >= 45)
+            {
+                return "التركيز على التدريب الموجه في المجالات الفرعية الأضعف. " +
+                       "المشاركة في ورش عمل متخصصة وتطبيق المهارات في بيئة عملية سيرفع الأداء للمستوى المتقدم.";
+            }
+            else
+            {
+                return "وضع خطة تطوير مكثفة مع جدول زمني واضح. " +
+                       "البدء بالأساسيات من خلال دورات تأسيسية، ثم الانتقال تدريجياً للمستويات المتقدمة مع متابعة دورية للتقدم.";
+            }
         }
 
         /// <summary>
         /// Page 4: Detailed track analyses with comprehensive course recommendations and development roadmap
         /// Title: "الدورات المقترحة لكل مسار" (no mention of "weak")
         /// </summary>
-        private void ComposePage4_DetailedTrackAnalysesAndCourses(
+        private void ComposePage5_DetailedTrackAnalysesAndCourses(
             PageDescriptor page,
             List<SevenPatternScore> patterns,
             List<SdjSubDimensionScore> subDimensions,

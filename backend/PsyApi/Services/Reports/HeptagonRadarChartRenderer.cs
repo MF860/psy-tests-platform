@@ -16,6 +16,7 @@ namespace PsyApi.Services.Reports
 
         /// <summary>
         /// Renders a heptagon radar chart showing 7 pattern scores with proper Arabic labels
+        /// HiFi version: 3× scale, Quality=100, full antialiasing
         /// </summary>
         public static byte[] RenderHeptagonChart(
             List<SevenPatternScore> patternScores,
@@ -23,6 +24,10 @@ namespace PsyApi.Services.Reports
             string title = "الخريطة النفسية السباعية")
         {
             EnsureArabicFont();
+
+            // HiFi settings
+            var scaleFactor = HiFiSettings.GetScaleFactor();
+            var actualSize = (int)(size * scaleFactor);
 
             // Ensure we have exactly 7 patterns
             var orderedPatterns = patternScores.OrderBy(p => p.PatternKey).Take(7).ToList();
@@ -36,9 +41,13 @@ namespace PsyApi.Services.Reports
                 });
             }
 
-            using var surface = SKSurface.Create(new SKImageInfo(size, size));
+            using var surface = SKSurface.Create(new SKImageInfo(actualSize, actualSize));
             var canvas = surface.Canvas;
             canvas.Clear(SKColors.White);
+            canvas.Scale(scaleFactor);
+
+            // Apply HiFi antialiasing settings
+            canvas.Save();
 
             // Chart parameters - Reduced radius to leave more room for Arabic labels
             var centerX = size / 2f;
@@ -48,13 +57,12 @@ namespace PsyApi.Services.Reports
             var adjustedCenterY = centerY + (titleHeight / 4); // Shift chart down for title
 
             // Draw title with Arabic font (HarfBuzz shaping)
-            using var titlePaint = new SKPaint
-            {
-                Color = SKColor.Parse("#1a365d"),
-                IsAntialias = true
-            };
+            using var titlePaint = HiFiSettings.GetHiFiPaint();
+            titlePaint.Color = SKColor.Parse("#1a365d");
+            
             var titleTypeface = _arabicTypeface ?? SKTypeface.Default;
-            using var titleFont = new SKFont(titleTypeface, 22);
+            using var titleFont = new SKFont(titleTypeface, 22 * scaleFactor);
+            titleFont.Hinting = SKFontHinting.Full;
             
             // Use HarfBuzz shaper for Arabic text in title
             if (_arabicShaper != null && title.Any(c => c >= 0x0600 && c <= 0x06FF))
@@ -186,9 +194,18 @@ namespace PsyApi.Services.Reports
                 canvas.DrawCircle(point.X, point.Y, 4, pointPaint);
             }
 
-            // Encode to JPEG with 85% quality for smaller file size
+            // Encode to JPEG with HiFi quality
+            canvas.Restore();
             using var image = surface.Snapshot();
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
+            
+            // Downscale to target size with high-quality filtering
+            using var resizedBitmap = new SKBitmap(size, size);
+            var pixmap = resizedBitmap.PeekPixels();
+            var samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
+            image.ScalePixels(pixmap, samplingOptions);
+
+            using var finalImage = SKImage.FromBitmap(resizedBitmap);
+            using var data = finalImage.Encode(SKEncodedImageFormat.Jpeg, HiFiSettings.GetJpegQuality());
             return data.ToArray();
         }
 
