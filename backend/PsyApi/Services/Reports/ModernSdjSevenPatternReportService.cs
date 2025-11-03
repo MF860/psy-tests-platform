@@ -217,10 +217,6 @@ namespace PsyApi.Services.Reports
                         ).Style(ReportTheme.ArabicTextStyle(11, false, "#1e3a8a")).LineHeight(1.6f);
                     });
             });
-
-            // Footer
-            page.Footer().AlignCenter().Text("صفحة 1")
-                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
 
         /// <summary>
@@ -330,10 +326,6 @@ namespace PsyApi.Services.Reports
                         .Style(TextStyle.Default.FontSize(11).FontColor("#ef4444"));
                 }
             });
-
-            // Footer
-            page.Footer().AlignCenter().Text("صفحة 2")
-                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
 
         /// <summary>
@@ -485,10 +477,6 @@ namespace PsyApi.Services.Reports
                         });
                 }
             });
-
-            // Footer
-            page.Footer().AlignCenter().Text("صفحة 3")
-                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
 
         /// <summary>
@@ -693,12 +681,7 @@ namespace PsyApi.Services.Reports
                     .Text("ابدأ رحلتك التدريبية المخصصة عبر منصة استدامة.")
                     .Style(ReportTheme.ArabicTextStyle(12, true, "#1e40af"));
             });
-
-            // Footer
-            page.Footer().AlignCenter().Text("صفحة 4")
-                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
-
         /// <summary>
         /// Page 3 (OLD): Weak sub-dimensions table with course recommendations
         /// REPLACED by new structure above - keeping for reference during migration
@@ -777,10 +760,6 @@ namespace PsyApi.Services.Reports
                     }
                 }
             });
-
-            // Footer
-            page.Footer().AlignCenter().Text("صفحة 3 / 3")
-                .Style(ReportTheme.ArabicTextStyle(9, false, "#9ca3af"));
         }
 
         #endregion
