@@ -325,19 +325,33 @@ namespace PsyApi.Controllers
                 return StatusCode(304);
             }
 
-            // Detect SDJ data
-            var hasSdjData = !string.IsNullOrWhiteSpace(entity.DimensionScoresJson) && 
-                             entity.DimensionScoresJson.Contains("\"SubDimensions\"");
+            // Detect SDJ data - check multiple indicators
+            var json = entity.DimensionScoresJson ?? "";
+            var hasSdjData = !string.IsNullOrWhiteSpace(json) && 
+                             (json.Contains("\"SubDimensions\"") || 
+                              json.Contains("\"SevenPatternScores\"") ||
+                              json.Contains("\"PatternScores\""));
 
             byte[] bytes;
+            
+            // Try SDJ first, fallback to standard if parsing fails
             if (hasSdjData)
             {
-                _logger.LogInformation("Admin generating SDJ PDF for result {ResultId}", id);
-                bytes = await _pdf.RenderSdjResultPdfAsync(entity, user, ct);
+                try
+                {
+                    _logger.LogInformation("Admin generating SDJ PDF for result {ResultId}", id);
+                    bytes = await _pdf.RenderSdjResultPdfAsync(entity, user, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "SDJ PDF generation failed for result {ResultId}, falling back to standard", id);
+                    var dims = ParseDimensionScores(entity.DimensionScoresJson);
+                    bytes = await _pdf.RenderResultPdfAsync(entity, user, dims, ct);
+                }
             }
             else
             {
-                _logger.LogInformation("Admin generating legacy PDF for result {ResultId}", id);
+                _logger.LogInformation("Admin generating standard PDF for result {ResultId}", id);
                 var dims = ParseDimensionScores(entity.DimensionScoresJson);
                 bytes = await _pdf.RenderResultPdfAsync(entity, user, dims, ct);
             }

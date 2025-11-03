@@ -192,28 +192,137 @@ namespace PsyApi.Services.Reports
 
         public Task<byte[]> RenderSdjResultPdfAsync(Result result, User user, CancellationToken ct = default)
         {
-            // For SDJ reports, parse the data and delegate to specialized service
+            // For SDJ reports, detect version and parse accordingly
             try
             {
                 var opts = new System.Text.Json.JsonSerializerOptions 
                 { 
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping 
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    PropertyNameCaseInsensitive = true
                 };
                 
-                var sdjData = System.Text.Json.JsonSerializer.Deserialize<SdjScoreSummary>(
-                    result.DimensionScoresJson ?? "{}", opts);
-
-                if (sdjData == null || (!sdjData.Dimensions.Any() && !sdjData.SevenPatternScores.Any()))
-                    throw new InvalidOperationException("No SDJ data found");
-
-                var modernService = new ModernSdjSevenPatternReportService();
-                return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                var json = result.DimensionScoresJson ?? "{}";
+                
+                // Detect version by checking JSON structure
+                var isV2 = json.Contains("PatternScores") && json.Contains("SubDimensionScores");
+                var isV1 = json.Contains("Dimensions") && json.Contains("SevenPatternScores");
+                
+                Console.WriteLine($"[UltraHiFi] Detecting SDJ version - V2: {isV2}, V1: {isV1}");
+                
+                if (isV2)
+                {
+                    // Parse as SDJ V2 (latest 7-pattern system)
+                    var v2Data = System.Text.Json.JsonSerializer.Deserialize<SdjV2StorageFormat>(json, opts);
+                    
+                    if (v2Data == null || v2Data.PatternScores?.Any() != true)
+                    {
+                        Console.WriteLine($"[UltraHiFi] SDJ V2 data is empty");
+                        throw new InvalidOperationException("SDJ V2 data contains no pattern scores");
+                    }
+                    
+                    Console.WriteLine($"[UltraHiFi] SDJ V2 loaded - Patterns: {v2Data.PatternScores.Count}, SubDimensions: {v2Data.SubDimensionScores?.Count ?? 0}");
+                    
+                    // Convert V2 format to SdjScoreSummary for ModernSdjSevenPatternReportService
+                    var sdjData = ConvertV2ToSummary(v2Data);
+                    var modernService = new ModernSdjSevenPatternReportService();
+                    return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                }
+                else if (isV1)
+                {
+                    // Parse as SDJ V1 (legacy format with Dimensions + SevenPatternScores)
+                    var sdjData = System.Text.Json.JsonSerializer.Deserialize<SdjScoreSummary>(json, opts);
+                    
+                    if (sdjData == null || (sdjData.Dimensions?.Any() != true && sdjData.SevenPatternScores?.Any() != true))
+                    {
+                        Console.WriteLine($"[UltraHiFi] SDJ V1 data is empty");
+                        throw new InvalidOperationException("SDJ V1 data contains no dimensions or patterns");
+                    }
+                    
+                    Console.WriteLine($"[UltraHiFi] SDJ V1 loaded - Dimensions: {sdjData.Dimensions?.Count ?? 0}, Patterns: {sdjData.SevenPatternScores?.Count ?? 0}");
+                    
+                    var modernService = new ModernSdjSevenPatternReportService();
+                    return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                }
+                else
+                {
+                    Console.WriteLine($"[UltraHiFi] Unknown SDJ format - JSON preview: {json.Substring(0, Math.Min(200, json.Length))}");
+                    throw new InvalidOperationException("Unknown SDJ data format - neither V1 nor V2 detected");
+                }
+            }
+            catch (System.Text.Json.JsonException jsonEx)
+            {
+                Console.WriteLine($"[UltraHiFi] JSON parsing error: {jsonEx.Message}");
+                throw new InvalidOperationException($"Invalid SDJ JSON format: {jsonEx.Message}", jsonEx);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[UltraHiFi] SDJ parsing error: {ex.Message}");
+                Console.WriteLine($"[UltraHiFi] SDJ generation error: {ex.Message}");
                 throw;
             }
+        }
+        
+        /// <summary>
+        /// Convert SDJ V2 storage format to SdjScoreSummary for report generation
+        /// </summary>
+        private SdjScoreSummary ConvertV2ToSummary(SdjV2StorageFormat v2Data)
+        {
+            return new SdjScoreSummary
+            {
+                // Map V2 PatternScores to SevenPatternScores
+                SevenPatternScores = v2Data.PatternScores?.Select(p => new SevenPatternScore
+                {
+                    PatternNameAr = p.PatternNameAr ?? "",
+                    PatternNameEn = p.PatternKey ?? "",
+                    TScore = p.TScore,
+                    Band = p.Band ?? "",
+                    SubDimensions = p.SubDimensions?.Select(sd => new SdjSubDimensionScore
+                    {
+                        SubDimension = sd.SubNameAr ?? "",
+                        T = sd.TScore,
+                        Band = sd.Band ?? ""
+                    }).ToList() ?? new List<SdjSubDimensionScore>()
+                }).ToList() ?? new List<SevenPatternScore>(),
+                
+                // Map V2 overall score to Dimensions (for compatibility)
+                Dimensions = v2Data.PatternScores?.Select(p => new SdjDimensionScore
+                {
+                    Dimension = p.PatternNameAr ?? "",
+                    T = p.TScore,
+                    Percentile = p.Percentile,
+                    Band = p.Band ?? "",
+                    Raw = p.Raw,
+                    SubDimensions = p.SubDimensions?.Select(sd => new SdjSubDimensionScore
+                    {
+                        Dimension = p.PatternId ?? "",
+                        SubDimension = sd.SubNameAr ?? "",
+                        T = sd.TScore,
+                        Percentile = sd.Percentile,
+                        Band = sd.Band ?? "",
+                        Raw = sd.Raw
+                    }).ToList() ?? new List<SdjSubDimensionScore>()
+                }).ToList() ?? new List<SdjDimensionScore>(),
+                
+                SubDimensions = v2Data.SubDimensionScores?.Select(sd => new SdjSubDimensionScore
+                {
+                    Dimension = sd.PatternId ?? "",
+                    SubDimension = sd.SubNameAr ?? "",
+                    T = sd.TScore,
+                    Percentile = sd.Percentile,
+                    Band = sd.Band ?? "",
+                    Raw = sd.Raw,
+                    ItemCount = sd.ItemCount
+                }).ToList() ?? new List<SdjSubDimensionScore>(),
+                
+                TotalScore = new SdjTotalScore
+                {
+                    T = v2Data.OverallScore?.TScore ?? 50,
+                    Percentile = v2Data.OverallScore?.Percentile ?? 0.5,
+                    Raw = v2Data.OverallScore?.Raw ?? 0
+                },
+                
+                Version = v2Data.Version ?? "SDJ_v2.0",
+                TrackFits = new List<SdjTrackFit>() // V2 doesn't use track fits
+            };
         }
 
         #region Page 1: Cover & Executive Summary
@@ -1045,5 +1154,53 @@ namespace PsyApi.Services.Reports
         }
 
         #endregion
+    }
+    
+    /// <summary>
+    /// SDJ V2 storage format (as saved in DimensionScoresJson by SessionsController)
+    /// </summary>
+    public class SdjV2StorageFormat
+    {
+        public List<SdjV2PatternScoreStorage>? PatternScores { get; set; }
+        public List<SdjV2SubDimensionScoreStorage>? SubDimensionScores { get; set; }
+        public SdjV2OverallScoreStorage? OverallScore { get; set; }
+        public string? Version { get; set; }
+        public int ItemCount { get; set; }
+        public int McqCount { get; set; }
+        public int LikertCount { get; set; }
+    }
+    
+    public class SdjV2PatternScoreStorage
+    {
+        public string? PatternId { get; set; }
+        public string? PatternKey { get; set; }
+        public string? PatternNameAr { get; set; }
+        public double Raw { get; set; }
+        public double TScore { get; set; }
+        public double Percentile { get; set; }
+        public string? Band { get; set; }
+        public int SubDimensionCount { get; set; }
+        public List<SdjV2SubDimensionScoreStorage>? SubDimensions { get; set; }
+    }
+    
+    public class SdjV2SubDimensionScoreStorage
+    {
+        public string? PatternId { get; set; }
+        public string? SubId { get; set; }
+        public string? SubKey { get; set; }
+        public string? SubNameAr { get; set; }
+        public double Raw { get; set; }
+        public double TScore { get; set; }
+        public double Percentile { get; set; }
+        public string? Band { get; set; }
+        public int ItemCount { get; set; }
+    }
+    
+    public class SdjV2OverallScoreStorage
+    {
+        public double Raw { get; set; }
+        public double TScore { get; set; }
+        public double Percentile { get; set; }
+        public string? Band { get; set; }
     }
 }
