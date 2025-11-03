@@ -5,8 +5,8 @@ using PsyApi.Models;
 namespace PsyApi.Services.Reports
 {
     /// <summary>
-    /// مخطط دونات محسّن Vector لتوزيع المحاور (Clusters)
-    /// رسم احترافي مع نص مركزي وتسميات ونسب مئوية
+    /// Ultra Hi-Fi Donut Chart with Design Tokens Integration
+    /// Upgraded to 450 DPI vector quality with halos, center text, and legend chips
     /// </summary>
     public static class DonutChartRenderer
     {
@@ -15,20 +15,22 @@ namespace PsyApi.Services.Reports
         private static readonly object _lock = new();
 
         /// <summary>
-        /// رسم مخطط دونات لتوزيع المحاور (COG/EMO/SOC/ORG)
+        /// Render cluster donut chart with 450 DPI quality
         /// </summary>
-        /// <param name="clusterScores">توزيع النقاط حسب المحاور</param>
-        /// <param name="size">حجم المخطط (300-400px)</param>
-        /// <param name="centerText">النص المركزي</param>
-        /// <returns>صورة PNG</returns>
+        /// <param name="clusterScores">Cluster distribution scores</param>
+        /// <param name="size">Chart size (300-400px)</param>
+        /// <param name="centerText">Center text</param>
+        /// <param name="dpi">Rendering DPI (default 450 for print quality)</param>
+        /// <returns>PNG image</returns>
         public static byte[] RenderClusterDonut(
             Dictionary<string, double> clusterScores,
             int size = 350,
-            string centerText = "توزيع المحاور")
+            string centerText = "توزيع المحاور",
+            int dpi = 450)
         {
             EnsureArabicFont();
 
-            var scaleFactor = 2f;
+            var scaleFactor = Math.Max(3f, dpi / 150f); // 450 DPI = 3x scale
             var actualSize = (int)(size * scaleFactor);
 
             using var surface = SKSurface.Create(new SKImageInfo(actualSize, actualSize));
@@ -152,7 +154,7 @@ namespace PsyApi.Services.Reports
         }
 
         /// <summary>
-        /// رسم تسمية ونسبة الشريحة
+        /// Draw slice label with percentage and halo effect
         /// </summary>
         private static void DrawSliceLabel(
             SKCanvas canvas,
@@ -170,6 +172,15 @@ namespace PsyApi.Services.Reports
             var clusterName = ReportAnalytics.ClusterNames.GetValueOrDefault(cluster, cluster);
             var percentText = $"{percentage:F0}%";
 
+            // Halo paint for better visibility
+            using var haloPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = SKColors.Black.WithAlpha(180),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 4f
+            };
+
             using var paint = new SKPaint
             {
                 IsAntialias = true,
@@ -181,10 +192,11 @@ namespace PsyApi.Services.Reports
                 Embolden = true
             };
 
-            // رسم النسبة
+            // Draw percentage with halo
+            canvas.DrawText(percentText, x, y - 5, SKTextAlign.Center, font, haloPaint);
             canvas.DrawText(percentText, x, y - 5, SKTextAlign.Center, font, paint);
 
-            // رسم اسم المحور (أصغر)
+            // Draw cluster name (smaller) with halo
             font.Size = 9f;
             font.Embolden = false;
             
@@ -194,15 +206,19 @@ namespace PsyApi.Services.Reports
                 if (result?.Points != null && result.Points.Length > 0)
                 {
                     var textWidth = result.Points.LastOrDefault().X;
-                    canvas.DrawShapedText(_arabicShaper, clusterName, x - textWidth / 2f, y + 10, font, paint);
+                    var textX = x - textWidth / 2f;
+                    canvas.DrawShapedText(_arabicShaper, clusterName, textX, y + 10, font, haloPaint);
+                    canvas.DrawShapedText(_arabicShaper, clusterName, textX, y + 10, font, paint);
                 }
                 else
                 {
+                    canvas.DrawText(clusterName, x, y + 10, SKTextAlign.Center, font, haloPaint);
                     canvas.DrawText(clusterName, x, y + 10, SKTextAlign.Center, font, paint);
                 }
             }
             else
             {
+                canvas.DrawText(clusterName, x, y + 10, SKTextAlign.Center, font, haloPaint);
                 canvas.DrawText(clusterName, x, y + 10, SKTextAlign.Center, font, paint);
             }
         }
@@ -311,17 +327,18 @@ namespace PsyApi.Services.Reports
         }
 
         /// <summary>
-        /// رسم دونات بسيط لمحور واحد (Progress Donut)
+        /// Render simple progress donut for single axis with 450 DPI
         /// </summary>
         public static byte[] RenderProgressDonut(
             double value,
             double maxValue,
             int size = 180,
-            string centerText = "")
+            string centerText = "",
+            int dpi = 450)
         {
             EnsureArabicFont();
 
-            var scaleFactor = 2f;
+            var scaleFactor = Math.Max(3f, dpi / 150f); // 450 DPI = 3x scale
             var actualSize = (int)(size * scaleFactor);
 
             using var surface = SKSurface.Create(new SKImageInfo(actualSize, actualSize));
@@ -401,16 +418,16 @@ namespace PsyApi.Services.Reports
         }
 
         /// <summary>
-        /// ألوان المحاور (Cluster Colors)
+        /// Cluster colors using DesignTokens palette
         /// </summary>
         private static Dictionary<string, SKColor> GetClusterColors()
         {
             return new Dictionary<string, SKColor>
             {
-                ["COG"] = ReportTheme.FromHex("#2563EB"), // أزرق
-                ["EMO"] = ReportTheme.FromHex("#22C55E"), // أخضر
-                ["SOC"] = ReportTheme.FromHex("#F59E0B"), // برتقالي
-                ["ORG"] = ReportTheme.FromHex("#EC4899")  // وردي
+                ["COG"] = SKColor.Parse(DesignTokens.Colors.PrimaryLight),    // Blue for Cognitive
+                ["EMO"] = SKColor.Parse(DesignTokens.Colors.Success),         // Green for Emotional
+                ["SOC"] = SKColor.Parse(DesignTokens.Colors.Warning),         // Amber for Social
+                ["ORG"] = SKColor.Parse(DesignTokens.Colors.Accent)           // Purple for Organizational
             };
         }
 
