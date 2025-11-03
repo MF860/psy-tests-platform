@@ -42,17 +42,35 @@ export default function ResultDetailPage() {
   }, [rid])
 
   const downloadPdf = async () => {
+    console.log('[ResultDetail] Download PDF clicked for result ID:', rid)
     setPdfLoading(true)
     try {
+      console.log('[ResultDetail] Calling AdminApi.resultPdf...')
       const blob = await AdminApi.resultPdf(rid)
+      console.log('[ResultDetail] PDF blob received, size:', blob.size, 'bytes')
+      
+      if (blob.size === 0) {
+        console.error('[ResultDetail] PDF blob is empty!')
+        alert('Error: Received empty PDF file')
+        return
+      }
+      
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `result_${rid}_${data?.nationalId || 'unknown'}.pdf`
+      console.log('[ResultDetail] Triggering download:', a.download)
       a.click()
       URL.revokeObjectURL(url)
+      console.log('[ResultDetail] PDF download completed successfully')
     } catch (error) {
-      console.error('Failed to download PDF:', error)
+      console.error('[ResultDetail] Failed to download PDF:', error)
+      console.error('[ResultDetail] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        error
+      })
+      alert('Failed to download PDF: ' + (error instanceof Error ? error.message : 'Unknown error'))
     } finally {
       setPdfLoading(false)
     }

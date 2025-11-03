@@ -50,6 +50,28 @@ namespace PsyApi.Controllers
             _persistenceTester = persistenceTester;
         }
 
+        /// <summary>
+        /// Debug endpoint to check which PDF service implementation is active
+        /// </summary>
+        [HttpGet("debug/pdf-service")]
+        [AllowAnonymous]
+        public ActionResult<object> GetPdfServiceInfo()
+        {
+            var serviceType = _pdf.GetType();
+            return Ok(new
+            {
+                ServiceTypeName = serviceType.FullName,
+                ServiceAssembly = serviceType.Assembly.GetName().Name,
+                IsUltraHiFi = serviceType.Name == "UltraHiFiPdfReportService",
+                AvailableMethods = serviceType.GetMethods()
+                    .Where(m => m.IsPublic && m.DeclaringType == serviceType)
+                    .Select(m => m.Name)
+                    .ToList(),
+                ServerTime = DateTime.UtcNow,
+                Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+            });
+        }
+
         [HttpPost("login")]
         [EnableRateLimiting("login")]
         public async Task<ActionResult<AdminLoginResponse>> Login([FromBody] AdminLoginRequest req)
