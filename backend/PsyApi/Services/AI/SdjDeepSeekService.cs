@@ -114,10 +114,11 @@ namespace PsyApi.Services.AI
                     GeneratedAt = DateTime.UtcNow
                 };
 
-                // Cache result
+                // Cache result (set size for memory limit compliance)
                 _cache.Set(cacheKey, result, new MemoryCacheEntryOptions
                 {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(_config.CacheDurationHours)
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(_config.CacheDurationHours),
+                    Size = 1 // Each cache entry counts as 1 unit
                 });
 
                 _logger.LogInformation("[SDJ-AI] Success resultId={ResultId} latencyMs={Latency} tokens={Tokens}",
