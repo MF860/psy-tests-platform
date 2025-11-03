@@ -258,9 +258,10 @@ builder.Services.AddScoped<ISdjV2ScoringService>(provider =>
     )
 );
 
-// Reports - Ultimate Arabic PDF Service (v3.0)
-builder.Services.AddScoped<IPdfReportService, UltimateArabicPdfReportService>();
-// Legacy service still available if needed
+// Reports - Ultra Hi-Fi PDF Service (v4.0) - Premium Design System
+builder.Services.AddScoped<IPdfReportService, UltraHiFiPdfReportService>();
+// Legacy services still available if needed
+builder.Services.AddScoped<UltimateArabicPdfReportService>();
 builder.Services.AddScoped<ModernPdfReportService>();
 
 // Recommendations

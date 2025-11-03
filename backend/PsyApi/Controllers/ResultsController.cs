@@ -249,6 +249,97 @@ namespace PsyApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Premium Ultra Hi-Fi Report Endpoint - Supports Aurora Glass and Noir Executive themes
+        /// Supports Arabic/English bilingual reports with print-ready quality (450 DPI charts)
+        /// </summary>
+        [HttpGet("{id}/premium")]
+        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
+        public async Task<IActionResult> GetPremiumReport(
+            int id, 
+            [FromQuery] string theme = "AuroraGlass", 
+            [FromQuery] string lang = "AR")
+        {
+            try
+            {
+                var result = await _context.Results
+                    .Include(r => r.Session)
+                    .ThenInclude(s => s.User)
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(r => r.Id == id);
+
+                if (result == null)
+                {
+                    return NotFound(new { error = "Result not found" });
+                }
+
+                // SECURITY: Per-user authorization check - Owner or Admin only
+                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var isAdmin = User.IsInRole("Admin") || User.IsInRole("admin");
+                
+                if (!isAdmin && result.Session.User.Id.ToString() != currentUserId)
+                {
+                    _logger.LogWarning("Unauthorized premium report access: User {UserId} tried to access result {ResultId} owned by {OwnerId}", 
+                        currentUserId, id, result.Session.User.Id);
+                    return Forbid();
+                }
+
+                // Set theme globally (thread-safe)
+                DesignTokens.CurrentTheme = theme.Equals("NoirExecutive", StringComparison.OrdinalIgnoreCase)
+                    ? DesignTokens.ReportThemeMode.NoirExecutive
+                    : DesignTokens.ReportThemeMode.AuroraGlass;
+
+                // Set language globally
+                LocalizationStrings.CurrentLanguage = lang.Equals("EN", StringComparison.OrdinalIgnoreCase)
+                    ? ReportLanguage.EN 
+                    : ReportLanguage.AR;
+
+                _logger.LogInformation("Generating premium {Theme} {Language} report for result {Id}", 
+                    theme, lang, id);
+
+                // Parse dimensions from JSON
+                var dimensionScores = ParseDimensionScores(result.DimensionScoresJson);
+
+                // Generate premium report (uses UltraHiFiPdfReportService)
+                var pdfService = HttpContext.RequestServices.GetRequiredService<IPdfReportService>();
+                
+                // Detect SDJ data
+                var hasSdjData = !string.IsNullOrWhiteSpace(result.DimensionScoresJson) && 
+                                 result.DimensionScoresJson.Contains("\"SubDimensions\"");
+
+                byte[] pdfBytes;
+                if (hasSdjData)
+                {
+                    // SDJ report with subdimensions
+                    pdfBytes = await pdfService.RenderSdjResultPdfAsync(
+                        result, 
+                        result.Session.User, 
+                        HttpContext.RequestAborted);
+                }
+                else
+                {
+                    // Standard report
+                    pdfBytes = await pdfService.RenderResultPdfAsync(
+                        result, 
+                        result.Session.User, 
+                        dimensionScores, 
+                        HttpContext.RequestAborted);
+                }
+
+                var filename = $"Premium_{lang}_{theme}_{result.Session.User.NationalId}_{result.SessionId}.pdf";
+                
+                _logger.LogInformation("Successfully generated premium report: {Filename} ({Size} KB)", 
+                    filename, pdfBytes.Length / 1024);
+
+                return File(pdfBytes, "application/pdf", filename);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating premium report for result {Id}", id);
+                return StatusCode(500, new { error = "An error occurred while generating the premium report" });
+            }
+        }
+
         private static List<DimensionScore> ParseDimensionScores(string? json)
         {
             if (string.IsNullOrWhiteSpace(json))
