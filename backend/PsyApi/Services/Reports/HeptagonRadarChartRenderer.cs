@@ -186,9 +186,9 @@ namespace PsyApi.Services.Reports
                 canvas.DrawCircle(point.X, point.Y, 4, pointPaint);
             }
 
-            // Encode to PNG
+            // Encode to JPEG with 85% quality for smaller file size
             using var image = surface.Snapshot();
-            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 85);
             return data.ToArray();
         }
 

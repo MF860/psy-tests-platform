@@ -74,7 +74,7 @@ namespace PsyApi.Services.Reports
             image.ScalePixels(pixmap, samplingOptions);
 
             using var finalImage = SKImage.FromBitmap(resizedBitmap);
-            using var data = finalImage.Encode(SKEncodedImageFormat.Png, 100);
+            using var data = finalImage.Encode(SKEncodedImageFormat.Jpeg, 85);
             return data.ToArray();
         }
 
@@ -397,7 +397,7 @@ namespace PsyApi.Services.Reports
             image.ScalePixels(pixmap, samplingOptions);
 
             using var finalImage = SKImage.FromBitmap(resizedBitmap);
-            using var data = finalImage.Encode(SKEncodedImageFormat.Png, 100);
+            using var data = finalImage.Encode(SKEncodedImageFormat.Jpeg, 85);
             return data.ToArray();
         }
 

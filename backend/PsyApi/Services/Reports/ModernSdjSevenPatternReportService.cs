@@ -237,6 +237,28 @@ namespace PsyApi.Services.Reports
                 column.Item().AlignCenter().Text("التحليل البصري للأنماط")
                     .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
 
+                column.Item().PaddingTop(12);
+
+                // ✨ KPI CARDS: Average T-Score, Variance, Top/Bottom Dimensions
+                var avgTScore = patterns.Average(p => p.TScore);
+                var variance = Math.Round(patterns.Select(p => p.TScore).Max() - patterns.Select(p => p.TScore).Min(), 1);
+                var topDim = subDimensions.OrderByDescending(s => s.T).First();
+                var bottomDim = subDimensions.OrderBy(s => s.T).First();
+
+                column.Item().Row(row =>
+                {
+                    row.RelativeItem().Kpi(ReportTheme.FormatNum(avgTScore, 1), "متوسط T-Score", ReportTheme.GetBandColor(avgTScore));
+                    row.RelativeItem().PaddingHorizontal(8);
+                    row.RelativeItem().Kpi(ReportTheme.FormatNum(variance, 1), "التباين", ReportTheme.Colors.Info);
+                    row.RelativeItem().PaddingHorizontal(8);
+                    row.RelativeItem().Column(col =>
+                    {
+                        col.Item().Badge("أقوى: " + topDim.SubDimension, ReportTheme.Colors.Success, "#FFFFFF", 10f);
+                        col.Item().PaddingTop(4);
+                        col.Item().Badge("أضعف: " + bottomDim.SubDimension, ReportTheme.Colors.Warning, "#FFFFFF", 10f);
+                    });
+                });
+
                 column.Item().PaddingTop(16);
 
                 // SUB-SECTION 1: Horizontal Bar Chart for Subdimensions (restored as requested)
@@ -770,6 +792,31 @@ namespace PsyApi.Services.Reports
             page.Size(PageSizes.A4);
             page.Margin(16, Unit.Millimetre); // 16mm margins as specified
             page.DefaultTextStyle(style => ReportTheme.ArabicTextStyle(11, false, "#374151"));
+
+            // Professional Header
+            page.Header()
+                .AlignRight()
+                .Row(row =>
+                {
+                    row.RelativeItem().Column(col =>
+                    {
+                        col.Item().Text("تقرير تحليل أنماط الشخصية السبعة - SDJ")
+                            .Style(ReportTheme.ArabicTextStyle(10, true, ReportTheme.Colors.Primary));
+                        col.Item().Text($"تاريخ التوليد: {DateTime.Now:yyyy-MM-dd HH:mm}")
+                            .Style(ReportTheme.ArabicTextStyle(8, false, ReportTheme.Colors.TextSecondary));
+                    });
+                });
+
+            // Professional Footer with Page Numbers (RTL)
+            page.Footer()
+                .AlignCenter()
+                .Text(text =>
+                {
+                    text.Span("صفحة ").Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
+                    text.CurrentPageNumber().Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.Primary));
+                    text.Span(" من ").Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
+                    text.TotalPages().Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.Primary));
+                });
         }
 
         /// <summary>

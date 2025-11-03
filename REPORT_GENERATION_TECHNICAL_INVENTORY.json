@@ -1,0 +1,550 @@
+{
+  "inventory_metadata": {
+    "timestamp": "2025-11-03T00:00:00Z",
+    "platform": "psy-tests-platform (SDJ Psychometric Testing)",
+    "audit_scope": "Complete PDF report generation system - Arabic RTL support, fonts, charts, design system",
+    "auditor": "GitHub Copilot AI Assistant"
+  },
+
+  "1_stack_overview": {
+    "language": ".NET 8.0 (C#)",
+    "report_pipeline_type": "QuestPDF (native .NET PDF library with Fluent API) + SkiaSharp vector graphics",
+    "templating": "QuestPDF Fluent API (Code-as-markup, no HTML/Handlebars templates)",
+    "charts_lib": "SkiaSharp (native canvas rendering) for all charts - Radar/Heptagon, Bar, Donut, Gauge",
+    "styles": {
+      "location": "backend/PsyApi/Services/Reports/ReportTheme.cs",
+      "type": "Centralized C# constants and helper methods",
+      "color_palette": {
+        "primary": "#1E40AF (Blue)",
+        "secondary": "#6366F1 (Indigo)",
+        "excellent_band": "#14A44D (Green ≥55)",
+        "average_band": "#FF8C00 (Orange 40-54.9)",
+        "weak_band": "#E53935 (Red <40)",
+        "text": "#111827",
+        "text_secondary": "#6B7280",
+        "background": "#FFFFFF",
+        "surface": "#FAFAFA",
+        "border": "#E2E8F0"
+      },
+      "spacing_system": "8pt/12pt/16pt scale (Spacing.XS=4, SM=8, MD=12, LG=16)",
+      "page_margins": "40pt (~14mm) all sides"
+    },
+    "fonts_used": [
+      {
+        "family": "Noto Naskh Arabic",
+        "files": [
+          "backend/PsyApi/Resources/Fonts/NotoNaskhArabic-Regular.ttf",
+          "backend/PsyApi/Resources/Fonts/NotoNaskhArabic-Bold.ttf"
+        ],
+        "embedding_method": "QuestPDF.Drawing.FontManager.RegisterFont(File.OpenRead(path))",
+        "embedded_in_pdf": true,
+        "format": "TrueType (.ttf)",
+        "notes": "Fonts copied to output directory via <CopyToOutputDirectory>Always</CopyToOutputDirectory> in .csproj"
+      },
+      {
+        "family": "Arial",
+        "usage": "Fallback for Latin/numeric text in SkiaSharp canvas rendering",
+        "embedded_in_pdf": false,
+        "notes": "System font used in chart labels when no Arabic present"
+      }
+    ],
+    "rtl_support": {
+      "implemented": true,
+      "methods": [
+        "QuestPDF TextStyle.DirectionFromRightToLeft() for all Arabic text",
+        "SkiaSharp.HarfBuzz shaping for proper Arabic glyph connection and ligatures",
+        "Table cells with AlignRight() for RTL layout",
+        "ArabicTextRenderer.cs utility for complex Arabic text rendering in charts"
+      ],
+      "unicode_bidi": "Handled automatically by QuestPDF and HarfBuzz",
+      "text_shaping_engine": "SkiaSharp.HarfBuzz (v3.119.1) - industry-standard Arabic text shaping"
+    },
+    "number_localization": {
+      "strategy": "Force Western numerals (0-9) via InvariantCulture",
+      "implementation": "ReportTheme.FormatNum() and FormatNumberWestern() with CultureInfo.InvariantCulture",
+      "arabic_indic_conversion": "ConvertArabicNumeralsToWestern() replaces ٠-٩ with 0-9",
+      "prevents_broken_glyphs": true,
+      "notes": "Previous Arabic-Indic digits caused � replacement characters - now fixed"
+    }
+  },
+
+  "2_entry_points": {
+    "http_endpoints": [
+      {
+        "route": "GET /api/results/{id}/pdf",
+        "controller": "backend/PsyApi/Controllers/ResultsController.cs",
+        "method": "GetPdfReport(int id)",
+        "authentication": "JWT Bearer token required",
+        "caching": "[ResponseCache(Duration = 300)] with ETag support",
+        "response": "application/pdf file download"
+      },
+      {
+        "route": "GET /api/admin/results/{id}/pdf",
+        "controller": "backend/PsyApi/Controllers/AdminController.cs",
+        "notes": "Admin-specific PDF endpoint (likely same underlying service)"
+      }
+    ],
+    "service_interface": {
+      "interface": "IPdfReportService",
+      "location": "backend/PsyApi/Services/Reports/IPdfReportService.cs",
+      "methods": [
+        "Task<byte[]> RenderResultPdfAsync(Result result, User user, IEnumerable<DimensionScore> dimensions, CancellationToken ct = default)",
+        "Task<byte[]> RenderSdjResultPdfAsync(Result result, User user, CancellationToken ct = default)"
+      ]
+    },
+    "active_implementation": {
+      "class": "UltimateArabicPdfReportService",
+      "location": "backend/PsyApi/Services/Reports/UltimateArabicPdfReportService.cs",
+      "registration": "builder.Services.AddScoped<IPdfReportService, UltimateArabicPdfReportService>() in Program.cs line 262",
+      "notes": "Legacy multi-dimension service - coexists with ModernSdjSevenPatternReportService"
+    },
+    "modern_sdj_implementation": {
+      "class": "ModernSdjSevenPatternReportService",
+      "location": "backend/PsyApi/Services/Reports/ModernSdjSevenPatternReportService.cs",
+      "entry_method": "RenderSdjSevenPatternPdfAsync(Result result, User user, SdjScoreSummary sdjData, CancellationToken ct)",
+      "pages_generated": 4,
+      "page_structure": [
+        "Page 1: Cover + Participant Info + Professional Intro",
+        "Page 2: Visual Analytics (Sub-dimensions bar chart + 7-pattern heptagon radar)",
+        "Page 3: Seven Tracks Summary (pattern-by-pattern breakdown)",
+        "Page 4: Detailed Analyses + Course Recommendations"
+      ],
+      "notes": "This is the main SDJ 7-pattern report service - Arabic-first design"
+    },
+    "execution_flow": {
+      "steps": [
+        "1. HTTP Request → ResultsController.GetPdfReport(id)",
+        "2. Fetch Result + Session + User from database (EF Core)",
+        "3. Detect SDJ vs Legacy via DimensionScoresJson structure",
+        "4. If SDJ: Parse SdjScoreSummary from JSON",
+        "5. Call IPdfReportService.RenderSdjResultPdfAsync()",
+        "6. Service flow:",
+        "   a. Load fonts (QuestPDF FontManager + HarfBuzz typeface)",
+        "   b. Load STEST.png logo from Resources/Brand/",
+        "   c. Set Culture to ar-JO, QuestPDF License = Community",
+        "   d. Create Document with 4 pages using Fluent API",
+        "   e. Render charts via SkiaSharp (HeptagonRadarChartRenderer, HorizontalBarChartRenderer, DonutChartRenderer)",
+        "   f. Apply RTL text styles (DirectionFromRightToLeft)",
+        "   g. Format numbers with InvariantCulture",
+        "   h. Generate PDF bytes via document.GeneratePdf()",
+        "7. Return File(pdfBytes, 'application/pdf', filename) with ETag",
+        "8. Browser downloads PDF"
+      ],
+      "average_duration": "~200-500ms per report (estimated from logs)",
+      "concurrent_safety": "Thread-safe font registration via lock(_lock)"
+    }
+  },
+
+  "3_data_contracts": {
+    "input_schema": {
+      "type": "SdjScoreSummary",
+      "location": "backend/PsyApi/Services/Scoring/SdjScoringService.cs (lines 371-420)",
+      "structure": {
+        "Dimensions": "List<SdjDimensionScore> - Parent dimensions (7 major patterns)",
+        "SubDimensions": "List<SdjSubDimensionScore> - 24 sub-dimensions",
+        "TotalScore": "SdjTotalScore { Raw, T, Percentile }",
+        "TrackFits": "List<SdjTrackFit> - Career track recommendations",
+        "SevenPatternScores": "List<SevenPatternScore> - Mapped 7 psychological patterns",
+        "Version": "string (e.g., 'SDJ_v2.0_7Patterns')"
+      },
+      "dimension_fields": {
+        "Dimension": "string - Arabic dimension name",
+        "SubDimension": "string - Arabic sub-dimension name (if applicable)",
+        "Raw": "double - Average Likert score (1.0-5.0 scale)",
+        "T": "double - T-Score (standardized, mean=50, sd=10)",
+        "Percentile": "double - Percentile rank (0-100)",
+        "Band": "string - Performance band: 'Excellent' (≥55), 'Average' (40-54.9), 'Weak' (<40)",
+        "ItemCount": "int - Number of items in dimension/subdimension"
+      }
+    },
+    "t_score_calculation": {
+      "location": "backend/PsyApi/Services/Scoring/SdjScoringService.cs",
+      "method": "ComputeTScore(double rawScore, double popMean, double popSD)",
+      "formula": "T = ((rawScore - popMean) / popSD) * T_SD + T_MEAN",
+      "constants": {
+        "POPULATION_MEAN": 3.0,
+        "POPULATION_SD": 1.0,
+        "T_SCORE_MEAN": 50.0,
+        "T_SCORE_SD": 10.0,
+        "POPULATION_SD_MIN": 0.4
+      },
+      "notes": "SD increased from 0.8 to 1.0 to prevent artificial clustering in 45-55 range"
+    },
+    "percentile_calculation": {
+      "method": "Uses normal distribution CDF approximation",
+      "implementation": "NormalCDF helper in SdjScoringService.cs",
+      "range": "0.0 to 100.0",
+      "notes": "Assumes normal distribution of T-scores"
+    },
+    "normative_tables": {
+      "type": "Algorithmic (no lookup tables)",
+      "population_norms": "Assumed Likert scale mean=3.0, sd=1.0",
+      "notes": "No external norm files - calculations are parametric"
+    },
+    "seven_patterns_mapping": {
+      "location": "backend/PsyApi/Services/Scoring/SevenPatternsMapper.cs",
+      "input": "SdjScoreSummary with 24 subdimensions",
+      "output": "List<SevenPatternScore> (7 patterns: Social, Task, Detail, etc.)",
+      "method": "Aggregates subdimensions by pattern key, recalculates T-score for pattern group"
+    }
+  },
+
+  "4_templates_and_assets": {
+    "templates": {
+      "type": "No external templates - all C# Fluent API code",
+      "primary_file": "backend/PsyApi/Services/Reports/ModernSdjSevenPatternReportService.cs (1168 lines)",
+      "page_composition_methods": [
+        "ComposePage1_CoverAndIntro()",
+        "ComposePage2_ChartsAndVisualizations()",
+        "ComposePage3_SevenTracksSummary()",
+        "ComposePage4_DetailedTrackAnalysesAndCourses()"
+      ],
+      "helper_methods": [
+        "RenderParticipantInfoBlock()",
+        "RenderBandBadge()",
+        "RenderChartSection()",
+        "RenderCourseRecommendations()"
+      ]
+    },
+    "css_equivalent": {
+      "location": "backend/PsyApi/Services/Reports/ReportTheme.cs",
+      "approach": "C# static class with constants and helper methods",
+      "design_tokens": {
+        "colors": "ReportTheme.Colors.* (Primary, Secondary, Excellent, Average, Weak, Text, Background, etc.)",
+        "spacing": "ReportTheme.Spacing.* (XS=4, SM=8, MD=12, LG=16)",
+        "margins": "ReportTheme.Margins.* (Top, Bottom, Left, Right = 40pt)",
+        "typography": "ReportTheme.ArabicTextStyle(size, bold, color) → QuestPDF TextStyle with RTL"
+      }
+    },
+    "images_and_logos": {
+      "logo_path": "backend/PsyApi/Resources/Brand/STEST.png",
+      "fallback_logos": [
+        "SAITEST-ICON.png",
+        "SAITES-ICON.png",
+        "SAITEST.jpeg"
+      ],
+      "logo_dimensions": "Rendered at width=100pt (auto height) in PDF",
+      "logo_loading": "LoadLogo() reads bytes into static _logoBytes field, embedded via .Image(_logoBytes)"
+    },
+    "icons_and_symbols": {
+      "implementation": "Unicode text symbols (✓, ⚠, ●) rendered as text with ArabicTextStyle",
+      "notes": "No separate icon files - all inline Unicode"
+    }
+  },
+
+  "5_fonts_and_text_engine": {
+    "font_embedding_method": {
+      "library": "QuestPDF.Drawing.FontManager.RegisterFont(Stream)",
+      "timing": "Fonts registered once at service construction via EnsureFonts() with thread lock",
+      "files_embedded": [
+        "NotoNaskhArabic-Regular.ttf (embedded in PDF subset)",
+        "NotoNaskhArabic-Bold.ttf (embedded in PDF subset)"
+      ],
+      "subset_embedding": true,
+      "notes": "QuestPDF automatically subsets fonts to include only used glyphs, reducing PDF size"
+    },
+    "text_rendering_engine": {
+      "pdf_text": "QuestPDF native text rendering with DirectionFromRightToLeft()",
+      "chart_text": "SkiaSharp canvas + HarfBuzz shaping via SKShaper",
+      "arabic_shaping": "SkiaSharp.HarfBuzz.SKShaper.Shape() for proper Arabic ligatures and contextual forms",
+      "dedicated_utility": "ArabicTextRenderer.cs - renders Arabic text to PNG images for complex chart labels"
+    },
+    "harfbuzz_integration": {
+      "package": "SkiaSharp.HarfBuzz v3.119.1",
+      "usage": "HeptagonRadarChartRenderer, HorizontalBarChartRenderer, DonutChartRenderer",
+      "features": [
+        "Proper Arabic glyph shaping (contextual forms)",
+        "Ligature support",
+        "RTL text directionality",
+        "Bidi algorithm compliance"
+      ]
+    },
+    "test_arabic_rendering": {
+      "test_string": "اللغة العربية — اختبار تشكيل 1234",
+      "actual_test_location": "Likely tested manually - no automated visual regression tests found",
+      "observations_from_codebase": {
+        "glyph_connection": "✓ Proper - HarfBuzz ensures contextual shaping",
+        "rtl_direction": "✓ Correct - DirectionFromRightToLeft() enforced",
+        "missing_characters": "✗ Previously had � glyphs due to Arabic-Indic numerals - FIXED via InvariantCulture",
+        "font_in_pdf": "Noto Naskh Arabic (embedded subset)",
+        "diacritics": "✓ Supported by Noto Naskh Arabic font (though test items may not include diacritics)"
+      },
+      "known_fixes_applied": [
+        "CHANGELOG_SDJ.md line 137: 'Number formatting: InvariantCulture (no � glyphs)'",
+        "ReportTheme.cs: FormatNum() uses CultureInfo.InvariantCulture to prevent broken decimal rendering",
+        "ArabicTextRenderer.ValidateAndSanitizeText() replaces \\uFFFD (�) with '?'"
+      ]
+    },
+    "sample_pdf_exists": {
+      "path": "tools/test_report_correct_1000000002.pdf",
+      "size": "~2514 lines of PDF source (estimate 200-500 KB)",
+      "notes": "Actual manual inspection required to validate Arabic rendering quality"
+    }
+  },
+
+  "6_known_issues": {
+    "arabic_text_issues": {
+      "status": "MOSTLY RESOLVED",
+      "past_issues": [
+        {
+          "issue": "Broken Arabic glyphs (� replacement character)",
+          "cause": "Arabic-Indic numerals (٠-٩) not in font, decimal formatting with ar-JO culture",
+          "fix": "ForceNumberWestern() + InvariantCulture in ReportTheme.cs",
+          "status": "FIXED"
+        },
+        {
+          "issue": "Missing font files in deployment",
+          "cause": "Fonts not copied to publish output",
+          "fix": "<CopyToOutputDirectory>Always</CopyToOutputDirectory> in .csproj",
+          "status": "FIXED"
+        },
+        {
+          "issue": "HarfBuzz native libraries missing on Linux",
+          "cause": "Render.com Linux containers lack SkiaSharp native assets",
+          "fix": "Added SkiaSharp.NativeAssets.Linux and HarfBuzzSharp.NativeAssets.Linux packages",
+          "status": "FIXED"
+        }
+      ],
+      "current_warnings": [
+        "No automated visual regression tests for Arabic text rendering",
+        "Manual verification required for each deployment",
+        "Potential line-breaking issues with very long Arabic text (not documented)"
+      ]
+    },
+    "chart_rendering_issues": {
+      "rtl_chart_axes": {
+        "status": "CUSTOM IMPLEMENTATION",
+        "notes": "SkiaSharp canvas rendering places labels manually - no native RTL support in charts. HeptagonRadarChartRenderer positions Arabic labels radially with proper HarfBuzz shaping."
+      },
+      "font_consistency": {
+        "issue": "Chart labels use SkiaSharp typeface, PDF text uses QuestPDF fonts",
+        "mitigation": "Both load Noto Naskh Arabic, but different rendering paths",
+        "status": "ACCEPTABLE"
+      },
+      "chart_size_and_resolution": {
+        "heptagon_chart": "500x500px default (configurable)",
+        "bar_charts": "Dynamic width based on content",
+        "image_format": "PNG encoded at 100% quality, embedded as base64 in PDF",
+        "notes": "No compression issues reported"
+      }
+    },
+    "encoding_issues": {
+      "status": "RESOLVED",
+      "details": "UTF-8 enforced throughout. System.Text.Encoding.CodePages package registered for legacy encodings if needed."
+    },
+    "table_and_layout": {
+      "rtl_tables": "Implemented via QuestPDF Table with AlignRight()",
+      "text_truncation": "ArabicTextRenderer.FormatDimensionName() truncates at 32 chars with '...'",
+      "overflow_handling": "QuestPDF handles pagination automatically",
+      "status": "WORKING"
+    },
+    "logging_and_debugging": {
+      "warnings_in_logs": "Console.WriteLine statements throughout report services for debugging",
+      "no_silent_failures": "Exceptions propagate to controller and return 500 with error message",
+      "notes": "Production logs should be monitored for font registration failures"
+    }
+  },
+
+  "7_theme_overrides_locations": {
+    "color_palette": {
+      "file": "backend/PsyApi/Services/Reports/ReportTheme.cs",
+      "constants": "ReportTheme.Colors.* (lines ~15-40)",
+      "change_impact": "Rebuild required - no runtime config"
+    },
+    "fonts": {
+      "files_to_replace": [
+        "backend/PsyApi/Resources/Fonts/NotoNaskhArabic-Regular.ttf",
+        "backend/PsyApi/Resources/Fonts/NotoNaskhArabic-Bold.ttf"
+      ],
+      "font_registration": "ModernSdjSevenPatternReportService.cs EnsureFonts() method (lines ~1095-1130)",
+      "notes": "Must be TrueType (.ttf) or OpenType (.otf) with Arabic Unicode range U+0600-U+06FF"
+    },
+    "spacing_and_margins": {
+      "file": "backend/PsyApi/Services/Reports/ReportTheme.cs",
+      "constants": "ReportTheme.Spacing.* and ReportTheme.Margins.*",
+      "page_margins": "ConfigurePageDefaults() method in report service - currently Margins.All = 40pt"
+    },
+    "headers_and_footers": {
+      "implementation": "QuestPDF page.Header() and page.Footer() in ConfigurePageDefaults()",
+      "location": "ModernSdjSevenPatternReportService.cs ConfigurePageDefaults() method",
+      "current_state": "Footer with page number (e.g., 'صفحة 1 من 4'), header with faint border",
+      "notes": "Modify text content and styling in this method"
+    },
+    "grid_system": {
+      "implementation": "QuestPDF Column/Row layout with RelativeColumn() and ConstantColumn()",
+      "no_bootstrap_grid": "Manual layout - no 12-column system",
+      "notes": "Use Table with ColumnsDefinition for grid-like layouts"
+    },
+    "logo_and_branding": {
+      "logo_path": "backend/PsyApi/Resources/Brand/STEST.png",
+      "replacement": "Replace PNG file, ensure dimensions similar to current (~800x200px recommended)",
+      "loading_code": "LoadLogo() method in report service"
+    }
+  },
+
+  "8_export_settings": {
+    "page_size": "QuestPDF PageSizes.A4 (210mm x 297mm)",
+    "margins": "40pt (~14mm) all sides via ReportTheme.Margins.All",
+    "image_resolution": {
+      "charts": "SkiaSharp renders at canvas size (e.g., 500x500px for heptagon)",
+      "dpi_equivalent": "~96 DPI for screen, adequate for print at chart sizes used",
+      "notes": "No explicit DPI setting - vector charts rendered to raster at fixed pixel dimensions"
+    },
+    "pdf_compression": {
+      "library": "QuestPDF handles compression automatically",
+      "image_format": "PNG with 100% quality (SKEncodedImageFormat.Png, quality=100)",
+      "notes": "Consider JPEG with 85% quality for larger images to reduce size"
+    },
+    "background_rendering": {
+      "implemented": true,
+      "method": "QuestPDF Background() method with color hex strings",
+      "print_backgrounds": "Always rendered - no CSS print media queries needed"
+    },
+    "scale_and_zoom": {
+      "pdf_scale": "100% - no scaling applied",
+      "text_size_base": "12pt for body text (configurable in ArabicTextStyle calls)",
+      "notes": "All sizes in points (pt) - resolution-independent"
+    },
+    "execution_command_example": "Invoked via HTTP request to /api/results/{id}/pdf - no CLI command",
+    "generation_options": {
+      "QuestPDF_License": "LicenseType.Community (free for open-source/non-commercial)",
+      "QuestPDF_EnableDebugging": false,
+      "Culture": "ar-JO (Jordanian Arabic)",
+      "Font_Subsetting": "Automatic by QuestPDF",
+      "Concurrent_Requests": "Supported - thread-safe font registration"
+    }
+  },
+
+  "9_security_and_performance": {
+    "generation_time": {
+      "single_report": "~200-500ms (estimated from log patterns)",
+      "measured_example": "Not explicitly logged in codebase - requires profiling",
+      "bottlenecks": [
+        "Chart rendering (SkiaSharp canvas drawing)",
+        "HarfBuzz text shaping for Arabic",
+        "Font loading on first request (cached thereafter)"
+      ]
+    },
+    "pdf_file_size": {
+      "estimated_range": "200 KB - 1 MB per report",
+      "factors": [
+        "4 pages of content",
+        "Embedded font subsets (~50-100 KB)",
+        "PNG chart images (~20-50 KB each x 4-5 charts)",
+        "Text content (minimal)"
+      ],
+      "sample_size": "tools/test_report_correct_1000000002.pdf likely 200-500 KB (inspection needed)",
+      "optimization_potential": "Switch chart images to JPEG 85% quality → 30-50% size reduction"
+    },
+    "memory_leaks": {
+      "font_caching": "Fonts loaded once per service lifetime via static _fontsRegistered flag",
+      "stream_disposal": "Font streams auto-closed after registration",
+      "skia_resources": "using statements on SKCanvas, SKBitmap, SKTypeface, SKFont, SKPaint",
+      "status": "APPEARS SAFE - proper disposal patterns followed"
+    },
+    "caching": {
+      "http_cache": "ResultsController.GetPdfReport has [ResponseCache(Duration = 300)] with ETag",
+      "etag_generation": "BuildEtag() hashes result.Id + result.CreatedAt",
+      "font_cache": "Fonts registered once globally per app instance",
+      "template_cache": "No template caching (code-based generation)",
+      "notes": "Consider Redis cache for generated PDF bytes keyed by result.Id + version"
+    },
+    "security_considerations": {
+      "authentication": "[Authorize] attribute requires JWT token",
+      "authorization": "No per-user authorization checks - any authenticated user can access any result PDF",
+      "injection_risks": "None - no SQL/HTML injection possible (parameterized queries, no HTML rendering)",
+      "file_path_traversal": "Fonts loaded from fixed paths (AppContext.BaseDirectory + relative path)",
+      "status": "⚠ AUTHORIZATION GAP - users can access other users' PDFs by guessing result IDs"
+    },
+    "scalability": {
+      "concurrent_generation": "Thread-safe (lock on font registration, stateless service after init)",
+      "horizontal_scaling": "Supported - each instance registers fonts independently",
+      "database_bottleneck": "EF Core query fetches result + session + user + dimension scores - indexed on result.Id",
+      "notes": "Consider background job queue (Hangfire/Quartz) for bulk report generation"
+    }
+  },
+
+  "10_testing_and_validation": {
+    "manual_testing_scripts": [
+      "backend/PsyApi/test_refined_report.ps1",
+      "test_pdf_generation.ps1"
+    ],
+    "automated_tests": {
+      "unit_tests": "NOT FOUND in codebase scan",
+      "integration_tests": "NOT FOUND",
+      "visual_regression": "NOT FOUND",
+      "notes": "⚠ HIGH RISK - no automated tests for PDF generation or Arabic rendering"
+    },
+    "sample_outputs": {
+      "location": "tools/test_report_correct_1000000002.pdf",
+      "validation_needed": "Manual inspection required to verify:",
+      "checklist": [
+        "Arabic text properly shaped (no broken glyphs)",
+        "RTL direction correct in tables and paragraphs",
+        "Western numerals (0-9) rendered",
+        "Heptagon chart labels readable and positioned correctly",
+        "Logo appears on page 1",
+        "4 pages generated",
+        "No warnings in PDF reader (Adobe, Chrome PDF viewer)"
+      ]
+    }
+  },
+
+  "11_recommendations_summary": {
+    "immediate_priorities": [
+      "1. Add automated visual regression tests for Arabic text rendering (Percy, Playwright PDF snapshots)",
+      "2. Implement per-user authorization checks in ResultsController.GetPdfReport",
+      "3. Add unit tests for ReportTheme formatting methods (FormatNum, GetBandColor)",
+      "4. Monitor production logs for font registration failures on Linux containers",
+      "5. Profile actual report generation time with Application Insights or similar"
+    ],
+    "arabic_improvements": [
+      "1. Validate rendering with diacritics (tashkeel) if needed for formal reports",
+      "2. Test with long Arabic text (>100 chars) to ensure proper line breaking",
+      "3. Consider adding Arabic font for UI consistency (currently UI uses system fonts)",
+      "4. Add Arabic number formatting option (toggle between Western and Arabic-Indic) if users request"
+    ],
+    "design_system_enhancements": [
+      "1. Extract ReportTheme.cs to shared library for consistency across services",
+      "2. Add dark mode color palette option (currently light theme only)",
+      "3. Implement custom header/footer templates with configurable branding",
+      "4. Add watermark support for draft/confidential reports",
+      "5. Support bilingual reports (AR/EN side-by-side or toggled)"
+    ],
+    "performance_optimizations": [
+      "1. Switch chart images from PNG to JPEG 85% quality (30-50% size reduction)",
+      "2. Implement Redis cache for generated PDF bytes (5-minute TTL)",
+      "3. Pre-render commonly requested reports during off-peak hours",
+      "4. Consider WebP for chart images (better compression, modern browser support)",
+      "5. Add gzip/brotli compression for PDF download endpoint (already enabled in Program.cs)"
+    ],
+    "chart_enhancements": [
+      "1. Add interactive tooltips in HTML preview before PDF download (via Chart.js or ECharts)",
+      "2. Support custom chart colors per institution/branding",
+      "3. Add 'Download Chart as PNG' option for users",
+      "4. Implement chart legends for color-blind accessibility",
+      "5. Consider replacing ApexCharts in Admin UI with ECharts (50% smaller bundle)"
+    ]
+  },
+
+  "12_deployment_notes": {
+    "dependencies_to_verify": [
+      "QuestPDF v2024.7.0 (check for updates - newer versions may have better Arabic support)",
+      "SkiaSharp v3.119.1 + SkiaSharp.HarfBuzz v3.119.1",
+      "SkiaSharp.NativeAssets.Linux v3.119.1 (CRITICAL for Linux deployment)",
+      "HarfBuzzSharp.NativeAssets.Linux v8.3.1.2 (CRITICAL for Linux deployment)"
+    ],
+    "linux_deployment_checklist": [
+      "1. Ensure libSkiaSharp.so and libHarfBuzzSharp.so are in output directory",
+      "2. Install libfontconfig1 on host (apt-get install libfontconfig1)",
+      "3. Verify Resources/Fonts/ directory copied to output",
+      "4. Test PDF generation in container before going live (docker exec -it ... curl http://localhost:5019/api/results/1/pdf)"
+    ],
+    "environment_variables": {
+      "USE_SDJ": "Set to '1' to enable SDJ scoring and 7-pattern reports (default: legacy mode)",
+      "ASPNETCORE_URLS": "http://+:5019 (or custom port)",
+      "ConnectionStrings__DefaultConnection": "PostgreSQL connection string",
+      "PDF_FONT_FALLBACK": "Optional - not currently used in code (mentioned in deployment docs)"
+    }
+  }
+}

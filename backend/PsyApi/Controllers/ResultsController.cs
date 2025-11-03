@@ -202,6 +202,18 @@ namespace PsyApi.Controllers
                     return NotFound(new { error = "Result not found" });
                 }
 
+                // SECURITY: Per-user authorization check
+                // Only the result owner or admins can access the PDF
+                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var isAdmin = User.IsInRole("Admin") || User.IsInRole("admin");
+                
+                if (!isAdmin && result.Session.User.Id.ToString() != currentUserId)
+                {
+                    _logger.LogWarning("Unauthorized PDF access attempt: User {UserId} tried to access result {ResultId} owned by {OwnerId}", 
+                        currentUserId, id, result.Session.User.Id);
+                    return Forbid();
+                }
+
                 var etag = BuildEtag(result);
                 if (Request.Headers.IfNoneMatch.Contains(etag))
                 {

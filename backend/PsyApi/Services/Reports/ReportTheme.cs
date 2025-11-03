@@ -10,44 +10,61 @@ namespace PsyApi.Services.Reports
     public static class ReportTheme
     {
         /// <summary>
-        /// Modern color palette for reports - following exact specifications
+        /// Enhanced institutional color palette for professional reports v2.0
         /// </summary>
         public static class Colors
         {
-            // Primary brand colors
-            public const string Primary = "#1E40AF";     // Blue
-            public const string Secondary = "#6366F1";   // Indigo
+            // Primary brand colors (institutional, professional)
+            public const string Primary = "#0B5ED7";     // Professional Blue
+            public const string Secondary = "#4F46E5";   // Indigo
             
-            // FINAL: Performance band colors as per v2 specifications
-            public const string Excellent = "#14A44D";   // Green ≥55
-            public const string Average = "#FF8C00";     // Orange 40-54.9  
-            public const string Weak = "#E53935";        // Red <40
+            // Semantic colors for statuses and bands
+            public const string Success = "#16A34A";     // Green (for Excellent ≥55)
+            public const string Warning = "#F59E0B";     // Amber (for Average 40-54.9)
+            public const string Danger = "#DC2626";      // Red (for Weak <40)
+            public const string Info = "#0EA5E9";        // Sky blue (informational)
             
-            // Track color for donut backgrounds
+            // Performance band colors (aliases for semantic colors)
+            public const string Excellent = Success;     // Green ≥55
+            public const string Average = Warning;       // Amber 40-54.9  
+            public const string Weak = Danger;           // Red <40
+            
+            // Neutral palette for charts and backgrounds
             public const string Track = "#E5E7EB";       // Gray-200 for unfilled areas
             public const string Unfilled = "#E5E7EB";    // Light gray for empty states (alias)
+            public const string Neutral = "#64748B";     // Slate-500
+            public const string NeutralLight = "#94A3B8"; // Slate-400
             
             // Layout colors
             public const string Background = "#FFFFFF";  // White
-            public const string Surface = "#FAFAFA";     // Light surface
-            public const string Border = "#E2E8F0";      // Gray border
+            public const string Surface = "#F9FAFB";     // Gray-50 (card backgrounds)
+            public const string SurfaceHover = "#F3F4F6"; // Gray-100 (hover states)
+            public const string Border = "#E5E7EB";      // Gray-200 (borders)
+            public const string Divider = "#D1D5DB";     // Gray-300 (dividers)
             
-            // Text colors
-            public const string Text = "#111827";        // Dark text (updated)
-            public const string TextSecondary = "#6B7280"; // Muted text (updated)
-            public const string TextLight = "#9CA3AF";   // Light gray
+            // Text colors (improved contrast)
+            public const string Text = "#111827";        // Gray-900 (primary text)
+            public const string TextSecondary = "#6B7280"; // Gray-500 (secondary text)
+            public const string TextMuted = "#9CA3AF";   // Gray-400 (muted text)
+            public const string TextLight = "#D1D5DB";   // Gray-300 (light text on dark)
+            
+            // Accent colors for highlights and interactive elements
+            public const string Accent = "#8B5CF6";      // Purple-500 (CTAs, highlights)
+            public const string AccentLight = "#A78BFA"; // Purple-400
         }
 
         /// <summary>
-        /// Tight spacing scale (8/12/16pt system) for consistent, compact layout
+        /// Enhanced spacing scale (4/8/12/16/24pt system) for consistent layout v2.0
         /// </summary>
         public static class Spacing
         {
-            // Modern compact spacing scale
-            public const float XS = 4f;      // Micro spacing
-            public const float SM = 8f;      // Small spacing 
-            public const float MD = 12f;     // Medium spacing
-            public const float LG = 16f;     // Large spacing
+            // Modern spacing scale
+            public const float XS = 4f;      // Micro spacing (tight gaps)
+            public const float SM = 8f;      // Small spacing (default gaps)
+            public const float MD = 12f;     // Medium spacing (section gaps)
+            public const float LG = 16f;     // Large spacing (major sections)
+            public const float XL = 24f;     // Extra large (page-level spacing)
+            public const float XXL = 32f;    // Double extra large (major breaks)
             
             // Legacy aliases for compatibility
             public const float XSmall = XS;   // 4f
@@ -55,8 +72,30 @@ namespace PsyApi.Services.Reports
             public const float Medium = MD;   // 12f
             public const float Large = LG;    // 16f
             
-            // Page margins (16-18mm as specified)
-            public const float PageMargin = 16f; // ~16mm in points
+            // Page margins (consistent across all pages)
+            public const float PageMargin = 40f; // 40pt (~14mm) - professional standard
+        }
+
+        /// <summary>
+        /// Typography scale for consistent text hierarchy v2.0
+        /// </summary>
+        public static class Typography
+        {
+            // Heading sizes (Arabic-optimized)
+            public const float H1 = 22f;     // Page titles, major headings
+            public const float H2 = 18f;     // Section titles
+            public const float H3 = 16f;     // Subsection titles
+            public const float H4 = 14f;     // Minor headings
+            
+            // Body text sizes
+            public const float Body = 12f;   // Standard body text
+            public const float BodyLarge = 14f; // Emphasized body text
+            public const float BodySmall = 10f; // Secondary/fine print
+            
+            // Special purpose sizes
+            public const float KPI = 28f;    // Large numbers (KPI cards)
+            public const float Caption = 9f; // Captions, footnotes
+            public const float Label = 11f;  // Form labels, chart labels
         }
 
         /// <summary>
