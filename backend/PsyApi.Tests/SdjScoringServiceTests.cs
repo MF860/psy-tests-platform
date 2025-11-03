@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PsyApi.Data;
@@ -17,6 +18,7 @@ namespace PsyApi.Tests
         private readonly AppDbContext _context;
         private readonly SdjScoringService _service;
         private readonly Mock<ILogger<SdjScoringService>> _loggerMock;
+        private readonly Mock<IConfiguration> _configurationMock;
 
         public SdjScoringServiceTests()
         {
@@ -27,7 +29,8 @@ namespace PsyApi.Tests
 
             _context = new AppDbContext(options);
             _loggerMock = new Mock<ILogger<SdjScoringService>>();
-            _service = new SdjScoringService(_context, _loggerMock.Object);
+            _configurationMock = new Mock<IConfiguration>();
+            _service = new SdjScoringService(_context, _loggerMock.Object, _configurationMock.Object);
         }
 
         public void Dispose()

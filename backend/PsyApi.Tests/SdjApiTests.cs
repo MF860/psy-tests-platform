@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using PsyApi.Data;
@@ -23,6 +24,7 @@ namespace PsyApi.Tests
         private readonly ISdjScoringService _sdjScoringService;
         private readonly Mock<Serilog.ILogger> _legacyLoggerMock;
         private readonly Mock<Microsoft.Extensions.Logging.ILogger<SdjScoringService>> _sdjLoggerMock;
+        private readonly Mock<IConfiguration> _configurationMock;
 
         public SdjApiTests()
         {
@@ -36,10 +38,11 @@ namespace PsyApi.Tests
             // Setup mocks
             _legacyLoggerMock = new Mock<Serilog.ILogger>();
             _sdjLoggerMock = new Mock<Microsoft.Extensions.Logging.ILogger<SdjScoringService>>();
+            _configurationMock = new Mock<IConfiguration>();
             
             // Create services
             _legacyScoringService = new ScoringService(_context, _legacyLoggerMock.Object);
-            _sdjScoringService = new SdjScoringService(_context, _sdjLoggerMock.Object);
+            _sdjScoringService = new SdjScoringService(_context, _sdjLoggerMock.Object, _configurationMock.Object);
             
             // Seed test data
             SeedTestData();

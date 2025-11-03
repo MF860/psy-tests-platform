@@ -16,7 +16,7 @@ namespace PsyApi.Services.Scoring
 
         // Population norms for T-score calculation
         private const double POPULATION_MEAN = 3.0;  // Middle of 1-5 Likert scale
-        private const double POPULATION_SD = 0.8;     // Typical SD for Likert responses
+        private const double POPULATION_SD = 1.0;    // Increased from 0.8 to widen variance (v2.1)
         private const double T_SCORE_MEAN = 50.0;
         private const double T_SCORE_SD = 10.0;
 

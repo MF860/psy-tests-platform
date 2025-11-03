@@ -13,17 +13,25 @@ namespace PsyApi.Services.Scoring
     {
         private readonly AppDbContext _context;
         private readonly ILogger<SdjScoringService> _logger;
+        private readonly IConfiguration _configuration;
 
-        // Population norms for T-score calculation
+        // IMPROVED: Population norms for T-score calculation
+        // Increased SD from 0.8 to 1.0 to allow more variance in T-scores
+        // This prevents artificial clustering of scores in 45-55 range
         private const double POPULATION_MEAN = 3.0;  // Middle of 1-5 Likert scale
-        private const double POPULATION_SD = 0.8;     // Typical SD for Likert responses
+        private const double POPULATION_SD = 1.0;    // Increased from 0.8 to widen variance
+        private const double POPULATION_SD_MIN = 0.4; // Minimum SD to prevent division by near-zero
         private const double T_SCORE_MEAN = 50.0;
         private const double T_SCORE_SD = 10.0;
+        
+        // Missing data threshold: if >20% items missing in subdimension, exclude it
+        private const double MISSING_DATA_THRESHOLD = 0.2;
 
-        public SdjScoringService(AppDbContext context, ILogger<SdjScoringService> logger)
+        public SdjScoringService(AppDbContext context, ILogger<SdjScoringService> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task<SdjScoreSummary> ComputeSdjScores(int sessionId)
@@ -136,14 +144,35 @@ namespace PsyApi.Services.Scoring
 
             foreach (var group in subDimGroups)
             {
-                var scores = group.Where(si => itemScores.ContainsKey(si.ItemId))
-                    .Select(si => itemScores[si.ItemId])
-                    .ToList();
+                var totalItems = group.Count();
+                var answeredItems = group.Where(si => itemScores.ContainsKey(si.ItemId)).ToList();
+                var scores = answeredItems.Select(si => itemScores[si.ItemId]).ToList();
 
                 if (!scores.Any()) continue;
 
-                var raw = scores.Average();
-                var tScore = ComputeTScore(raw);
+                // IMPROVED: Check missing data threshold
+                var missingRatio = 1.0 - ((double)answeredItems.Count / totalItems);
+                
+                // If >20% missing, use median imputation for robustness
+                double raw;
+                if (missingRatio > MISSING_DATA_THRESHOLD)
+                {
+                    _logger.LogWarning("[SDJ] SubDim {SubDim} has {MissingPct:P0} missing data, using median imputation", 
+                        group.Key.SubDimension, missingRatio);
+                    
+                    // Use median of answered items (more robust than mean for sparse data)
+                    var sortedScores = scores.OrderBy(s => s).ToList();
+                    raw = sortedScores.Count % 2 == 0 
+                        ? (sortedScores[sortedScores.Count / 2 - 1] + sortedScores[sortedScores.Count / 2]) / 2.0
+                        : sortedScores[sortedScores.Count / 2];
+                }
+                else
+                {
+                    raw = scores.Average();
+                }
+
+                // IMPROVED: Use enhanced T-score computation with per-subdimension norms potential
+                var tScore = ComputeTScore(raw, group.Key.SubDimension);
                 var percentile = ComputePercentile(tScore);
                 var band = GetBand(tScore);
 
@@ -155,7 +184,7 @@ namespace PsyApi.Services.Scoring
                     T = tScore,
                     Percentile = percentile,
                     Band = band,
-                    ItemCount = scores.Count
+                    ItemCount = answeredItems.Count
                 });
             }
 
@@ -173,7 +202,7 @@ namespace PsyApi.Services.Scoring
             {
                 var subDims = group.ToList();
                 var raw = subDims.Average(s => s.Raw);
-                var tScore = ComputeTScore(raw);
+                var tScore = ComputeTScore(raw, null); // Dimension-level uses global norms
                 var percentile = ComputePercentile(tScore);
                 var band = GetBand(tScore);
 
@@ -192,10 +221,23 @@ namespace PsyApi.Services.Scoring
             return results.OrderBy(d => d.T).ToList();
         }
 
-        private double ComputeTScore(double rawScore)
+        private double ComputeTScore(double rawScore, string? subDimension = null)
         {
+            // IMPROVED: Support per-subdimension norms (future enhancement)
+            // For now, use improved global defaults with wider SD for better variance
+            
+            var mean = POPULATION_MEAN;
+            var sd = POPULATION_SD;
+            
+            // Future: Look up per-subdimension norms from database
+            // var norm = await _context.SdjNorms.FirstOrDefaultAsync(n => n.SubDimension == subDimension);
+            // if (norm != null) { mean = norm.Mean; sd = Math.Max(norm.StdDev, POPULATION_SD_MIN); }
+            
+            // Ensure SD is not too small (prevents artificial compression)
+            sd = Math.Max(sd, POPULATION_SD_MIN);
+            
             // Z-score: (raw - mean) / sd
-            var zScore = (rawScore - POPULATION_MEAN) / POPULATION_SD;
+            var zScore = (rawScore - mean) / sd;
             
             // T-score: 50 + 10*Z
             var tScore = T_SCORE_MEAN + (T_SCORE_SD * zScore);

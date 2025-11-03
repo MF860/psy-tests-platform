@@ -245,7 +245,8 @@ builder.Services.AddScoped<IScoringService>(provider =>
 builder.Services.AddScoped<ISdjScoringService>(provider =>
     new SdjScoringService(
         provider.GetRequiredService<AppDbContext>(),
-        provider.GetRequiredService<ILogger<SdjScoringService>>()
+        provider.GetRequiredService<ILogger<SdjScoringService>>(),
+        provider.GetRequiredService<IConfiguration>()
     )
 );
 
