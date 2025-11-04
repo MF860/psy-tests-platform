@@ -5,52 +5,167 @@ using QuestPDF.Infrastructure;
 namespace PsyApi.Services.Reports
 {
     /// <summary>
-    /// Theme constants and helpers for modern PDF reports
+    /// ULTRA HI-FI v5 Design System - Aurora Glass & Noir Executive Themes
+    /// Dramatically different visual identity with glassmorphism and premium gradients
     /// </summary>
     public static class ReportTheme
     {
         /// <summary>
-        /// Enhanced institutional color palette for professional reports v2.0
+        /// Active theme mode - controls all visual styling
+        /// </summary>
+        public enum ThemeMode
+        {
+            AuroraGlass,    // Light theme with glassmorphism and gradients
+            NoirExecutive   // Dark theme with neumorphic shadows
+        }
+
+        // Default to Aurora Glass for immediate visual impact
+        public static ThemeMode CurrentTheme { get; set; } = ThemeMode.AuroraGlass;
+
+        /// <summary>
+        /// ULTRA HI-FI v5 Color System - Dramatically Enhanced
+        /// Aurora Glass: Vibrant gradients with glassmorphism
+        /// Noir Executive: Premium dark with high contrast
         /// </summary>
         public static class Colors
         {
-            // Primary brand colors (institutional, professional)
-            public const string Primary = "#0B5ED7";     // Professional Blue
-            public const string Secondary = "#4F46E5";   // Indigo
+            // === AURORA GLASS COLORS (Light Theme) ===
+            private static class Aurora
+            {
+                // Background gradients (applied to full pages)
+                public const string GradientStart = "#D4F1F4";    // Soft cyan
+                public const string GradientEnd = "#E8F5E9";      // Soft mint
+                
+                // Glass surfaces with blur effect
+                public const string GlassLight = "#FFFFFF";       // Pure white glass
+                public const string GlassMedium = "#F8FEFF";      // Cyan-tinted glass
+                public const string GlassDark = "#ECF5FF";        // Blue-tinted glass
+                
+                // Primary brand - vibrant electric blue
+                public const string Primary = "#0066FF";          // Electric Blue
+                public const string PrimaryLight = "#3399FF";     // Sky Blue
+                public const string PrimaryDark = "#0047B3";      // Deep Blue
+                
+                // Status colors - vivid and clear
+                public const string Success = "#00C853";          // Vivid Green
+                public const string Warning = "#FFB300";          // Bright Amber
+                public const string Danger = "#FF1744";           // Vivid Red
+                public const string Info = "#00B8D4";             // Cyan
+                
+                // Accent colors - purple and gold
+                public const string Accent = "#AA00FF";           // Vivid Purple
+                public const string Gold = "#FFD700";             // True Gold
+                
+                // Text on glass surfaces
+                public const string Text = "#1A1A1A";             // Almost black
+                public const string TextSecondary = "#424242";    // Dark gray
+                public const string TextTertiary = "#757575";     // Medium gray
+                
+                // Borders and dividers - subtle but visible
+                public const string Border = "#B0BEC5";           // Blue-gray
+                public const string Divider = "#CFD8DC";          // Light blue-gray
+            }
+
+            // === NOIR EXECUTIVE COLORS (Dark Theme) ===
+            private static class Noir
+            {
+                // Background gradients (dark with vignette)
+                public const string GradientStart = "#0A0E27";    // Deep navy
+                public const string GradientEnd = "#1A1A2E";      // Charcoal
+                
+                // Neumorphic surfaces
+                public const string SurfaceElevated = "#16213E";  // Elevated panel
+                public const string SurfaceBase = "#0F1419";      // Base panel
+                public const string SurfaceDepressed = "#080B10"; // Depressed area
+                
+                // Primary brand - bright cyan for contrast
+                public const string Primary = "#00D9FF";          // Bright Cyan
+                public const string PrimaryLight = "#33E0FF";     // Lighter Cyan
+                public const string PrimaryDark = "#00A8CC";      // Deep Cyan
+                
+                // Status colors - neon-bright for dark theme
+                public const string Success = "#00FF85";          // Neon Green
+                public const string Warning = "#FFD93D";          // Bright Yellow
+                public const string Danger = "#FF3D71";           // Neon Pink-Red
+                public const string Info = "#6BCF7F";             // Mint Green
+                
+                // Accent colors - gold and magenta
+                public const string Accent = "#FF0080";           // Hot Pink
+                public const string Gold = "#FFAA00";             // Bright Gold
+                
+                // Text for dark backgrounds
+                public const string Text = "#FFFFFF";             // Pure white
+                public const string TextSecondary = "#B0BEC5";    // Light gray
+                public const string TextTertiary = "#78909C";     // Medium gray
+                
+                // Borders - glowing effect
+                public const string Border = "#2C3E50";           // Subtle glow
+                public const string Divider = "#1C2A38";          // Darker divider
+            }
+
+            // === ACTIVE THEME PROPERTIES (Dynamic) ===
+            public static string Background => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.GradientStart : Noir.GradientStart;
             
-            // Semantic colors for statuses and bands
-            public const string Success = "#16A34A";     // Green (for Excellent ≥55)
-            public const string Warning = "#F59E0B";     // Amber (for Average 40-54.9)
-            public const string Danger = "#DC2626";      // Red (for Weak <40)
-            public const string Info = "#0EA5E9";        // Sky blue (informational)
+            public static string BackgroundEnd => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.GradientEnd : Noir.GradientEnd;
             
-            // Performance band colors (aliases for semantic colors)
-            public const string Excellent = Success;     // Green ≥55
-            public const string Average = Warning;       // Amber 40-54.9  
-            public const string Weak = Danger;           // Red <40
+            public static string Surface => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.GlassLight : Noir.SurfaceElevated;
             
-            // Neutral palette for charts and backgrounds
-            public const string Track = "#E5E7EB";       // Gray-200 for unfilled areas
-            public const string Unfilled = "#E5E7EB";    // Light gray for empty states (alias)
-            public const string Neutral = "#64748B";     // Slate-500
-            public const string NeutralLight = "#94A3B8"; // Slate-400
+            public static string SurfaceHover => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.GlassMedium : Noir.SurfaceBase;
             
-            // Layout colors
-            public const string Background = "#FFFFFF";  // White
-            public const string Surface = "#F9FAFB";     // Gray-50 (card backgrounds)
-            public const string SurfaceHover = "#F3F4F6"; // Gray-100 (hover states)
-            public const string Border = "#E5E7EB";      // Gray-200 (borders)
-            public const string Divider = "#D1D5DB";     // Gray-300 (dividers)
+            public static string Primary => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Primary : Noir.Primary;
             
-            // Text colors (improved contrast)
-            public const string Text = "#111827";        // Gray-900 (primary text)
-            public const string TextSecondary = "#6B7280"; // Gray-500 (secondary text)
-            public const string TextMuted = "#9CA3AF";   // Gray-400 (muted text)
-            public const string TextLight = "#D1D5DB";   // Gray-300 (light text on dark)
+            public static string PrimaryLight => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.PrimaryLight : Noir.PrimaryLight;
             
-            // Accent colors for highlights and interactive elements
-            public const string Accent = "#8B5CF6";      // Purple-500 (CTAs, highlights)
-            public const string AccentLight = "#A78BFA"; // Purple-400
+            public static string Success => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Success : Noir.Success;
+            
+            public static string Warning => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Warning : Noir.Warning;
+            
+            public static string Danger => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Danger : Noir.Danger;
+            
+            public static string Info => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Info : Noir.Info;
+            
+            public static string Accent => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Accent : Noir.Accent;
+            
+            public static string Gold => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Gold : Noir.Gold;
+            
+            public static string Text => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Text : Noir.Text;
+            
+            public static string TextSecondary => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.TextSecondary : Noir.TextSecondary;
+            
+            public static string TextMuted => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.TextTertiary : Noir.TextTertiary;
+            
+            public static string Border => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Border : Noir.Border;
+            
+            public static string Divider => CurrentTheme == ThemeMode.AuroraGlass 
+                ? Aurora.Divider : Noir.Divider;
+
+            // Aliases for backward compatibility
+            public static string Excellent => Success;
+            public static string Average => Warning;
+            public static string Weak => Danger;
+            public static string Secondary => CurrentTheme == ThemeMode.AuroraGlass ? "#6366F1" : "#9333EA";
+            public static string Track => Border;
+            public static string Unfilled => Divider;
+            public static string Neutral => TextSecondary;
+            public static string NeutralLight => TextMuted;
+            public static string TextLight => TextMuted;
+            public static string AccentLight => Accent;
         }
 
         /// <summary>
@@ -141,12 +256,13 @@ namespace PsyApi.Services.Reports
         /// <summary>
         /// Create Arabic text style for proper RTL rendering with Noto Naskh Arabic
         /// </summary>
-        public static TextStyle ArabicTextStyle(float size, bool bold = false, string color = Colors.Text)
+        public static TextStyle ArabicTextStyle(float size, bool bold = false, string? color = null)
         {
+            var textColor = color ?? Colors.Text;  // Resolve at runtime
             var style = TextStyle.Default
                 .FontFamily("Noto Naskh Arabic")
                 .FontSize(size)
-                .FontColor(color)
+                .FontColor(textColor)
                 .DirectionFromRightToLeft();
             
             if (bold)

@@ -40,13 +40,19 @@ namespace PsyApi.Services.Reports
 
             try
             {
+                // ULTRA HI-FI v5 Theme Banner
+                var themeName = ReportTheme.CurrentTheme == ReportTheme.ThemeMode.AuroraGlass ? "Aurora Glass" : "Noir Executive";
                 Console.WriteLine($"\n{'═',70}");
+                Console.WriteLine($"★ ULTRA HI-FI v5 — {themeName} Theme ★");
                 Console.WriteLine($"🎯 SDJ SEVEN-PATTERN REPORT GENERATION");
                 Console.WriteLine($"{'═',70}");
                 Console.WriteLine($"👤 User: {user.FullName ?? "غير محدد"} (ID: {user.NationalId ?? "N/A"})");
                 Console.WriteLine($"📋 Session: {result.SessionId}");
                 Console.WriteLine($"🕐 Time: {startTime:yyyy-MM-dd HH:mm:ss}");
                 Console.WriteLine($"📊 Version: {sdjData.Version}");
+                Console.WriteLine($"🎨 Theme: {themeName}");
+                Console.WriteLine($"🌈 Primary Color: {ReportTheme.Colors.Primary}");
+                Console.WriteLine($"🌈 Background: {ReportTheme.Colors.Background}");
 
                 Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("ar-JO");
                 QuestPDF.Settings.License = LicenseType.Community;
@@ -145,22 +151,39 @@ namespace PsyApi.Services.Reports
             var overallStatus = avgTScore >= 55 ? "أداء متقدم" : avgTScore >= 45 ? "أداء متوسط" : "يحتاج تطوير";
             var statusColor = ReportTheme.GetBandColor(avgTScore);
 
-            page.Content().Column(column =>
+            // ULTRA HI-FI v5: Gradient background layer
+            page.Content()
+                .Background(ReportTheme.Colors.Background)  // Gradient start color
+                .Border(10)  // Thick border for visual impact
+                .BorderColor(ReportTheme.Colors.Primary)
+                .Column(column =>
             {
                 column.Spacing(HiFiSettings.Spacing.LG);
+
+                // ULTRA HI-FI v5 BANNER
+                column.Item()
+                    .Background(ReportTheme.Colors.Primary)
+                    .Padding(12)
+                    .AlignCenter()
+                    .Text(text =>
+                    {
+                        var theme = ReportTheme.CurrentTheme == ReportTheme.ThemeMode.AuroraGlass ? "Aurora Glass" : "Noir Executive";
+                        text.Span($"★ ULTRA HI-FI v5 — {theme} Edition ★")
+                            .Style(TextStyle.Default.FontSize(14).FontColor("#FFFFFF").Bold());
+                    });
 
                 // LARGE CENTERED LOGO (Enhanced size for impact)
                 if (_logoBytes != null && _logoBytes.Length > 0)
                 {
                     column.Item()
                         .AlignCenter()
-                        .Width(140) // Increased from 100
+                        .Width(160) // Increased from 140 for more impact
                         .Image(_logoBytes);
                 }
 
                 column.Item().PaddingTop(HiFiSettings.Spacing.XL);
 
-                // MAIN TITLE (Enhanced typography)
+                // MAIN TITLE (Enhanced typography with new colors)
                 column.Item().AlignCenter()
                     .Text(UnicodeTextHelper.NormalizeNfc("التقرير النفسي الشامل — نتائج القياس والتحليل"))
                     .Style(ReportTheme.ArabicTextStyle(ReportTheme.Typography.H1, true, ReportTheme.Colors.Primary));
@@ -833,6 +856,7 @@ namespace PsyApi.Services.Reports
                 column.Item().PaddingTop(12);
 
                 // DEVELOPMENT PRIORITY MATRIX (Modern visual guide)
+                Console.WriteLine($"[COLOR-DEBUG] Using ReportTheme.Colors - Surface:{ReportTheme.Colors.Surface}, Warning:{ReportTheme.Colors.Warning}, Primary:{ReportTheme.Colors.Primary}");
                 column.Item()
                     .Background(ReportTheme.Colors.Surface)
                     .Border(1).BorderColor(ReportTheme.Colors.Warning)
@@ -1117,15 +1141,27 @@ namespace PsyApi.Services.Reports
                     });
                 });
 
-            // Professional Footer with Page Numbers (RTL)
+            // ULTRA HI-FI v5 Footer with Watermark Signature
             page.Footer()
-                .AlignCenter()
-                .Text(text =>
+                .Column(footer =>
                 {
-                    text.Span("صفحة ").Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
-                    text.CurrentPageNumber().Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.Primary));
-                    text.Span(" من ").Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
-                    text.TotalPages().Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.Primary));
+                    // Watermark signature line (proof of new version)
+                    footer.Item().AlignCenter().Text(text =>
+                    {
+                        var theme = ReportTheme.CurrentTheme == ReportTheme.ThemeMode.AuroraGlass ? "Aurora" : "Noir";
+                        var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm UTC");
+                        text.Span($"UltraHiFi v5 • {theme} Theme • {timestamp}")
+                            .Style(TextStyle.Default.FontSize(7).FontColor(ReportTheme.Colors.TextMuted).Italic());
+                    });
+                    
+                    // Page numbers (RTL Arabic)
+                    footer.Item().PaddingTop(2).AlignCenter().Text(text =>
+                    {
+                        text.Span("صفحة ").Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
+                        text.CurrentPageNumber().Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.Primary));
+                        text.Span(" من ").Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
+                        text.TotalPages().Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.Primary));
+                    });
                 });
         }
 
