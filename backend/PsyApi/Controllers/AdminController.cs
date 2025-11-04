@@ -337,7 +337,7 @@ namespace PsyApi.Controllers
 
             // Compute weak ETag from payload signature
             // IMPORTANT: Include PDF_VERSION to force cache invalidation when PDF renderer changes
-            const string PDF_VERSION = "v4.0-ultra-hifi"; // Increment this to invalidate all cached PDFs
+            const string PDF_VERSION = "v4.1-ultra-hifi-colors"; // Increment this to invalidate all cached PDFs
             var sigSource = $"{PDF_VERSION}:{entity.Id}:{entity.SessionId}:{entity.TotalScore}:{entity.ScoringModelVersion}:{entity.DimensionScoresJson?.Length ?? 0}:{entity.CreatedAt.Ticks}";
             var sigBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(sigSource));
             var etag = "W/\"" + Convert.ToBase64String(sigBytes)[..16] + "\"";
@@ -391,7 +391,9 @@ namespace PsyApi.Controllers
             }
             catch { }
             Response.Headers["ETag"] = etag;
-            Response.Headers["Cache-Control"] = "public, max-age=300";
+            Response.Headers["Cache-Control"] = "public, max-age=300, must-revalidate";
+            Response.Headers["Vary"] = "Accept-Encoding";
+            Response.Headers["X-PDF-Version"] = PDF_VERSION;
             return File(bytes, "application/pdf", filename);
         }
 
