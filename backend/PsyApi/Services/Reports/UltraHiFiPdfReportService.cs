@@ -271,14 +271,20 @@ namespace PsyApi.Services.Reports
                 // Map V2 PatternScores to SevenPatternScores
                 SevenPatternScores = v2Data.PatternScores?.Select(p => new SevenPatternScore
                 {
+                    PatternKey = p.PatternKey ?? "",
                     PatternNameAr = p.PatternNameAr ?? "",
                     PatternNameEn = p.PatternKey ?? "",
                     TScore = p.TScore,
+                    Percentile = p.Percentile,
+                    Raw = p.Raw,
                     Band = p.Band ?? "",
+                    SubDimensionCount = p.SubDimensions?.Count ?? 0,
                     SubDimensions = p.SubDimensions?.Select(sd => new SdjSubDimensionScore
                     {
                         SubDimension = sd.SubNameAr ?? "",
                         T = sd.TScore,
+                        Percentile = sd.Percentile,
+                        Raw = sd.Raw,
                         Band = sd.Band ?? ""
                     }).ToList() ?? new List<SdjSubDimensionScore>()
                 }).ToList() ?? new List<SevenPatternScore>(),

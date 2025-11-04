@@ -336,7 +336,9 @@ namespace PsyApi.Controllers
             if (user == null) return NotFound();
 
             // Compute weak ETag from payload signature
-            var sigSource = $"{entity.Id}:{entity.SessionId}:{entity.TotalScore}:{entity.ScoringModelVersion}:{entity.DimensionScoresJson?.Length ?? 0}:{entity.CreatedAt.Ticks}";
+            // IMPORTANT: Include PDF_VERSION to force cache invalidation when PDF renderer changes
+            const string PDF_VERSION = "v4.0-ultra-hifi"; // Increment this to invalidate all cached PDFs
+            var sigSource = $"{PDF_VERSION}:{entity.Id}:{entity.SessionId}:{entity.TotalScore}:{entity.ScoringModelVersion}:{entity.DimensionScoresJson?.Length ?? 0}:{entity.CreatedAt.Ticks}";
             var sigBytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(sigSource));
             var etag = "W/\"" + Convert.ToBase64String(sigBytes)[..16] + "\"";
 

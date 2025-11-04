@@ -1,0 +1,552 @@
+{
+  "reportMetadata": {
+    "reportType": "SDJ V2 Seven-Pattern Analysis",
+    "reportVersion": "4.0 - Ultra Hi-Fi",
+    "generatedDate": "2025-11-04T10:30:00Z",
+    "language": "AR",
+    "theme": "Aurora Glass"
+  },
+  "userInfo": {
+    "fullName": "محمد أحمد السعيد",
+    "nationalId": "1000000001",
+    "email": "mohammed.ahmed@example.com",
+    "phoneNumber": "+966501234567",
+    "dateOfBirth": "1995-05-15",
+    "age": 29,
+    "gender": "M",
+    "educationLevel": "Bachelor",
+    "sessionDate": "2025-11-03T14:30:00Z"
+  },
+  "sessionInfo": {
+    "sessionId": 157,
+    "resultId": 179,
+    "testName": "اختبار سيلمان دانيال جوردان - الإصدار الثاني",
+    "testCode": "SDJ_V2",
+    "totalQuestions": 210,
+    "completedQuestions": 210,
+    "duration": "90 minutes",
+    "completionPercentage": 100,
+    "scoringModel": "SDJ_V2"
+  },
+  "overallScore": {
+    "totalTScore": 365,
+    "averageTScore": 52.1,
+    "percentile": 59.3,
+    "band": "Good",
+    "interpretation": "أداء جيد بشكل عام مع تميز في الأنماط الشخصية والقدرات المعرفية"
+  },
+  "sevenPatterns": [
+    {
+      "patternId": "P1",
+      "patternKey": "personality_patterns",
+      "patternNameAr": "الأنماط الشخصية",
+      "patternNameEn": "Personality Patterns",
+      "rawScore": 85,
+      "tScore": 62,
+      "percentile": 88,
+      "level": "ممتاز",
+      "levelEn": "Excellent",
+      "band": "Excellent",
+      "bandColor": "#10b981",
+      "interpretation": "يتمتع المشارك بأنماط شخصية متوازنة وقدرة عالية على الفهم الذاتي والتفاعل الإيجابي",
+      "strengths": [
+        "وعي ذاتي متقدم وفهم عميق للشخصية",
+        "توازن بين السمات الشخصية المختلفة",
+        "نمط تعلم فعال ومتنوع"
+      ],
+      "developmentAreas": [],
+      "subDimensions": [
+        {
+          "subId": "P1_S1",
+          "subKey": "mbti",
+          "subNameAr": "نمط الشخصية MBTI",
+          "subNameEn": "MBTI Personality Type",
+          "rawScore": 28,
+          "tScore": 60,
+          "percentile": 84,
+          "band": "Excellent",
+          "interpretation": "نمط شخصية واضح ومتوازن يدعم الأداء الفعال",
+          "itemCount": 10
+        },
+        {
+          "subId": "P1_S2",
+          "subKey": "big_five",
+          "subNameAr": "السمات الخمس الكبرى",
+          "subNameEn": "Big Five Traits",
+          "rawScore": 29,
+          "tScore": 63,
+          "percentile": 90,
+          "band": "Excellent",
+          "interpretation": "سمات شخصية إيجابية ومتطورة في الأبعاد الخمسة",
+          "itemCount": 10
+        },
+        {
+          "subId": "P1_S3",
+          "subKey": "learning_style",
+          "subNameAr": "نمط التعلم",
+          "subNameEn": "Learning Style",
+          "rawScore": 28,
+          "tScore": 63,
+          "percentile": 89,
+          "band": "Excellent",
+          "interpretation": "نمط تعلم فعال ومتنوع يتيح استيعاب المعلومات بكفاءة",
+          "itemCount": 10
+        }
+      ]
+    },
+    {
+      "patternId": "P2",
+      "patternKey": "cognitive_mental",
+      "patternNameAr": "القدرات المعرفية والعقلية",
+      "patternNameEn": "Cognitive & Mental Abilities",
+      "rawScore": 78,
+      "tScore": 58,
+      "percentile": 82,
+      "level": "ممتاز",
+      "levelEn": "Excellent",
+      "band": "Excellent",
+      "bandColor": "#10b981",
+      "interpretation": "قدرات معرفية متقدمة مع مهارات عقلية قوية في التحليل والإبداع والذاكرة",
+      "strengths": [
+        "ذكاءات متنوعة ومتوازنة",
+        "ذاكرة قوية وفعالة",
+        "قدرة ممتازة على التركيز والانتباه",
+        "تفكير إبداعي متميز"
+      ],
+      "developmentAreas": [],
+      "subDimensions": [
+        {
+          "subId": "P2_S1",
+          "subKey": "multiple_intelligences",
+          "subNameAr": "الذكاءات المتعددة",
+          "subNameEn": "Multiple Intelligences",
+          "rawScore": 20,
+          "tScore": 57,
+          "percentile": 79,
+          "band": "Good",
+          "interpretation": "ذكاءات متنوعة تشمل اللغوي والمنطقي والمكاني والحركي",
+          "itemCount": 10
+        },
+        {
+          "subId": "P2_S2",
+          "subKey": "memory",
+          "subNameAr": "الذاكرة",
+          "subNameEn": "Memory",
+          "rawScore": 19,
+          "tScore": 58,
+          "percentile": 81,
+          "band": "Excellent",
+          "interpretation": "ذاكرة قوية في الاحتفاظ بالمعلومات واسترجاعها",
+          "itemCount": 10
+        },
+        {
+          "subId": "P2_S3",
+          "subKey": "attention",
+          "subNameAr": "الانتباه والتركيز",
+          "subNameEn": "Attention & Focus",
+          "rawScore": 20,
+          "tScore": 59,
+          "percentile": 83,
+          "band": "Excellent",
+          "interpretation": "قدرة ممتازة على التركيز والانتباه للتفاصيل",
+          "itemCount": 10
+        },
+        {
+          "subId": "P2_S4",
+          "subKey": "creativity",
+          "subNameAr": "الإبداع والابتكار",
+          "subNameEn": "Creativity & Innovation",
+          "rawScore": 19,
+          "tScore": 58,
+          "percentile": 82,
+          "band": "Excellent",
+          "interpretation": "تفكير إبداعي متميز في حل المشكلات بطرق جديدة",
+          "itemCount": 10
+        }
+      ]
+    },
+    {
+      "patternId": "P3",
+      "patternKey": "psychological_patterns",
+      "patternNameAr": "الأنماط النفسية",
+      "patternNameEn": "Psychological Patterns",
+      "rawScore": 72,
+      "tScore": 55,
+      "percentile": 71,
+      "level": "جيد",
+      "levelEn": "Good",
+      "band": "Good",
+      "bandColor": "#3b82f6",
+      "interpretation": "صحة نفسية جيدة مع قدرة على إدارة الضغوط والمشاعر بشكل فعال",
+      "strengths": [
+        "قدرة جيدة على إدارة التوتر والضغوط",
+        "مستوى قلق مناسب ومتوازن",
+        "مرونة نفسية تساعد على التعافي",
+        "ذكاء عاطفي متطور"
+      ],
+      "developmentAreas": [
+        "تعزيز استراتيجيات إدارة التوتر المتقدمة"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P3_S1",
+          "subKey": "stress_management",
+          "subNameAr": "إدارة التوتر",
+          "subNameEn": "Stress Management",
+          "rawScore": 18,
+          "tScore": 54,
+          "percentile": 69,
+          "band": "Good",
+          "interpretation": "قدرة جيدة على التعامل مع الضغوط اليومية",
+          "itemCount": 10
+        },
+        {
+          "subId": "P3_S2",
+          "subKey": "anxiety",
+          "subNameAr": "القلق",
+          "subNameEn": "Anxiety",
+          "rawScore": 18,
+          "tScore": 55,
+          "percentile": 71,
+          "band": "Good",
+          "interpretation": "مستوى قلق مناسب لا يعيق الأداء اليومي",
+          "itemCount": 10
+        },
+        {
+          "subId": "P3_S3",
+          "subKey": "resilience",
+          "subNameAr": "المرونة النفسية",
+          "subNameEn": "Psychological Resilience",
+          "rawScore": 18,
+          "tScore": 56,
+          "percentile": 73,
+          "band": "Good",
+          "interpretation": "مرونة نفسية جيدة في مواجهة التحديات",
+          "itemCount": 10
+        },
+        {
+          "subId": "P3_S4",
+          "subKey": "emotional_intelligence",
+          "subNameAr": "الذكاء العاطفي",
+          "subNameEn": "Emotional Intelligence",
+          "rawScore": 18,
+          "tScore": 55,
+          "percentile": 72,
+          "band": "Good",
+          "interpretation": "ذكاء عاطفي متطور في فهم وإدارة المشاعر",
+          "itemCount": 10
+        }
+      ]
+    },
+    {
+      "patternId": "P4",
+      "patternKey": "behavioral_patterns",
+      "patternNameAr": "الأنماط السلوكية",
+      "patternNameEn": "Behavioral Patterns",
+      "rawScore": 68,
+      "tScore": 52,
+      "percentile": 62,
+      "level": "جيد",
+      "levelEn": "Good",
+      "band": "Good",
+      "bandColor": "#3b82f6",
+      "interpretation": "أنماط سلوكية إيجابية مع قدرة على التكيف والتأثير في الآخرين",
+      "strengths": [
+        "قدرة جيدة على التكيف مع التغييرات",
+        "مهارات قيادية وتأثير إيجابي",
+        "ضبط انفعالات مناسب"
+      ],
+      "developmentAreas": [
+        "تطوير مهارات القيادة المتقدمة",
+        "تعزيز القدرة على التأثير في المواقف المعقدة"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P4_S1",
+          "subKey": "adaptation",
+          "subNameAr": "التكيف",
+          "subNameEn": "Adaptation",
+          "rawScore": 23,
+          "tScore": 52,
+          "percentile": 61,
+          "band": "Good",
+          "interpretation": "قدرة جيدة على التكيف مع المواقف والبيئات الجديدة",
+          "itemCount": 10
+        },
+        {
+          "subId": "P4_S2",
+          "subKey": "influence_leadership",
+          "subNameAr": "القدرة على التأثير والقيادة",
+          "subNameEn": "Influence & Leadership",
+          "rawScore": 23,
+          "tScore": 53,
+          "percentile": 64,
+          "band": "Good",
+          "interpretation": "مهارات قيادية جيدة مع قدرة على التأثير في الآخرين",
+          "itemCount": 10
+        },
+        {
+          "subId": "P4_S3",
+          "subKey": "anger_control",
+          "subNameAr": "ضبط الانفعالات والغضب",
+          "subNameEn": "Anger Control",
+          "rawScore": 22,
+          "tScore": 52,
+          "percentile": 62,
+          "band": "Good",
+          "interpretation": "ضبط انفعالات مناسب في المواقف الضاغطة",
+          "itemCount": 10
+        }
+      ]
+    },
+    {
+      "patternId": "P5",
+      "patternKey": "numerical_logical",
+      "patternNameAr": "الأنماط العددية والمنطقية",
+      "patternNameEn": "Numerical & Logical Patterns",
+      "rawScore": 64,
+      "tScore": 50,
+      "percentile": 52,
+      "level": "متوسط",
+      "levelEn": "Average",
+      "band": "Average",
+      "bandColor": "#f59e0b",
+      "interpretation": "قدرات عددية ومنطقية متوسطة مع إمكانية جيدة للتطوير",
+      "strengths": [
+        "قدرة متوسطة على الاستنتاج المنطقي"
+      ],
+      "developmentAreas": [
+        "تطوير المهارات الحسابية",
+        "تحسين قدرات التحليل العددي",
+        "تعزيز مهارات الارتباط والتحليل الإحصائي"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P5_S1",
+          "subKey": "arithmetic",
+          "subNameAr": "القدرات الحسابية",
+          "subNameEn": "Arithmetic Abilities",
+          "rawScore": 21,
+          "tScore": 49,
+          "percentile": 50,
+          "band": "Average",
+          "interpretation": "مهارات حسابية مقبولة تحتاج للتطوير",
+          "itemCount": 10
+        },
+        {
+          "subId": "P5_S2",
+          "subKey": "deduction",
+          "subNameAr": "الاستنتاج المنطقي",
+          "subNameEn": "Logical Deduction",
+          "rawScore": 22,
+          "tScore": 51,
+          "percentile": 54,
+          "band": "Average",
+          "interpretation": "قدرة متوسطة على الاستنتاج المنطقي",
+          "itemCount": 10
+        },
+        {
+          "subId": "P5_S3",
+          "subKey": "correlation",
+          "subNameAr": "معامل الارتباط والتحليل",
+          "subNameEn": "Correlation & Analysis",
+          "rawScore": 21,
+          "tScore": 50,
+          "percentile": 52,
+          "band": "Average",
+          "interpretation": "قدرة متوسطة على تحليل البيانات والارتباطات",
+          "itemCount": 10
+        }
+      ]
+    },
+    {
+      "patternId": "P6",
+      "patternKey": "leadership_organizational",
+      "patternNameAr": "الأنماط القيادية والتنظيمية",
+      "patternNameEn": "Leadership & Organizational Patterns",
+      "rawScore": 62,
+      "tScore": 49,
+      "percentile": 47,
+      "level": "متوسط",
+      "levelEn": "Average",
+      "band": "Average",
+      "bandColor": "#f59e0b",
+      "interpretation": "مهارات قيادية وتنظيمية متوسطة تحتاج إلى تعزيز وتطوير",
+      "strengths": [],
+      "developmentAreas": [
+        "تحسين مهارات اتخاذ القرار",
+        "تطوير قدرات تفويض المهام",
+        "تعزيز أساليب المساءلة والثواب"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P6_S1",
+          "subKey": "decision_making",
+          "subNameAr": "اتخاذ القرار",
+          "subNameEn": "Decision Making",
+          "rawScore": 21,
+          "tScore": 49,
+          "percentile": 47,
+          "band": "Average",
+          "interpretation": "قدرة متوسطة على اتخاذ القرارات الفعالة",
+          "itemCount": 10
+        },
+        {
+          "subId": "P6_S2",
+          "subKey": "delegation",
+          "subNameAr": "تفويض المهام",
+          "subNameEn": "Task Delegation",
+          "rawScore": 20,
+          "tScore": 48,
+          "percentile": 45,
+          "band": "Average",
+          "interpretation": "قدرة مقبولة على تفويض المهام بفعالية",
+          "itemCount": 10
+        },
+        {
+          "subId": "P6_S3",
+          "subKey": "reward_accountability",
+          "subNameAr": "الثواب والعقاب والمساءلة",
+          "subNameEn": "Reward & Accountability",
+          "rawScore": 21,
+          "tScore": 50,
+          "percentile": 49,
+          "band": "Average",
+          "interpretation": "إدارة مساءلة مناسبة بحاجة للتحسين",
+          "itemCount": 10
+        }
+      ]
+    },
+    {
+      "patternId": "P7",
+      "patternKey": "general_professional_aptitudes",
+      "patternNameAr": "الاستعدادات المهنية العامة",
+      "patternNameEn": "General Professional Aptitudes",
+      "rawScore": 60,
+      "tScore": 48,
+      "percentile": 42,
+      "level": "متوسط",
+      "levelEn": "Average",
+      "band": "Average",
+      "bandColor": "#f59e0b",
+      "interpretation": "استعدادات مهنية مقبولة مع حاجة للتطوير المهني المستمر",
+      "strengths": [],
+      "developmentAreas": [
+        "تطوير مهارات التعامل مع المواقف المعقدة",
+        "تحسين القدرة على إدارة الأولويات المتضاربة",
+        "تعزيز مهارات اتخاذ القرار تحت الضغط"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P7_S1",
+          "subKey": "complex_work_situations",
+          "subNameAr": "التعامل مع مواقف العمل المعقدة",
+          "subNameEn": "Complex Work Situations",
+          "rawScore": 60,
+          "tScore": 48,
+          "percentile": 42,
+          "band": "Average",
+          "interpretation": "قدرة مقبولة على التعامل مع التعقيد والغموض",
+          "itemCount": 10
+        }
+      ]
+    }
+  ],
+  "actionPlan": {
+    "summary": "خطة تطوير شاملة تركز على تعزيز القدرات العددية والمهارات القيادية",
+    "priorities": [
+      {
+        "priority": 1,
+        "patternId": "P5",
+        "patternNameAr": "الأنماط العددية والمنطقية",
+        "action": "الالتحاق بدورات تدريبية في التحليل الإحصائي والرياضيات التطبيقية",
+        "timeline": "3-6 أشهر",
+        "expectedImpact": "تحسين القدرات الحسابية والمنطقية بنسبة 20-30%"
+      },
+      {
+        "priority": 2,
+        "patternId": "P6",
+        "patternNameAr": "الأنماط القيادية والتنظيمية",
+        "action": "المشاركة في برامج تطوير القيادة وورش العمل التنظيمية",
+        "timeline": "6-9 أشهر",
+        "expectedImpact": "تعزيز المهارات القيادية والتنظيمية بنسبة 25-35%"
+      },
+      {
+        "priority": 3,
+        "patternId": "P7",
+        "patternNameAr": "الاستعدادات المهنية العامة",
+        "action": "التدريب على حل المشكلات المعقدة واتخاذ القرار تحت الضغط",
+        "timeline": "3-6 أشهر",
+        "expectedImpact": "تحسين الاستعدادات المهنية بنسبة 15-25%"
+      }
+    ],
+    "generalRecommendations": [
+      "الاستمرار في تطوير نقاط القوة في الأنماط الشخصية والقدرات المعرفية",
+      "التركيز على التطوير المستمر في المجالات متوسطة الأداء",
+      "البحث عن فرص عملية لتطبيق المهارات الجديدة",
+      "الحصول على إرشاد مهني (Mentorship) في المجالات القيادية"
+    ]
+  },
+  "chartData": {
+    "radarChart": {
+      "labels": [
+        "الأنماط الشخصية",
+        "القدرات المعرفية",
+        "الأنماط النفسية",
+        "الأنماط السلوكية",
+        "الأنماط العددية",
+        "الأنماط القيادية",
+        "الاستعدادات المهنية"
+      ],
+      "values": [62, 58, 55, 52, 50, 49, 48]
+    },
+    "barChart": {
+      "categories": [
+        "P1: الأنماط الشخصية",
+        "P2: القدرات المعرفية",
+        "P3: الأنماط النفسية",
+        "P4: الأنماط السلوكية",
+        "P5: الأنماط العددية",
+        "P6: الأنماط القيادية",
+        "P7: الاستعدادات المهنية"
+      ],
+      "tScores": [62, 58, 55, 52, 50, 49, 48],
+      "percentiles": [88, 82, 71, 62, 52, 47, 42]
+    },
+    "donutChart": {
+      "excellent": 2,
+      "good": 3,
+      "average": 2,
+      "belowAverage": 0
+    }
+  },
+  "careerInsights": {
+    "recommendedFields": [
+      {
+        "fieldNameAr": "علم النفس والإرشاد",
+        "fieldNameEn": "Psychology & Counseling",
+        "matchPercentage": 88,
+        "reason": "يتناسب مع الأنماط الشخصية الممتازة والذكاء العاطفي المتطور"
+      },
+      {
+        "fieldNameAr": "التعليم والتدريب",
+        "fieldNameEn": "Education & Training",
+        "matchPercentage": 85,
+        "reason": "يدعمه نمط التعلم الفعال والقدرات المعرفية القوية"
+      },
+      {
+        "fieldNameAr": "الموارد البشرية",
+        "fieldNameEn": "Human Resources",
+        "matchPercentage": 78,
+        "reason": "يستفيد من المهارات الشخصية والنفسية المتقدمة"
+      },
+      {
+        "fieldNameAr": "الإدارة العامة",
+        "fieldNameEn": "General Management",
+        "matchPercentage": 65,
+        "reason": "يحتاج لتطوير المهارات القيادية والتنظيمية"
+      }
+    ],
+    "developmentPath": "التركيز على المجالات التي تستفيد من القدرات الشخصية والمعرفية القوية، مع تطوير المهارات العددية والقيادية للوصول إلى مستويات إدارية متقدمة"
+  }
+}

@@ -1,0 +1,558 @@
+{
+  "reportMetadata": {
+    "reportType": "SDJ V2 Seven-Pattern Analysis",
+    "reportVersion": "4.0 - Ultra Hi-Fi",
+    "generatedDate": "2025-11-04T10:30:00Z",
+    "language": "AR",
+    "theme": "Aurora Glass"
+  },
+  "userInfo": {
+    "fullName": "محمد أحمد السعيد",
+    "nationalId": "1000000001",
+    "email": "mohammed.ahmed@example.com",
+    "phoneNumber": "+966501234567",
+    "dateOfBirth": "1995-05-15",
+    "age": 29,
+    "gender": "M",
+    "educationLevel": "Bachelor",
+    "sessionDate": "2025-11-03T14:30:00Z"
+  },
+  "sessionInfo": {
+    "sessionId": 157,
+    "resultId": 179,
+    "testName": "اختبار سيلمان دانيال جوردان - الإصدار الثاني",
+    "testCode": "SDJ_V2",
+    "totalQuestions": 80,
+    "completedQuestions": 80,
+    "duration": "45 minutes",
+    "completionPercentage": 100,
+    "scoringModel": "SDJ_V2"
+  },
+  "overallScore": {
+    "totalTScore": 520,
+    "averageTScore": 74.3,
+    "percentile": 82.5,
+    "band": "Good",
+    "interpretation": "أداء جيد بشكل عام مع تميز في عدة مجالات"
+  },
+  "sevenPatterns": [
+    {
+      "patternId": "P1",
+      "patternNameAr": "الاستقرار الانفعالي",
+      "patternNameEn": "Emotional Stability",
+      "tScore": 78.5,
+      "percentile": 85.2,
+      "rawScore": 42,
+      "band": "Excellent",
+      "bandColor": "#10b981",
+      "interpretation": "يتمتع بقدرة عالية على التحكم في الانفعالات والتعامل مع الضغوط بفعالية",
+      "strengths": [
+        "التحكم في الغضب والإحباط",
+        "الهدوء في المواقف الصعبة",
+        "القدرة على التعافي السريع من النكسات"
+      ],
+      "developmentAreas": [],
+      "subDimensions": [
+        {
+          "subId": "P1_SD1",
+          "subNameAr": "التحكم في الانفعالات",
+          "subNameEn": "Emotional Control",
+          "tScore": 80.2,
+          "percentile": 87.5,
+          "rawScore": 22,
+          "band": "Excellent",
+          "itemCount": 6
+        },
+        {
+          "subId": "P1_SD2",
+          "subNameAr": "المرونة النفسية",
+          "subNameEn": "Psychological Resilience",
+          "tScore": 76.8,
+          "percentile": 83.0,
+          "rawScore": 20,
+          "band": "Good",
+          "itemCount": 5
+        }
+      ]
+    },
+    {
+      "patternId": "P2",
+      "patternNameAr": "الانبساطية",
+      "patternNameEn": "Extraversion",
+      "tScore": 72.3,
+      "percentile": 78.5,
+      "rawScore": 38,
+      "band": "Good",
+      "bandColor": "#3b82f6",
+      "interpretation": "شخصية اجتماعية تفضل التفاعل مع الآخرين وتستمد الطاقة من العلاقات الاجتماعية",
+      "strengths": [
+        "مهارات التواصل الاجتماعي",
+        "القدرة على بناء العلاقات",
+        "النشاط والحيوية في المواقف الاجتماعية"
+      ],
+      "developmentAreas": [
+        "تطوير مهارات الاستماع العميق"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P2_SD1",
+          "subNameAr": "الود والدفء",
+          "subNameEn": "Warmth",
+          "tScore": 74.5,
+          "percentile": 80.2,
+          "rawScore": 20,
+          "band": "Good",
+          "itemCount": 5
+        },
+        {
+          "subId": "P2_SD2",
+          "subNameAr": "البحث عن الإثارة",
+          "subNameEn": "Excitement Seeking",
+          "tScore": 70.1,
+          "percentile": 76.8,
+          "rawScore": 18,
+          "band": "Good",
+          "itemCount": 5
+        }
+      ]
+    },
+    {
+      "patternId": "P3",
+      "patternNameAr": "الانفتاح على الخبرة",
+      "patternNameEn": "Openness to Experience",
+      "tScore": 68.7,
+      "percentile": 73.5,
+      "rawScore": 36,
+      "band": "Average",
+      "bandColor": "#f59e0b",
+      "interpretation": "مستوى متوسط من الانفتاح على الأفكار والخبرات الجديدة",
+      "strengths": [
+        "القدرة على التكيف مع التغيير",
+        "الاهتمام بالتعلم المستمر"
+      ],
+      "developmentAreas": [
+        "توسيع نطاق الاهتمامات",
+        "تجربة أنشطة وأفكار جديدة"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P3_SD1",
+          "subNameAr": "الخيال",
+          "subNameEn": "Fantasy",
+          "tScore": 65.3,
+          "percentile": 70.5,
+          "rawScore": 18,
+          "band": "Average",
+          "itemCount": 5
+        },
+        {
+          "subId": "P3_SD2",
+          "subNameAr": "الاهتمامات الفنية",
+          "subNameEn": "Aesthetics",
+          "tScore": 72.1,
+          "percentile": 76.5,
+          "rawScore": 18,
+          "band": "Good",
+          "itemCount": 5
+        }
+      ]
+    },
+    {
+      "patternId": "P4",
+      "patternNameAr": "المقبولية",
+      "patternNameEn": "Agreeableness",
+      "tScore": 62.5,
+      "percentile": 65.8,
+      "rawScore": 32,
+      "band": "Average",
+      "bandColor": "#f59e0b",
+      "interpretation": "مستوى متوازن من التعاون مع الآخرين مع الحفاظ على الحزم عند الحاجة",
+      "strengths": [
+        "القدرة على التعاون",
+        "احترام وجهات النظر المختلفة"
+      ],
+      "developmentAreas": [
+        "تطوير مهارات التفاوض",
+        "تعزيز القدرة على حل النزاعات"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P4_SD1",
+          "subNameAr": "الثقة",
+          "subNameEn": "Trust",
+          "tScore": 58.7,
+          "percentile": 62.3,
+          "rawScore": 16,
+          "band": "Average",
+          "itemCount": 5
+        },
+        {
+          "subId": "P4_SD2",
+          "subNameAr": "الإيثار",
+          "subNameEn": "Altruism",
+          "tScore": 66.3,
+          "percentile": 69.3,
+          "rawScore": 16,
+          "band": "Average",
+          "itemCount": 5
+        }
+      ]
+    },
+    {
+      "patternId": "P5",
+      "patternNameAr": "يقظة الضمير",
+      "patternNameEn": "Conscientiousness",
+      "tScore": 75.8,
+      "percentile": 83.5,
+      "rawScore": 40,
+      "band": "Good",
+      "bandColor": "#3b82f6",
+      "interpretation": "مستوى عالٍ من التنظيم والانضباط والمسؤولية في العمل",
+      "strengths": [
+        "الالتزام بالمواعيد",
+        "التخطيط والتنظيم الجيد",
+        "المثابرة في تحقيق الأهداف"
+      ],
+      "developmentAreas": [],
+      "subDimensions": [
+        {
+          "subId": "P5_SD1",
+          "subNameAr": "الكفاءة",
+          "subNameEn": "Competence",
+          "tScore": 78.2,
+          "percentile": 85.0,
+          "rawScore": 21,
+          "band": "Excellent",
+          "itemCount": 5
+        },
+        {
+          "subId": "P5_SD2",
+          "subNameAr": "النظام",
+          "subNameEn": "Order",
+          "tScore": 73.4,
+          "percentile": 82.0,
+          "rawScore": 19,
+          "band": "Good",
+          "itemCount": 5
+        }
+      ]
+    },
+    {
+      "patternId": "P6",
+      "patternNameAr": "التوجه الإيجابي",
+      "patternNameEn": "Positive Orientation",
+      "tScore": 82.1,
+      "percentile": 90.5,
+      "rawScore": 44,
+      "band": "Excellent",
+      "bandColor": "#10b981",
+      "interpretation": "نظرة إيجابية للحياة وقدرة عالية على رؤية الجوانب المشرقة في المواقف المختلفة",
+      "strengths": [
+        "التفاؤل والنظرة الإيجابية",
+        "القدرة على تحفيز الذات والآخرين",
+        "المرونة في التعامل مع التحديات"
+      ],
+      "developmentAreas": [],
+      "subDimensions": [
+        {
+          "subId": "P6_SD1",
+          "subNameAr": "المشاعر الإيجابية",
+          "subNameEn": "Positive Emotions",
+          "tScore": 84.5,
+          "percentile": 92.0,
+          "rawScore": 23,
+          "band": "Excellent",
+          "itemCount": 5
+        },
+        {
+          "subId": "P6_SD2",
+          "subNameAr": "الحماس",
+          "subNameEn": "Enthusiasm",
+          "tScore": 79.7,
+          "percentile": 89.0,
+          "rawScore": 21,
+          "band": "Excellent",
+          "itemCount": 5
+        }
+      ]
+    },
+    {
+      "patternId": "P7",
+      "patternNameAr": "الكفاءة الذاتية",
+      "patternNameEn": "Self-Efficacy",
+      "tScore": 70.5,
+      "percentile": 76.2,
+      "rawScore": 37,
+      "band": "Good",
+      "bandColor": "#3b82f6",
+      "interpretation": "ثقة جيدة بالقدرات الذاتية والإيمان بإمكانية تحقيق الأهداف",
+      "strengths": [
+        "الثقة بالنفس",
+        "القدرة على مواجهة التحديات",
+        "المبادرة في حل المشكلات"
+      ],
+      "developmentAreas": [
+        "تعزيز الثقة في المجالات الجديدة"
+      ],
+      "subDimensions": [
+        {
+          "subId": "P7_SD1",
+          "subNameAr": "الإنجاز",
+          "subNameEn": "Achievement",
+          "tScore": 72.8,
+          "percentile": 78.5,
+          "rawScore": 19,
+          "band": "Good",
+          "itemCount": 5
+        },
+        {
+          "subId": "P7_SD2",
+          "subNameAr": "الفعالية الذاتية",
+          "subNameEn": "Self-Efficacy",
+          "tScore": 68.2,
+          "percentile": 73.9,
+          "rawScore": 18,
+          "band": "Average",
+          "itemCount": 5
+        }
+      ]
+    }
+  ],
+  "performanceSummary": {
+    "excellentPatterns": [
+      {
+        "name": "التوجه الإيجابي",
+        "tScore": 82.1
+      },
+      {
+        "name": "الاستقرار الانفعالي",
+        "tScore": 78.5
+      }
+    ],
+    "goodPatterns": [
+      {
+        "name": "يقظة الضمير",
+        "tScore": 75.8
+      },
+      {
+        "name": "الانبساطية",
+        "tScore": 72.3
+      },
+      {
+        "name": "الكفاءة الذاتية",
+        "tScore": 70.5
+      }
+    ],
+    "averagePatterns": [
+      {
+        "name": "الانفتاح على الخبرة",
+        "tScore": 68.7
+      },
+      {
+        "name": "المقبولية",
+        "tScore": 62.5
+      }
+    ],
+    "weakPatterns": []
+  },
+  "topStrengths": [
+    {
+      "pattern": "التوجه الإيجابي",
+      "strength": "التفاؤل والنظرة الإيجابية",
+      "tScore": 82.1,
+      "impact": "يساعد في بناء بيئة عمل إيجابية وتحفيز الفريق"
+    },
+    {
+      "pattern": "الاستقرار الانفعالي",
+      "strength": "التحكم في الانفعالات",
+      "tScore": 78.5,
+      "impact": "يمكّن من اتخاذ قرارات حكيمة تحت الضغط"
+    },
+    {
+      "pattern": "يقظة الضمير",
+      "strength": "التنظيم والانضباط",
+      "tScore": 75.8,
+      "impact": "يضمن إتمام المهام بجودة عالية وفي الوقت المحدد"
+    }
+  ],
+  "developmentAreas": [
+    {
+      "pattern": "المقبولية",
+      "area": "تطوير مهارات التفاوض",
+      "tScore": 62.5,
+      "priority": "Medium",
+      "recommendations": [
+        "المشاركة في دورات مهارات التفاوض",
+        "ممارسة تقنيات حل النزاعات",
+        "دراسة أساليب الإقناع الفعّال"
+      ]
+    },
+    {
+      "pattern": "الانفتاح على الخبرة",
+      "area": "توسيع نطاق الاهتمامات",
+      "tScore": 68.7,
+      "priority": "Low",
+      "recommendations": [
+        "تجربة هوايات وأنشطة جديدة",
+        "حضور ورش عمل في مجالات متنوعة",
+        "القراءة في موضوعات خارج مجال التخصص"
+      ]
+    }
+  ],
+  "actionPlan": {
+    "immediate": [
+      {
+        "goal": "تعزيز مهارات التفاوض",
+        "actions": [
+          "التسجيل في دورة مهارات التفاوض (خلال شهر)",
+          "قراءة كتاب 'فن التفاوض' لروجر فيشر",
+          "ممارسة سيناريوهات التفاوض مع زميل"
+        ],
+        "timeline": "1-3 أشهر",
+        "expectedOutcome": "تحسين T-score للمقبولية من 62.5 إلى 68+"
+      }
+    ],
+    "shortTerm": [
+      {
+        "goal": "توسيع الاهتمامات والخبرات",
+        "actions": [
+          "تجربة نشاط أو هواية جديدة شهرياً",
+          "حضور ورشة عمل في مجال جديد كل ثلاثة أشهر",
+          "القراءة في موضوعات متنوعة (30 دقيقة يومياً)"
+        ],
+        "timeline": "3-6 أشهر",
+        "expectedOutcome": "تحسين T-score للانفتاح من 68.7 إلى 72+"
+      }
+    ],
+    "longTerm": [
+      {
+        "goal": "المحافظة على نقاط القوة وتطويرها",
+        "actions": [
+          "الاستمرار في ممارسة التأمل والتفكير الإيجابي",
+          "مشاركة الخبرات مع الآخرين كموجه أو مرشد",
+          "طلب التغذية الراجعة المستمرة من المحيطين"
+        ],
+        "timeline": "6-12 شهر",
+        "expectedOutcome": "الحفاظ على المستوى الممتاز في نقاط القوة"
+      }
+    ]
+  },
+  "suggestedCourses": [
+    {
+      "title": "مهارات التفاوض الفعال",
+      "provider": "Coursera",
+      "duration": "4 أسابيع",
+      "level": "متوسط",
+      "relevantPattern": "المقبولية",
+      "url": "https://www.coursera.org/learn/negotiation-skills",
+      "description": "تعلم استراتيجيات وتقنيات التفاوض الحديثة"
+    },
+    {
+      "title": "التفكير الإبداعي والابتكار",
+      "provider": "edX",
+      "duration": "6 أسابيع",
+      "level": "مبتدئ",
+      "relevantPattern": "الانفتاح على الخبرة",
+      "url": "https://www.edx.org/course/creative-thinking",
+      "description": "توسيع آفاق التفكير وتطوير القدرات الإبداعية"
+    },
+    {
+      "title": "إدارة الوقت والإنتاجية",
+      "provider": "LinkedIn Learning",
+      "duration": "2 أسابيع",
+      "level": "متقدم",
+      "relevantPattern": "يقظة الضمير",
+      "url": "https://www.linkedin.com/learning/time-management",
+      "description": "تعزيز مهارات التنظيم والإنتاجية"
+    }
+  ],
+  "careerInsights": {
+    "suitableRoles": [
+      "مدير مشاريع",
+      "قائد فريق",
+      "مستشار تنظيمي",
+      "مدرب تطوير الذات"
+    ],
+    "workEnvironmentPreferences": [
+      "بيئة عمل تعاونية ومحفزة",
+      "فرص للتفاعل الاجتماعي",
+      "مهام منظمة مع أهداف واضحة",
+      "ثقافة تنظيمية إيجابية"
+    ],
+    "leadershipStyle": "قيادة تحفيزية تركز على بناء الروح المعنوية وتحقيق النتائج من خلال التنظيم والتخطيط"
+  },
+  "chartData": {
+    "radarChart": {
+      "labels": [
+        "الاستقرار الانفعالي",
+        "الانبساطية",
+        "الانفتاح على الخبرة",
+        "المقبولية",
+        "يقظة الضمير",
+        "التوجه الإيجابي",
+        "الكفاءة الذاتية"
+      ],
+      "data": [78.5, 72.3, 68.7, 62.5, 75.8, 82.1, 70.5],
+      "backgroundColor": "rgba(59, 130, 246, 0.2)",
+      "borderColor": "rgba(59, 130, 246, 1)",
+      "borderWidth": 2
+    },
+    "barChart": {
+      "patterns": [
+        {
+          "name": "التوجه الإيجابي",
+          "tScore": 82.1,
+          "color": "#10b981"
+        },
+        {
+          "name": "الاستقرار الانفعالي",
+          "tScore": 78.5,
+          "color": "#10b981"
+        },
+        {
+          "name": "يقظة الضمير",
+          "tScore": 75.8,
+          "color": "#3b82f6"
+        },
+        {
+          "name": "الانبساطية",
+          "tScore": 72.3,
+          "color": "#3b82f6"
+        },
+        {
+          "name": "الكفاءة الذاتية",
+          "tScore": 70.5,
+          "color": "#3b82f6"
+        },
+        {
+          "name": "الانفتاح على الخبرة",
+          "tScore": 68.7,
+          "color": "#f59e0b"
+        },
+        {
+          "name": "المقبولية",
+          "tScore": 62.5,
+          "color": "#f59e0b"
+        }
+      ]
+    },
+    "distributionDonut": {
+      "labels": ["ممتاز", "جيد", "متوسط", "ضعيف"],
+      "data": [2, 3, 2, 0],
+      "colors": ["#10b981", "#3b82f6", "#f59e0b", "#ef4444"],
+      "percentages": [28.6, 42.9, 28.6, 0]
+    }
+  },
+  "disclaimers": [
+    "هذا التقرير مبني على إجاباتك الحالية ويعكس حالتك النفسية في وقت إجراء الاختبار",
+    "النتائج ليست نهائية وقد تتغير مع الوقت والخبرات الجديدة",
+    "يُنصح بمراجعة مختص نفسي للحصول على تفسير أعمق للنتائج",
+    "هذا الاختبار أداة تطويرية وليس أداة تشخيصية سريرية"
+  ],
+  "footer": {
+    "generatedBy": "منصة الاختبارات النفسية",
+    "version": "SDJ V2 - Ultra Hi-Fi Report v4.0",
+    "copyright": "© 2025 جميع الحقوق محفوظة",
+    "contact": "support@psy-platform.com"
+  }
+}
