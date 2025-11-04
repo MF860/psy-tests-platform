@@ -181,7 +181,7 @@ namespace PsyApi.Services.Reports
                         $"{overallStatus} • {UnicodeTextHelper.FormatTScore(avgTScore, 1)}",
                         statusColor,
                         icon: avgTScore >= 55 ? "⭐" : avgTScore >= 45 ? "📊" : "📈",
-                        textColor: "#FFFFFF",
+                        textColor: ReportTheme.Colors.Background,
                         fontSize: ReportTheme.Typography.H3
                     );
 
@@ -834,17 +834,17 @@ namespace PsyApi.Services.Reports
 
                 // DEVELOPMENT PRIORITY MATRIX (Modern visual guide)
                 column.Item()
-                    .Background("#FEF3C7")
-                    .Border(1).BorderColor("#FDE047")
+                    .Background(ReportTheme.Colors.Surface)
+                    .Border(1).BorderColor(ReportTheme.Colors.Warning)
                     .Padding(10)
                     .Row(priorityRow =>
                     {
                         priorityRow.RelativeItem().AlignRight().Column(priorityText =>
                         {
                             priorityText.Item().Text("🎯 أولويات التطوير:")
-                                .Style(ReportTheme.ArabicTextStyle(11, true, "#92400E"));
+                                .Style(ReportTheme.ArabicTextStyle(11, true, ReportTheme.Colors.Text));
                             priorityText.Item().PaddingTop(4).Text(GetDevelopmentPriorities(patterns))
-                                .Style(ReportTheme.ArabicTextStyle(9, false, "#78350F"))
+                                .Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary))
                                 .LineHeight(1.5f);
                         });
                     });
@@ -862,13 +862,13 @@ namespace PsyApi.Services.Reports
                     column.Item().PaddingBottom(14)
                         .Border(1.5f)
                         .BorderColor(needsAttention ? ReportTheme.Colors.Warning : ReportTheme.Colors.Divider)
-                        .Background(needsAttention ? "#FFFBEB" : ReportTheme.Colors.Background)
+                        .Background(needsAttention ? ReportTheme.Colors.Surface : ReportTheme.Colors.Background)
                         .Padding(12)
                         .Column(trackSection =>
                         {
                             // Track heading with priority indicator
                             trackSection.Item()
-                                .Background(needsAttention ? "#FEF3C7" : ReportTheme.Colors.SurfaceHover)
+                                .Background(needsAttention ? ReportTheme.Colors.SurfaceHover : ReportTheme.Colors.SurfaceHover)
                                 .Padding(10)
                                 .Row(header =>
                                 {
@@ -893,7 +893,7 @@ namespace PsyApi.Services.Reports
                                     
                                     header.AutoItem().AlignMiddle().Text(GetDevelopmentPriority(pattern.TScore))
                                         .Style(ReportTheme.ArabicTextStyle(10, true, 
-                                            needsAttention ? "#92400E" : ReportTheme.Colors.TextSecondary));
+                                            needsAttention ? ReportTheme.Colors.Text : ReportTheme.Colors.TextSecondary));
                                 });
 
                             // Subdimensions detailed table with this track
@@ -966,7 +966,7 @@ namespace PsyApi.Services.Reports
                                                     .Style(TextStyle.Default.FontSize(9).FontColor(ReportTheme.Colors.Background).Bold());
                                                 courseRow.AutoItem().Width(6);
                                                 courseRow.RelativeItem().AlignMiddle().Text(course)
-                                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#1E3A8A"));
+                                                    .Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.Primary));
                                             });
                                         }
                                     });
@@ -977,7 +977,7 @@ namespace PsyApi.Services.Reports
                             if (pattern.TScore < 50)
                             {
                                 trackSection.Item().PaddingTop(6)
-                                    .Background("#DBEAFE")
+                                    .Background(ReportTheme.Colors.Surface)
                                     .Padding(6)
                                     .Text($"⏱ الإطار الزمني المُقترح: {GetTimelineEstimate(pattern.TScore)}")
                                     .Style(ReportTheme.ArabicTextStyle(8, false, ReportTheme.Colors.Primary));
@@ -989,8 +989,8 @@ namespace PsyApi.Services.Reports
 
                 // COMPREHENSIVE USER ANALYSIS SECTION
                 column.Item().AlignCenter()
-                    .Background("#F0F9FF")
-                    .Border(1).BorderColor("#BFDBFE")
+                    .Background(ReportTheme.Colors.Surface)
+                    .Border(1).BorderColor(ReportTheme.Colors.Primary)
                     .Padding(14)
                     .Column(analysisSection =>
                     {
@@ -999,7 +999,7 @@ namespace PsyApi.Services.Reports
                         
                         analysisSection.Item().PaddingTop(10).AlignRight()
                             .Text(GenerateComprehensiveUserAnalysis(patterns, subDimensions))
-                            .Style(ReportTheme.ArabicTextStyle(10, false, "#1E3A8A"))
+                            .Style(ReportTheme.ArabicTextStyle(10, false, ReportTheme.Colors.Text))
                             .LineHeight(1.7f);
                     });
 
@@ -1007,7 +1007,7 @@ namespace PsyApi.Services.Reports
 
                 // CLOSING LINE - as specified
                 column.Item().AlignCenter()
-                    .Background("#EEF2FF")
+                    .Background(ReportTheme.Colors.SurfaceHover)
                     .Padding(12)
                     .Text("ابدأ رحلتك التدريبية المخصصة عبر منصة استدامة.")
                     .Style(ReportTheme.ArabicTextStyle(12, true, ReportTheme.Colors.Primary));
@@ -1036,10 +1036,10 @@ namespace PsyApi.Services.Reports
                 if (!courseRecommendations.Any())
                 {
                     column.Item().AlignCenter()
-                        .Background("#ECFDF5")
+                        .Background(ReportTheme.Colors.Surface)
                         .Padding(20)
                         .Text("ممتاز! لا توجد أبعاد ضعيفة تحتاج إلى تطوير.")
-                        .Style(ReportTheme.ArabicTextStyle(13, false, "#065F46"));
+                        .Style(ReportTheme.ArabicTextStyle(13, false, ReportTheme.Colors.Success));
                 }
                 else
                 {
@@ -1144,9 +1144,9 @@ namespace PsyApi.Services.Reports
         /// </summary>
         private string GetBandColor(double tScore)
         {
-            if (tScore >= 55) return "#10b981"; // Green
-            if (tScore >= 40) return "#f59e0b"; // Orange
-            return "#ef4444"; // Red
+            if (tScore >= 55) return ReportTheme.Colors.Success;
+            if (tScore >= 40) return ReportTheme.Colors.Warning;
+            return ReportTheme.Colors.Danger;
         }
 
         /// <summary>
@@ -1218,9 +1218,9 @@ namespace PsyApi.Services.Reports
         /// </summary>
         private string GetPatternBackgroundColor(double tScore)
         {
-            if (tScore >= 55) return "#f0fdf4"; // Very light green
-            if (tScore >= 45) return "#fffbeb"; // Very light amber
-            return "#fef2f2"; // Very light red
+            if (tScore >= 55) return ReportTheme.Colors.Surface;
+            if (tScore >= 45) return ReportTheme.Colors.Surface;
+            return ReportTheme.Colors.Surface;
         }
 
         /// <summary>
@@ -1228,9 +1228,9 @@ namespace PsyApi.Services.Reports
         /// </summary>
         private string GetBandLabelBg(double tScore)
         {
-            if (tScore >= 55) return "#d1fae5"; // Light green
-            if (tScore >= 45) return "#fef3c7"; // Light amber
-            return "#fee2e2"; // Light red
+            if (tScore >= 55) return ReportTheme.Colors.Success;
+            if (tScore >= 45) return ReportTheme.Colors.Warning;
+            return ReportTheme.Colors.Danger;
         }
 
         /// <summary>
