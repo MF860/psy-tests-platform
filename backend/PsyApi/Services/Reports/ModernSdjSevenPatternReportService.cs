@@ -10,9 +10,10 @@ using DimensionScoreDto = PsyApi.Models.DimensionScore;
 namespace PsyApi.Services.Reports
 {
     /// <summary>
-    /// Modern SDJ PDF Report Service with 7-Pattern Analysis
-    /// Arabic-only, RTL, HarfBuzz shaping, clean design
+    /// Modern SDJ PDF Report Service with 7-Pattern Analysis - ULTRA HI-FI v4.0
+    /// Arabic-only, RTL, HarfBuzz shaping, DesignTokens integration
     /// Features: centered logo, 7 major patterns, heptagon radar chart, weak subdimensions + courses
+    /// NOW WITH: Aurora Glass theme colors, professional gradients, modern styling
     /// </summary>
     public class ModernSdjSevenPatternReportService
     {
@@ -823,27 +824,27 @@ namespace PsyApi.Services.Reports
             {
                 // MAIN TITLE - restructured as per requirements
                 column.Item().AlignCenter().Text("خطة التطوير المهني المخصصة")
-                    .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
+                    .Style(ReportTheme.ArabicTextStyle(20, true, ReportTheme.Colors.Text));
 
                 column.Item().PaddingTop(6).AlignCenter()
                     .Text("(توصيات تفصيلية ودورات تدريبية مُستهدفة لكل نمط من الأنماط السبعة)")
-                    .Style(ReportTheme.ArabicTextStyle(9, false, "#6b7280"));
+                    .Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.TextSecondary));
 
                 column.Item().PaddingTop(12);
 
                 // DEVELOPMENT PRIORITY MATRIX (Modern visual guide)
                 column.Item()
-                    .Background("#fef3c7")
-                    .Border(1).BorderColor("#fde047")
+                    .Background("#FEF3C7")
+                    .Border(1).BorderColor("#FDE047")
                     .Padding(10)
                     .Row(priorityRow =>
                     {
                         priorityRow.RelativeItem().AlignRight().Column(priorityText =>
                         {
                             priorityText.Item().Text("🎯 أولويات التطوير:")
-                                .Style(ReportTheme.ArabicTextStyle(11, true, "#92400e"));
+                                .Style(ReportTheme.ArabicTextStyle(11, true, "#92400E"));
                             priorityText.Item().PaddingTop(4).Text(GetDevelopmentPriorities(patterns))
-                                .Style(ReportTheme.ArabicTextStyle(9, false, "#78350f"))
+                                .Style(ReportTheme.ArabicTextStyle(9, false, "#78350F"))
                                 .LineHeight(1.5f);
                         });
                     });
@@ -860,39 +861,39 @@ namespace PsyApi.Services.Reports
                     
                     column.Item().PaddingBottom(14)
                         .Border(1.5f)
-                        .BorderColor(needsAttention ? "#f59e0b" : "#d1d5db")
-                        .Background(needsAttention ? "#fffbeb" : "#ffffff")
+                        .BorderColor(needsAttention ? ReportTheme.Colors.Warning : ReportTheme.Colors.Divider)
+                        .Background(needsAttention ? "#FFFBEB" : ReportTheme.Colors.Background)
                         .Padding(12)
                         .Column(trackSection =>
                         {
                             // Track heading with priority indicator
                             trackSection.Item()
-                                .Background(needsAttention ? "#fef3c7" : "#f3f4f6")
+                                .Background(needsAttention ? "#FEF3C7" : ReportTheme.Colors.SurfaceHover)
                                 .Padding(10)
                                 .Row(header =>
                                 {
                                     if (needsAttention)
                                     {
                                         header.AutoItem().Width(24).Height(24)
-                                            .Background("#f59e0b")
+                                            .Background(ReportTheme.Colors.Warning)
                                             .AlignMiddle().AlignCenter()
                                             .Text("⚠")
-                                            .Style(TextStyle.Default.FontSize(14).FontColor("#ffffff"));
+                                            .Style(TextStyle.Default.FontSize(14).FontColor(ReportTheme.Colors.Background));
                                         header.AutoItem().Width(8);
                                     }
                                     
                                     header.RelativeItem().AlignMiddle().Text(pattern.PatternNameAr)
-                                        .Style(ReportTheme.ArabicTextStyle(13, true, "#1f2937"));
+                                        .Style(ReportTheme.ArabicTextStyle(13, true, ReportTheme.Colors.Text));
                                     
                                     header.AutoItem().AlignMiddle().PaddingHorizontal(8)
                                         .Background(ReportTheme.GetBandColor(pattern.TScore))
                                         .PaddingVertical(3).PaddingHorizontal(8)
                                         .Text($"T = {ReportTheme.FormatNum(pattern.TScore, 1)}")
-                                        .Style(TextStyle.Default.FontSize(10).FontColor("#ffffff").Bold());
+                                        .Style(TextStyle.Default.FontSize(10).FontColor(ReportTheme.Colors.Background).Bold());
                                     
                                     header.AutoItem().AlignMiddle().Text(GetDevelopmentPriority(pattern.TScore))
                                         .Style(ReportTheme.ArabicTextStyle(10, true, 
-                                            needsAttention ? "#92400e" : "#6b7280"));
+                                            needsAttention ? "#92400E" : ReportTheme.Colors.TextSecondary));
                                 });
 
                             // Subdimensions detailed table with this track
@@ -902,7 +903,7 @@ namespace PsyApi.Services.Reports
                                 trackSection.Item().PaddingTop(10).Column(subDimSection =>
                                 {
                                     subDimSection.Item().Text("الأبعاد الفرعية:")
-                                        .Style(ReportTheme.ArabicTextStyle(10, true, "#374151"));
+                                        .Style(ReportTheme.ArabicTextStyle(10, true, ReportTheme.Colors.Text));
                                     
                                     subDimSection.Item().PaddingTop(6).Table(table =>
                                     {
@@ -916,23 +917,23 @@ namespace PsyApi.Services.Reports
                                         // Header
                                         table.Header(h =>
                                         {
-                                            h.Cell().Background("#f3f4f6").Padding(4).Text("البُعد")
-                                                .Style(ReportTheme.ArabicTextStyle(9, true, "#6b7280"));
-                                            h.Cell().Background("#f3f4f6").Padding(4).Text("الدرجة")
-                                                .Style(ReportTheme.ArabicTextStyle(9, true, "#6b7280"));
-                                            h.Cell().Background("#f3f4f6").Padding(4).Text("التقييم")
-                                                .Style(ReportTheme.ArabicTextStyle(9, true, "#6b7280"));
+                                            h.Cell().Background(ReportTheme.Colors.SurfaceHover).Padding(4).Text("البُعد")
+                                                .Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.TextSecondary));
+                                            h.Cell().Background(ReportTheme.Colors.SurfaceHover).Padding(4).Text("الدرجة")
+                                                .Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.TextSecondary));
+                                            h.Cell().Background(ReportTheme.Colors.SurfaceHover).Padding(4).Text("التقييم")
+                                                .Style(ReportTheme.ArabicTextStyle(9, true, ReportTheme.Colors.TextSecondary));
                                         });
 
                                         // Show up to 4 subdimensions per track
                                         foreach (var subDim in trackSubDims.Take(4))
                                         {
                                             table.Cell().Padding(4).Text(subDim.SubDimension)
-                                                .Style(ReportTheme.ArabicTextStyle(9, false, "#374151"));
+                                                .Style(ReportTheme.ArabicTextStyle(9, false, ReportTheme.Colors.Text));
                                             table.Cell().Padding(4).Text(ReportTheme.FormatNum(subDim.T, 1))
-                                                .Style(TextStyle.Default.FontSize(9).FontColor("#6b7280"));
+                                                .Style(TextStyle.Default.FontSize(9).FontColor(ReportTheme.Colors.TextSecondary));
                                             table.Cell().Padding(4).Text(GetDetailedAssessment(subDim.T))
-                                                .Style(ReportTheme.ArabicTextStyle(8, false, "#4b5563"));
+                                                .Style(ReportTheme.ArabicTextStyle(8, false, ReportTheme.Colors.Neutral));
                                         }
                                     });
                                 });
@@ -951,7 +952,7 @@ namespace PsyApi.Services.Reports
                                 trackSection.Item().PaddingTop(8).Column(courses =>
                                 {
                                     courses.Item().Text("📚 الدورات التدريبية المُوصى بها:")
-                                        .Style(ReportTheme.ArabicTextStyle(10, true, "#1e40af"));
+                                        .Style(ReportTheme.ArabicTextStyle(10, true, ReportTheme.Colors.Primary));
                                     courses.Item().PaddingTop(4).Column(courseList =>
                                     {
                                         foreach (var course in trackCourses)
@@ -959,13 +960,13 @@ namespace PsyApi.Services.Reports
                                             courseList.Item().PaddingVertical(2).Row(courseRow =>
                                             {
                                                 courseRow.AutoItem().Width(16).Height(16)
-                                                    .Background("#3b82f6")
+                                                    .Background(ReportTheme.Colors.Primary)
                                                     .AlignMiddle().AlignCenter()
                                                     .Text("✓")
-                                                    .Style(TextStyle.Default.FontSize(9).FontColor("#ffffff").Bold());
+                                                    .Style(TextStyle.Default.FontSize(9).FontColor(ReportTheme.Colors.Background).Bold());
                                                 courseRow.AutoItem().Width(6);
                                                 courseRow.RelativeItem().AlignMiddle().Text(course)
-                                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#1e3a8a"));
+                                                    .Style(ReportTheme.ArabicTextStyle(9, false, "#1E3A8A"));
                                             });
                                         }
                                     });
@@ -976,10 +977,10 @@ namespace PsyApi.Services.Reports
                             if (pattern.TScore < 50)
                             {
                                 trackSection.Item().PaddingTop(6)
-                                    .Background("#dbeafe")
+                                    .Background("#DBEAFE")
                                     .Padding(6)
                                     .Text($"⏱ الإطار الزمني المُقترح: {GetTimelineEstimate(pattern.TScore)}")
-                                    .Style(ReportTheme.ArabicTextStyle(8, false, "#1e40af"));
+                                    .Style(ReportTheme.ArabicTextStyle(8, false, ReportTheme.Colors.Primary));
                             }
                         });
                 }
@@ -988,17 +989,17 @@ namespace PsyApi.Services.Reports
 
                 // COMPREHENSIVE USER ANALYSIS SECTION
                 column.Item().AlignCenter()
-                    .Background("#f0f9ff")
-                    .Border(1).BorderColor("#bfdbfe")
+                    .Background("#F0F9FF")
+                    .Border(1).BorderColor("#BFDBFE")
                     .Padding(14)
                     .Column(analysisSection =>
                     {
                         analysisSection.Item().AlignCenter().Text("التحليل الشامل لنتائجك")
-                            .Style(ReportTheme.ArabicTextStyle(15, true, "#1e40af"));
+                            .Style(ReportTheme.ArabicTextStyle(15, true, ReportTheme.Colors.Primary));
                         
                         analysisSection.Item().PaddingTop(10).AlignRight()
                             .Text(GenerateComprehensiveUserAnalysis(patterns, subDimensions))
-                            .Style(ReportTheme.ArabicTextStyle(10, false, "#1e3a8a"))
+                            .Style(ReportTheme.ArabicTextStyle(10, false, "#1E3A8A"))
                             .LineHeight(1.7f);
                     });
 
@@ -1006,10 +1007,10 @@ namespace PsyApi.Services.Reports
 
                 // CLOSING LINE - as specified
                 column.Item().AlignCenter()
-                    .Background("#eef2ff")
+                    .Background("#EEF2FF")
                     .Padding(12)
                     .Text("ابدأ رحلتك التدريبية المخصصة عبر منصة استدامة.")
-                    .Style(ReportTheme.ArabicTextStyle(12, true, "#1e40af"));
+                    .Style(ReportTheme.ArabicTextStyle(12, true, ReportTheme.Colors.Primary));
             });
         }
         /// <summary>
@@ -1024,21 +1025,21 @@ namespace PsyApi.Services.Reports
             {
                 // Title
                 column.Item().Text("الأبعاد الفرعية الضعيفة والدورات المقترحة")
-                    .Style(ReportTheme.ArabicTextStyle(20, true, "#111827"));
+                    .Style(ReportTheme.ArabicTextStyle(20, true, ReportTheme.Colors.Text));
 
                 column.Item().PaddingTop(12).Text(
                     "يعرض هذا القسم الأبعاد التي تحتاج إلى تطوير (درجة T < 40) مع توصيات للدورات التدريبية المقترحة."
-                ).Style(ReportTheme.ArabicTextStyle(11, false, "#6b7280")).LineHeight(1.5f);
+                ).Style(ReportTheme.ArabicTextStyle(11, false, ReportTheme.Colors.TextSecondary)).LineHeight(1.5f);
 
                 column.Item().PaddingTop(24);
 
                 if (!courseRecommendations.Any())
                 {
                     column.Item().AlignCenter()
-                        .Background("#ecfdf5")
+                        .Background("#ECFDF5")
                         .Padding(20)
                         .Text("ممتاز! لا توجد أبعاد ضعيفة تحتاج إلى تطوير.")
-                        .Style(ReportTheme.ArabicTextStyle(13, false, "#065f46"));
+                        .Style(ReportTheme.ArabicTextStyle(13, false, "#065F46"));
                 }
                 else
                 {
@@ -1047,7 +1048,7 @@ namespace PsyApi.Services.Reports
                     {
                         column.Item().PaddingBottom(16)
                             .Border(1)
-                            .BorderColor("#e5e7eb")
+                            .BorderColor(ReportTheme.Colors.Border)
                             .Padding(16)
                             .Column(item =>
                             {
@@ -1055,23 +1056,23 @@ namespace PsyApi.Services.Reports
                                 item.Item().Row(header =>
                                 {
                                     header.RelativeItem().Text(recommendation.SubDimensionAr)
-                                        .Style(ReportTheme.ArabicTextStyle(14, true, "#111827"));
+                                        .Style(ReportTheme.ArabicTextStyle(14, true, ReportTheme.Colors.Text));
                                     
                                     header.AutoItem().PaddingHorizontal(8)
                                         .Background(ReportTheme.GetBandColor(recommendation.TScore))
                                         .PaddingVertical(4)
                                         .PaddingHorizontal(6)
                                         .Text($"T={ReportTheme.FormatNum(recommendation.TScore, 1)}")
-                                        .Style(TextStyle.Default.FontSize(10).FontColor("#ffffff"));
+                                        .Style(TextStyle.Default.FontSize(10).FontColor(ReportTheme.Colors.Background));
                                 });
 
                                 // Status description
                                 item.Item().PaddingTop(8).Text(recommendation.Status)
-                                    .Style(ReportTheme.ArabicTextStyle(11, false, "#6b7280"));
+                                    .Style(ReportTheme.ArabicTextStyle(11, false, ReportTheme.Colors.TextSecondary));
 
                                 // Courses list
                                 item.Item().PaddingTop(8).Text("الدورات المقترحة:")
-                                    .Style(ReportTheme.ArabicTextStyle(12, true, "#374151"));
+                                    .Style(ReportTheme.ArabicTextStyle(12, true, ReportTheme.Colors.Text));
 
                                 item.Item().PaddingTop(4).Column(courses =>
                                 {
@@ -1080,9 +1081,9 @@ namespace PsyApi.Services.Reports
                                         courses.Item().PaddingVertical(2).Row(courseRow =>
                                         {
                                             courseRow.AutoItem().Width(16).Text("•")
-                                                .Style(TextStyle.Default.FontSize(11).FontColor("#2563eb"));
+                                                .Style(TextStyle.Default.FontSize(11).FontColor(ReportTheme.Colors.Primary));
                                             courseRow.RelativeItem().Text(course)
-                                                .Style(ReportTheme.ArabicTextStyle(10, false, "#4b5563"));
+                                                .Style(ReportTheme.ArabicTextStyle(10, false, ReportTheme.Colors.Neutral));
                                         });
                                     }
                                 });
@@ -1100,7 +1101,7 @@ namespace PsyApi.Services.Reports
         {
             page.Size(PageSizes.A4);
             page.Margin(16, Unit.Millimetre); // 16mm margins as specified
-            page.DefaultTextStyle(style => ReportTheme.ArabicTextStyle(11, false, "#374151"));
+            page.DefaultTextStyle(style => ReportTheme.ArabicTextStyle(11, false, ReportTheme.Colors.Text));
 
             // Professional Header
             page.Header()

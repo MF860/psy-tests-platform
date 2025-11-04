@@ -222,10 +222,10 @@ namespace PsyApi.Services.Reports
                     
                     Console.WriteLine($"[UltraHiFi] SDJ V2 loaded - Patterns: {v2Data.PatternScores.Count}, SubDimensions: {v2Data.SubDimensionScores?.Count ?? 0}");
                     
-                    // Convert V2 format to SdjScoreSummary for ModernSdjSevenPatternReportService
+                    // Convert V2 format to SdjScoreSummary and use Modern SDJ Seven Pattern service
                     var sdjData = ConvertV2ToSummary(v2Data);
-                    var modernService = new ModernSdjSevenPatternReportService();
-                    return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                    var modernRenderer = new ModernSdjSevenPatternReportService();
+                    return modernRenderer.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
                 }
                 else if (isV1)
                 {
@@ -240,8 +240,9 @@ namespace PsyApi.Services.Reports
                     
                     Console.WriteLine($"[UltraHiFi] SDJ V1 loaded - Dimensions: {sdjData.Dimensions?.Count ?? 0}, Patterns: {sdjData.SevenPatternScores?.Count ?? 0}");
                     
-                    var modernService = new ModernSdjSevenPatternReportService();
-                    return modernService.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
+                    // Use Modern SDJ Seven Pattern service for V1 format too
+                    var modernRenderer = new ModernSdjSevenPatternReportService();
+                    return modernRenderer.RenderSdjSevenPatternPdfAsync(result, user, sdjData, ct);
                 }
                 else
                 {
