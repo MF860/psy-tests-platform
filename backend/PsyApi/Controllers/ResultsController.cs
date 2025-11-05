@@ -254,7 +254,7 @@ namespace PsyApi.Controllers
         /// Supports Arabic/English bilingual reports with print-ready quality (450 DPI charts)
         /// </summary>
         [HttpGet("{id}/premium")]
-        [ResponseCache(Duration = 300, Location = ResponseCacheLocation.Any)]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
         public async Task<IActionResult> GetPremiumReport(
             int id, 
             [FromQuery] string theme = "AuroraGlass", 
@@ -284,10 +284,8 @@ namespace PsyApi.Controllers
                     return Forbid();
                 }
 
-                // Set theme globally (thread-safe)
-                DesignTokens.CurrentTheme = theme.Equals("NoirExecutive", StringComparison.OrdinalIgnoreCase)
-                    ? DesignTokens.ReportThemeMode.NoirExecutive
-                    : DesignTokens.ReportThemeMode.AuroraGlass;
+                // Set theme globally (AuroraNeo only in v6.1)
+                DesignTokens.CurrentTheme = DesignTokens.ReportThemeMode.AuroraNeo;
 
                 // Set language globally
                 LocalizationStrings.CurrentLanguage = lang.Equals("EN", StringComparison.OrdinalIgnoreCase)
@@ -325,6 +323,10 @@ namespace PsyApi.Controllers
                         dimensionScores, 
                         HttpContext.RequestAborted);
                 }
+
+                Response.Headers["Cache-Control"] = "no-store";
+                Response.Headers["Pragma"] = "no-cache";
+                Response.Headers["X-Report-Engine"] = "UltraHiFi-v6";
 
                 var filename = $"Premium_{lang}_{theme}_{result.Session.User.NationalId}_{result.SessionId}.pdf";
                 

@@ -355,14 +355,14 @@ namespace PsyApi.Services.Reports
                 // Header with logo
                 column.Item().Element(c => DesignComponents.Header(
                     c,
-                    title: LocalizationStrings.Get("report.title"),
-                    subtitle: LocalizationStrings.Get("report.subtitle"),
+                    title: DesignTokens.ArText.Sanitize(LocalizationStrings.Get("report.title")),
+                    subtitle: DesignTokens.ArText.Sanitize(LocalizationStrings.Get("report.subtitle")),
                     metadata: new Dictionary<string, string>
                     {
-                        { LocalizationStrings.Get("participant.name"), user.FullName ?? "غير محدد" },
-                        { LocalizationStrings.Get("participant.id"), user.NationalId ?? "N/A" },
-                        { LocalizationStrings.Get("session.date"), result.CreatedAt.ToString("yyyy-MM-dd") },
-                        { LocalizationStrings.Get("scoring.model"), result.ScoringModelVersion ?? "Standard" }
+                        { DesignTokens.ArText.Sanitize(LocalizationStrings.Get("participant.name")), DesignTokens.ArText.Sanitize(user.FullName) ?? "غير محدد" },
+                        { DesignTokens.ArText.Sanitize(LocalizationStrings.Get("participant.id")), user.NationalId ?? "N/A" },
+                        { DesignTokens.ArText.Sanitize(LocalizationStrings.Get("session.date")), result.CreatedAt.ToString("yyyy-MM-dd") },
+                        { DesignTokens.ArText.Sanitize(LocalizationStrings.Get("scoring.model")), result.ScoringModelVersion ?? "Standard" }
                     },
                     logoBytes: _logoBytes
                 ));
@@ -377,7 +377,7 @@ namespace PsyApi.Services.Reports
                 column.Item().AlignCenter().Width(200).Element(c =>
                     DesignComponents.Badge(
                         c,
-                        text: LocalizationStrings.Get($"band.{overallStatus}"),
+                        text: DesignTokens.ArText.Sanitize(LocalizationStrings.Get($"band.{overallStatus}")),
                         level: overallStatus
                     )
                 );
@@ -385,7 +385,7 @@ namespace PsyApi.Services.Reports
                 column.Item().PaddingTop(DesignTokens.Spacing.LG);
 
                 // KPI Cards (4 cards in a row)
-                column.Item().Element(c => DesignComponents.Section(c, LocalizationStrings.Get("summary.kpis"), "📊"));
+                column.Item().Element(c => DesignComponents.Section(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("summary.kpis")), "📊"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.MD);
 
@@ -396,7 +396,7 @@ namespace PsyApi.Services.Reports
                         DesignComponents.KpiCard(
                             c,
                             value: DesignTokens.Formatting.FormatTScore(avgTScore),
-                            label: LocalizationStrings.Get("kpi.avg_tscore"),
+                            label: DesignTokens.ArText.Sanitize(LocalizationStrings.Get("kpi.avg_tscore")),
                             color: DesignTokens.PerformanceBands.GetBandColor(avgTScore)
                         )
                     );
@@ -406,7 +406,7 @@ namespace PsyApi.Services.Reports
                         DesignComponents.KpiCard(
                             c,
                             value: DesignTokens.Formatting.FormatPercentile(avgPercentile),
-                            label: LocalizationStrings.Get("kpi.avg_percentile"),
+                            label: DesignTokens.ArText.Sanitize(LocalizationStrings.Get("kpi.avg_percentile")),
                             color: DesignTokens.Colors.Info
                         )
                     );
@@ -416,7 +416,7 @@ namespace PsyApi.Services.Reports
                         DesignComponents.KpiCard(
                             c,
                             value: DesignTokens.Formatting.FormatNumber(variance, 1),
-                            label: LocalizationStrings.Get("kpi.variance"),
+                            label: DesignTokens.ArText.Sanitize(LocalizationStrings.Get("kpi.variance")),
                             color: DesignTokens.Colors.Accent
                         )
                     );
@@ -426,7 +426,7 @@ namespace PsyApi.Services.Reports
                         DesignComponents.KpiCard(
                             c,
                             value: excellentCount.ToString(),
-                            label: LocalizationStrings.Get("kpi.advanced_patterns"),
+                            label: DesignTokens.ArText.Sanitize(LocalizationStrings.Get("kpi.advanced_patterns")),
                             color: DesignTokens.Colors.Success
                         )
                     );
@@ -508,10 +508,10 @@ namespace PsyApi.Services.Reports
                     .Row(row =>
                     {
                         row.RelativeItem().AlignRight()
-                            .Text($"{LocalizationStrings.Get("band.excellent")}: {excellentCount} | " +
-                                  $"{LocalizationStrings.Get("band.good")}: {goodCount} | " +
-                                  $"{LocalizationStrings.Get("band.average")}: {averageCount} | " +
-                                  $"{LocalizationStrings.Get("band.weak")}: {weakCount}")
+                            .Text($"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.excellent"))}: {excellentCount} | " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.good"))}: {goodCount} | " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.average"))}: {averageCount} | " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.weak"))}: {weakCount}")
                             .Style(GetTextStyle(DesignTokens.Typography.Body, true));
                     });
             });
@@ -534,7 +534,7 @@ namespace PsyApi.Services.Reports
             {
                 // Title
                 column.Item().Element(c =>
-                    DesignComponents.Section(c, LocalizationStrings.Get("charts.overview"), "📊"));
+                    DesignComponents.Section(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("charts.overview")), "📊"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.LG);
 
@@ -550,7 +550,7 @@ namespace PsyApi.Services.Reports
 
                         radarCard.Item().AlignCenter().Height(220).Image(radarBytes);
                         radarCard.Item().PaddingTop(DesignTokens.Spacing.SM).AlignCenter()
-                            .Text(LocalizationStrings.Get("charts.radar.subtitle"))
+                            .Text(DesignTokens.ArText.Sanitize(LocalizationStrings.Get("charts.radar.subtitle")))
                             .Style(GetTextStyle(DesignTokens.Typography.Caption, false, DesignTokens.Colors.TextSecondary));
                     }
                     catch (Exception ex)
@@ -563,17 +563,29 @@ namespace PsyApi.Services.Reports
 
                 column.Item().PaddingTop(DesignTokens.Spacing.MD);
 
-                // Horizontal Bar Chart
-                column.Item().Background("#FFFFFF").Padding(DesignTokens.Spacing.MD).Column(barCard =>
+                // Horizontal Bar Chart - Single non-splittable component with fixed height
+                // Wrap in PageBreak to ensure it stays on one page
+                column.Item().PageBreak();
+                column.Item().Background("#FFFFFF").Padding(DesignTokens.Spacing.MD).Height(350).Column(barCard =>
                 {
                     try
                     {
                         var barBytes = HorizontalBarChartRenderer.RenderHorizontalBars(
                             sortedDimensions,
                             width: 580,
-                            maxDimensions: 12);
+                            maxDimensions: 12,
+                            dpi: 600); // Vector quality
 
-                        barCard.Item().AlignCenter().Height(280).Image(barBytes);
+                        barCard.Item().AlignCenter().Height(320).Image(barBytes);
+                        
+                        // Summary text below bars
+                        barCard.Item().PaddingTop(DesignTokens.Spacing.SM).AlignCenter()
+                            .Text(DesignTokens.ArText.Sanitize(LocalizationStrings.Get("charts.summary")) + ": " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.excellent"))}: {excellentCount} | " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.good"))}: {goodCount} | " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.average"))}: {averageCount} | " +
+                                  $"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.weak"))}: {weakCount}")
+                            .Style(GetTextStyle(DesignTokens.Typography.Caption, false, DesignTokens.Colors.TextSecondary));
                     }
                     catch (Exception ex)
                     {
@@ -583,50 +595,7 @@ namespace PsyApi.Services.Reports
                     }
                 });
 
-                column.Item().PaddingTop(DesignTokens.Spacing.MD);
-
-                // Donut Chart
-                column.Item().Background("#FFFFFF").Padding(DesignTokens.Spacing.MD).Column(donutCard =>
-                {
-                    try
-                    {
-                        var clusterDistribution = DonutChartRenderer.CalculateClusterDistribution(sortedDimensions);
-
-                        if (clusterDistribution.Any())
-                        {
-                            var donutBytes = DonutChartRenderer.RenderClusterDonut(
-                                clusterDistribution,
-                                size: 160,
-                                centerText: LocalizationStrings.CurrentLanguage == ReportLanguage.AR ? "المحاور" : "Clusters");
-
-                            donutCard.Item().AlignCenter().Height(170).Image(donutBytes);
-                            donutCard.Item().PaddingTop(DesignTokens.Spacing.SM).AlignCenter()
-                                .Text(LocalizationStrings.Get("charts.donut.subtitle"))
-                                .Style(GetTextStyle(DesignTokens.Typography.Caption, false, DesignTokens.Colors.TextSecondary));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"[Charts] Donut error: {ex.Message}");
-                        donutCard.Item().AlignCenter().Element(c =>
-                            DesignComponents.Callout(c, $"Chart error: {ex.Message}", "danger"));
-                    }
-                });
-
-                column.Item().PaddingTop(DesignTokens.Spacing.LG);
-
-                // Statistical Summary
-                column.Item().Background("#FFFFFF").Padding(DesignTokens.Spacing.MD)
-                    .Row(summaryRow =>
-                    {
-                        summaryRow.RelativeItem().AlignRight()
-                            .Text(LocalizationStrings.Get("charts.summary") + ": " +
-                                  $"{LocalizationStrings.Get("band.excellent")}: {excellentCount} | " +
-                                  $"{LocalizationStrings.Get("band.good")}: {goodCount} | " +
-                                  $"{LocalizationStrings.Get("band.average")}: {averageCount} | " +
-                                  $"{LocalizationStrings.Get("band.weak")}: {weakCount}")
-                            .Style(GetTextStyle(DesignTokens.Typography.Body, true));
-                    });
+                // NO DONUT CHART - Removed completely as per requirements
             });
         }
 
@@ -645,7 +614,7 @@ namespace PsyApi.Services.Reports
             {
                 // Title
                 column.Item().Element(c =>
-                    DesignComponents.Section(c, LocalizationStrings.Get("analysis.title"), "📖"));
+                    DesignComponents.Section(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("analysis.title")), "📖"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.LG);
 
@@ -750,13 +719,13 @@ namespace PsyApi.Services.Reports
             {
                 // Title
                 column.Item().Element(c =>
-                    DesignComponents.Section(c, LocalizationStrings.Get("plan.title"), "🎯"));
+                    DesignComponents.Section(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.title")), "🎯"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.MD);
 
                 // Introduction
                 column.Item().Element(c =>
-                    DesignComponents.Callout(c, LocalizationStrings.Get("plan.intro"), "info"));
+                    DesignComponents.Callout(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.intro")), "info"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.LG);
 
@@ -814,20 +783,20 @@ namespace PsyApi.Services.Reports
                 column.Item().PaddingTop(DesignTokens.Spacing.XL);
 
                 // Tips for Success
-                column.Item().Background(DesignTokens.CurrentTheme == DesignTokens.ReportThemeMode.AuroraGlass ? "#E7F3FF" : "#1E3A5F")
+                column.Item().Background(DesignTokens.Colors.Surface)
                     .Padding(DesignTokens.Spacing.MD)
                     .Column(tipsBox =>
                     {
-                        tipsBox.Item().AlignRight().Text(LocalizationStrings.Get("plan.tips"))
+                        tipsBox.Item().AlignRight().Text(DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.tips")))
                             .Style(GetTextStyle(DesignTokens.Typography.TitleSemibold, true, DesignTokens.Colors.Primary));
 
                         var tips = new[]
                         {
-                            LocalizationStrings.Get("plan.tips.commitment"),
-                            LocalizationStrings.Get("plan.tips.tracking"),
-                            LocalizationStrings.Get("plan.tips.feedback"),
-                            LocalizationStrings.Get("plan.tips.review"),
-                            LocalizationStrings.Get("plan.tips.help")
+                            DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.tips.commitment")),
+                            DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.tips.tracking")),
+                            DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.tips.feedback")),
+                            DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.tips.review")),
+                            DesignTokens.ArText.Sanitize(LocalizationStrings.Get("plan.tips.help"))
                         };
 
                         foreach (var tip in tips)
@@ -854,7 +823,7 @@ namespace PsyApi.Services.Reports
             {
                 // Title
                 column.Item().Element(c =>
-                    DesignComponents.Section(c, LocalizationStrings.Get("courses.title"), "📚"));
+                    DesignComponents.Section(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("courses.title")), "📚"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.MD);
 
@@ -888,7 +857,7 @@ namespace PsyApi.Services.Reports
                                 {
                                     col.Item().PaddingTop(DesignTokens.Spacing.XS)
                                         .AlignRight()
-                                        .Text($"⏱ {LocalizationStrings.Get("courses.duration")}: {course.Duration}")
+                                        .Text($"⏱ {DesignTokens.ArText.Sanitize(LocalizationStrings.Get("courses.duration"))}: {course.Duration}")
                                         .Style(GetTextStyle(DesignTokens.Typography.Small, false, DesignTokens.Colors.TextSecondary));
                                 }
 
@@ -912,7 +881,7 @@ namespace PsyApi.Services.Reports
                                 {
                                     col.Item().PaddingTop(DesignTokens.Spacing.SM).Row(tagRow =>
                                     {
-                                        tagRow.AutoItem().AlignMiddle().Text($"{LocalizationStrings.Get("courses.target")}: ")
+                                        tagRow.AutoItem().AlignMiddle().Text($"{DesignTokens.ArText.Sanitize(LocalizationStrings.Get("courses.target"))}: ")
                                             .Style(GetTextStyle(DesignTokens.Typography.Small, false, DesignTokens.Colors.TextSecondary));
 
                                         foreach (var target in targetedDims)
@@ -931,7 +900,7 @@ namespace PsyApi.Services.Reports
 
                 // Note
                 column.Item().Element(c =>
-                    DesignComponents.Callout(c, LocalizationStrings.Get("courses.note"), "info"));
+                    DesignComponents.Callout(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("courses.note")), "info"));
             });
         }
 
@@ -947,7 +916,7 @@ namespace PsyApi.Services.Reports
             {
                 // Title
                 column.Item().Element(c =>
-                    DesignComponents.Section(c, LocalizationStrings.Get("quality.title"), "✓"));
+                    DesignComponents.Section(c, DesignTokens.ArText.Sanitize(LocalizationStrings.Get("quality.title")), "✓"));
 
                 column.Item().PaddingTop(DesignTokens.Spacing.LG);
 
@@ -960,36 +929,36 @@ namespace PsyApi.Services.Reports
                 // Band Table
                 var headers = new List<string>
                 {
-                    LocalizationStrings.Get("band.excellent"),
-                    LocalizationStrings.Get("quality.bands.range"),
-                    LocalizationStrings.Get("quality.bands.interpretation")
+                    DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.excellent")),
+                    DesignTokens.ArText.Sanitize(LocalizationStrings.Get("quality.bands.range")),
+                    DesignTokens.ArText.Sanitize(LocalizationStrings.Get("quality.bands.interpretation"))
                 };
 
                 var rows = new List<List<string>>
                 {
                     new() {
-                        LocalizationStrings.Get("band.excellent"),
+                        DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.excellent")),
                         $"T ≥ {DesignTokens.PerformanceBands.ExcellentMin}",
                         LocalizationStrings.CurrentLanguage == ReportLanguage.AR 
                             ? "نقطة قوة بارزة - استمر في التميز" 
                             : "Outstanding strength - Continue excellence"
                     },
                     new() {
-                        LocalizationStrings.Get("band.good"),
+                        DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.good")),
                         $"{DesignTokens.PerformanceBands.GoodMin} ≤ T < {DesignTokens.PerformanceBands.ExcellentMin}",
                         LocalizationStrings.CurrentLanguage == ReportLanguage.AR 
                             ? "أداء جيد - فرصة للتحسين" 
                             : "Good performance - Room for improvement"
                     },
                     new() {
-                        LocalizationStrings.Get("band.average"),
+                        DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.average")),
                         $"{DesignTokens.PerformanceBands.AverageMin} ≤ T < {DesignTokens.PerformanceBands.GoodMin}",
                         LocalizationStrings.CurrentLanguage == ReportLanguage.AR 
                             ? "مستوى متوسط - يحتاج تطوير مستمر" 
                             : "Average level - Needs continuous development"
                     },
                     new() {
-                        LocalizationStrings.Get("band.weak"),
+                        DesignTokens.ArText.Sanitize(LocalizationStrings.Get("band.weak")),
                         $"T < {DesignTokens.PerformanceBands.AverageMin}",
                         LocalizationStrings.CurrentLanguage == ReportLanguage.AR 
                             ? "يحتاج تطوير عاجل - تركيز أولوية" 
@@ -1044,7 +1013,7 @@ namespace PsyApi.Services.Reports
                 column.Item().Element(c =>
                     DesignComponents.Callout(
                         c,
-                        LocalizationStrings.Get("footer.confidential"),
+                        DesignTokens.ArText.Sanitize(LocalizationStrings.Get("footer.confidential")),
                         "info"
                     )
                 );
@@ -1066,7 +1035,7 @@ namespace PsyApi.Services.Reports
                 f,
                 pageNumber,
                 totalPages,
-                LocalizationStrings.Get("footer.watermark")
+                DesignTokens.ArText.Sanitize(LocalizationStrings.Get("footer.watermark"))
             ));
         }
 

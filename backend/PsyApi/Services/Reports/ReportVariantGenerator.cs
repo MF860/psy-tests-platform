@@ -37,32 +37,32 @@ namespace PsyApi.Services.Reports
                 GeneratedAt = DateTime.UtcNow
             };
 
-            // Generate AR + Aurora Glass
+            // Generate AR + AuroraNeo
             variants.ArabicAuroraGlass = await GenerateVariantAsync(
                 result, user, dimensions, 
                 ReportLanguage.AR, 
-                DesignTokens.ReportThemeMode.AuroraGlass, 
+                DesignTokens.ReportThemeMode.AuroraNeo, 
                 ct);
 
-            // Generate AR + Noir Executive
+            // Generate AR + AuroraNeo (duplicate for backward compatibility)
             variants.ArabicNoirExecutive = await GenerateVariantAsync(
                 result, user, dimensions,
                 ReportLanguage.AR,
-                DesignTokens.ReportThemeMode.NoirExecutive,
+                DesignTokens.ReportThemeMode.AuroraNeo,
                 ct);
 
-            // Generate EN + Aurora Glass
+            // Generate EN + AuroraNeo
             variants.EnglishAuroraGlass = await GenerateVariantAsync(
                 result, user, dimensions,
                 ReportLanguage.EN,
-                DesignTokens.ReportThemeMode.AuroraGlass,
+                DesignTokens.ReportThemeMode.AuroraNeo,
                 ct);
 
-            // Generate EN + Noir Executive
+            // Generate EN + AuroraNeo (duplicate for backward compatibility)
             variants.EnglishNoirExecutive = await GenerateVariantAsync(
                 result, user, dimensions,
                 ReportLanguage.EN,
-                DesignTokens.ReportThemeMode.NoirExecutive,
+                DesignTokens.ReportThemeMode.AuroraNeo,
                 ct);
 
             _logger.LogInformation("Successfully generated all 4 variants - Total size: {TotalKB} KB",

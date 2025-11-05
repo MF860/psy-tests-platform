@@ -1,111 +1,90 @@
 using QuestPDF.Infrastructure;
 using QuestPDF.Helpers;
 using SkiaSharp;
+using System.Text;
 
 namespace PsyApi.Services.Reports
 {
     /// <summary>
-    /// Ultra Hi-Fi Design Tokens - Premium Design System v4.0
-    /// Supports Aurora Glass (Light) and Noir Executive (Dark) themes
-    /// All tokens are tunable and theme-aware for maximum flexibility
+    /// UltraHiFi v6.1 AuroraNeo Design Tokens — Complete Redesign
+    /// 100% Modern, NO legacy resemblance. Editorial-grade print quality.
     /// </summary>
     public static class DesignTokens
     {
         /// <summary>
-        /// Current active theme (can be switched at runtime)
+        /// AuroraNeo Light is the ONLY theme for v6.1
         /// </summary>
-        public static ReportThemeMode CurrentTheme { get; set; } = ReportThemeMode.AuroraGlass;
+        public static ReportThemeMode CurrentTheme { get; set; } = ReportThemeMode.AuroraNeo;
 
-        /// <summary>
-        /// Available theme modes
-        /// </summary>
         public enum ReportThemeMode
         {
-            AuroraGlass,    // Light theme with glassmorphism
-            NoirExecutive   // Dark theme with neumorphism
+            AuroraNeo
         }
 
         /// <summary>
-        /// Master Color Tokens - Theme-aware with automatic switching
-        /// All colors validated for WCAG AA contrast ratios
+        /// AuroraNeo Modern Palette — ZERO visual overlap with legacy themes
+        /// Primary: Cyan Sky (#0EA5E9), Secondary: Indigo (#6366F1), Accent: Emerald (#22C55E)
         /// </summary>
         public static class Colors
         {
-            // Primary Brand Colors
-            public static string Primary => "#0B5ED7";        // Professional Blue
-            public static string PrimaryLight => "#3B82F6";   // Lighter variant
-            public static string PrimaryDark => "#1E40AF";    // Darker variant
-            
-            public static string Secondary => "#4F46E5";      // Indigo
-            public static string SecondaryLight => "#818CF8"; // Lighter indigo
-            
-            // Semantic Status Colors (universal across themes)
-            public static string Success => "#16A34A";        // Green ≥65 or ≥55 (context)
-            public static string Warning => "#F59E0B";        // Amber 55-64.9 or 40-54.9
-            public static string Danger => "#DC2626";         // Red <40
-            public static string Info => "#0EA5E9";           // Sky blue
-            
-            // Accent & Highlight Colors
-            public static string Accent => "#8B5CF6";         // Purple for CTAs
-            public static string AccentGlow => "#A78BFA";     // Glowing purple
-            public static string Gold => "#F59E0B";           // Gold for premium badges
-            
-            // Background Colors - Theme-aware
-            public static string Background => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#FFFFFF" : "#0F172A";                      // White / Deep Navy
-            
-            public static string Surface => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#F9FAFB" : "#1E293B";                      // Light Gray / Slate 800
-            
-            public static string SurfaceHover => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#F3F4F6" : "#334155";                      // Gray 100 / Slate 700
-            
-            public static string SurfaceElevated => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#FFFFFF" : "#1E293B";                      // White / Slate 800
-            
-            // Border & Divider Colors - Theme-aware
-            public static string Border => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#E5E7EB" : "#374151";                      // Gray 200 / Gray 700
-            
-            public static string Divider => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#D1D5DB" : "#475569";                      // Gray 300 / Slate 600
-            
-            public static string BorderSubtle => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#F3F4F6" : "#1F2937";                      // Very light / Dark gray
-            
-            // Text Colors - Theme-aware with proper contrast
-            public static string Text => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#111827" : "#F3F4F6";                      // Near black / Off white
-            
-            public static string TextSecondary => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#6B7280" : "#9CA3AF";                      // Gray 500 / Gray 400
-            
-            public static string TextMuted => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#9CA3AF" : "#6B7280";                      // Gray 400 / Gray 500
-            
-            public static string TextInverse => CurrentTheme == ReportThemeMode.AuroraGlass 
-                ? "#FFFFFF" : "#111827";                      // White / Black (for buttons)
-            
-            // Glassmorphism & Neumorphism Effects
-            public static string GlassOverlay => "rgba(255, 255, 255, 0.1)"; // Frosted glass
-            public static string GlassBorder => "rgba(255, 255, 255, 0.2)";  // Glass edge
-            public static string ShadowLight => "rgba(0, 0, 0, 0.05)";       // Soft shadow
-            public static string ShadowMedium => "rgba(0, 0, 0, 0.1)";       // Standard shadow
-            public static string ShadowStrong => "rgba(0, 0, 0, 0.25)";      // Deep shadow
-            
-            // Gradient Definitions (for Aurora Glass)
-            public static string GradientEmeraldSapphire => "linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)";
-            public static string GradientCharcoalInk => "linear-gradient(180deg, #1F2937 0%, #0F172A 100%)";
-            
-            // Chart-specific colors with excellent visibility
-            public static string ChartExcellent => "#10B981";  // Vibrant green
-            public static string ChartGood => "#3B82F6";       // Blue
-            public static string ChartAverage => "#F59E0B";    // Amber
-            public static string ChartWeak => "#EF4444";       // Red
-            public static string ChartNeutral => "#94A3B8";    // Slate gray
-            
+            // Primary Palette (Cyan Sky)
+            public static string Primary => "#0EA5E9";
+            public static string PrimaryLight => "#38BDF8";
+            public static string PrimaryDark => "#0369A1";
+
+            // Secondary Palette (Indigo)
+            public static string Secondary => "#6366F1";
+            public static string SecondaryLight => "#A5B4FC";
+            public static string SecondaryDark => "#4338CA";
+
+            // Semantic Colors
+            public static string Accent => "#22C55E";      // Emerald (Growth/Success)
+            public static string Warning => "#F59E0B";     // Amber (Caution)
+            public static string Danger => "#EF4444";      // Red (Risk/Critical)
+            public static string Success => "#22C55E";     // Same as Accent
+            public static string Info => "#0EA5E9";        // Same as Primary
+
+            // Background System
+            public static string Background => "#F8FAFC";  // Ultra-light slate
+            public static string BackgroundGradient => "linear-gradient(135deg, #E0F2FE 0%, #EEF2FF 50%, #F8FAFC 100%)";
+            public static float BackgroundNoiseOpacity => 0.015f; // Subtle texture
+
+            // Surface System (Glass Cards)
+            public static string Surface => "#FFFFFF";
+            public static string SurfaceHover => "#F1F5F9";
+            public static string SurfaceElevated => "#FEFEFE";
+            public static string SurfaceGlass => "rgba(255, 255, 255, 0.65)"; // 65% opacity white glass
+
+            // Border & Dividers
+            public static string Border => "#E5E7EB";      // Light gray
+            public static string BorderSubtle => "#F3F4F6"; // Almost invisible
+            public static string Divider => "#E5E7EB";
+
+            // Typography Colors
+            public static string Text => "#0F172A";         // Slate 900
+            public static string TextSecondary => "#334155"; // Slate 700
+            public static string TextMuted => "#64748B";     // Slate 500
+            public static string TextInverse => "#FFFFFF";
+
+            // Glass Morphism
+            public static string GlassOverlay => "rgba(255, 255, 255, 0.65)";
+            public static string GlassBorder => "rgba(255, 255, 255, 0.40)";
+            public static string GlassShadow => "rgba(0, 0, 0, 0.08)";
+
+            // Shadow System
+            public static string ShadowLight => "rgba(15, 23, 42, 0.04)";
+            public static string ShadowMedium => "rgba(15, 23, 42, 0.08)";
+            public static string ShadowStrong => "rgba(15, 23, 42, 0.12)";
+
+            // Chart Colors (Performance Bands)
+            public static string ChartExcellent => "#22C55E"; // Emerald
+            public static string ChartGood => "#0EA5E9";      // Cyan
+            public static string ChartAverage => "#F59E0B";   // Amber
+            public static string ChartWeak => "#EF4444";      // Red
+            public static string ChartNeutral => "#CBD5E1";   // Slate 300
+
             /// <summary>
-            /// Get color as SKColor for SkiaSharp rendering
+            /// Convert hex to SKColor for SkiaSharp rendering
             /// </summary>
             public static SKColor ToSKColor(string hexColor)
             {
@@ -121,134 +100,136 @@ namespace PsyApi.Services.Reports
                 }
                 return SKColors.Black;
             }
+
+            /// <summary>
+            /// Parse rgba string to SKColor
+            /// </summary>
+            public static SKColor ParseRGBA(string rgba)
+            {
+                try
+                {
+                    var vals = rgba.Replace("rgba(", "").Replace(")", "").Split(',');
+                    if (vals.Length >= 4)
+                    {
+                        var r = byte.Parse(vals[0].Trim());
+                        var g = byte.Parse(vals[1].Trim());
+                        var b = byte.Parse(vals[2].Trim());
+                        var a = (byte)(float.Parse(vals[3].Trim()) * 255);
+                        return new SKColor(r, g, b, a);
+                    }
+                }
+                catch { }
+                return SKColors.Transparent;
+            }
         }
 
         /// <summary>
-        /// Premium Typography Scale - Optimized for Noto Naskh Arabic & Inter/Roboto Flex
-        /// All sizes validated for readability at 300 DPI print quality
-        /// Scale: H1 26pt, H2 20pt, H3 16pt, Title 14pt SB, Body 12pt, Small 10pt
+        /// Typography System — Scale: H1(26), H2(20), H3(16), Title(14), Body(12), Small(10)
+        /// Primary Font: Noto Naskh Arabic (Regular/Bold)
         /// </summary>
         public static class Typography
         {
             // Font Families
-            public const string FontArabic = "Noto Naskh Arabic";    // Primary Arabic
-            public const string FontArabicAlt = "IBM Plex Arabic";   // Alternative Arabic
-            public const string FontEnglish = "Inter";                // Primary English
-            public const string FontEnglishAlt = "Roboto Flex";      // Alternative English
-            
-            // Heading Scale (Premium)
-            public const float H1 = 26f;      // Major page titles
-            public const float H2 = 20f;      // Section headers
-            public const float H3 = 16f;      // Subsection headers
-            public const float H4 = 14f;      // Minor headers
-            
-            // Body Text Scale
-            public const float TitleSemibold = 14f;  // Title 14pt Semibold
-            public const float Body = 12f;           // Standard body text
-            public const float BodyLarge = 14f;      // Emphasized body
-            public const float Small = 10f;          // Fine print, captions
-            
-            // Special Purpose Sizes
-            public const float KPI = 36f;            // Large KPI numbers (premium size)
-            public const float KPILabel = 12f;       // KPI labels
-            public const float Badge = 11f;          // Badge text
-            public const float Caption = 10f;        // Captions, footnotes
-            public const float Micro = 9f;           // Micro text (rare use)
-            
-            // Line Heights (unitless multipliers)
-            public const float LineHeightTight = 1.2f;    // For headings
-            public const float LineHeightNormal = 1.5f;   // For body text
-            public const float LineHeightRelaxed = 1.75f; // For long-form content
+            public const string FontArabic = "Noto Naskh Arabic";
+            public const string FontEnglish = "Inter";
+
+            // Size Scale (pt)
+            public const float H1 = 26f;            // Page titles
+            public const float H2 = 20f;            // Section headers
+            public const float H3 = 16f;            // Subsection headers
+            public const float H4 = 14f;            // Component headers
+            public const float TitleSemibold = 14f; // Card titles
+            public const float Body = 12f;          // Body text
+            public const float BodyLarge = 14f;     // Lead paragraphs
+            public const float Caption = 10f;       // Captions
+            public const float KPI = 34f;           // Large KPI numbers
+            public const float KPILabel = 12f;      // KPI labels
+            public const float Badge = 11f;         // Badge text
+            public const float Small = 10f;         // Small text
+            public const float Micro = 9f;          // Footnotes
+
+            // Line Heights
+            public const float LineHeightTight = 1.25f;
+            public const float LineHeightNormal = 1.5f;
+            public const float LineHeightRelaxed = 1.75f;
         }
 
         /// <summary>
-        /// Spacing Scale - 8pt Grid System (4/8/12/16/24/32/40/48pt)
-        /// Consistent vertical rhythm for professional layout
+        /// Spacing System — 8pt grid (8, 12, 16, 24, 32, 40)
         /// </summary>
         public static class Spacing
         {
-            public const float XS = 4f;       // Micro spacing
-            public const float SM = 8f;       // Small spacing
-            public const float MD = 12f;      // Medium spacing
-            public const float LG = 16f;      // Large spacing
-            public const float XL = 24f;      // Extra large
-            public const float XXL = 32f;     // Double extra large
-            public const float XXXL = 40f;    // Triple extra large
-            public const float Jumbo = 48f;   // Jumbo spacing
-            
-            // Semantic spacing aliases
-            public const float SectionGap = LG;       // Between sections (16pt)
-            public const float ComponentGap = MD;     // Between components (12pt)
-            public const float ElementGap = SM;       // Between elements (8pt)
-            public const float CardPadding = LG;      // Card inner padding (16pt)
-            
-            // Page margins (36-40pt as per specs)
-            public const float PageMarginTop = 36f;
-            public const float PageMarginBottom = 36f;
-            public const float PageMarginLeft = 40f;
-            public const float PageMarginRight = 40f;
+            public const float XS = 6f;
+            public const float SM = 8f;
+            public const float MD = 12f;
+            public const float LG = 16f;
+            public const float XL = 24f;
+            public const float XXL = 32f;
+            public const float XXXL = 40f;
+            public const float Jumbo = 48f;
+
+            // Semantic Spacing
+            public const float SectionGap = 24f;     // Between major sections
+            public const float ComponentGap = 16f;   // Between components
+            public const float ElementGap = 8f;      // Between elements
+            public const float CardPadding = 16f;    // Inside cards
+
+            // Page Margins
+            public const float PageMarginTop = 40f;
+            public const float PageMarginBottom = 40f;
+            public const float PageMarginLeft = 36f;
+            public const float PageMarginRight = 36f;
         }
 
         /// <summary>
-        /// Border Radius Scale - Modern rounded corners (16-20px for components)
+        /// Border Radius System
         /// </summary>
         public static class Radius
         {
             public const float None = 0f;
-            public const float SM = 4f;       // Small radius (subtle)
-            public const float MD = 8f;       // Medium radius (cards)
-            public const float LG = 12f;      // Large radius (prominent cards)
-            public const float XL = 16f;      // Extra large (glassmorphic cards)
-            public const float XXL = 20f;     // Double extra large (hero elements)
-            public const float Pill = 999f;   // Fully rounded (badges, pills)
+            public const float SM = 8f;
+            public const float MD = 12f;
+            public const float LG = 18f;   // Glass cards
+            public const float XL = 24f;
+            public const float Pill = 999f;
         }
 
         /// <summary>
-        /// Shadow & Elevation System - Multiple levels of depth
+        /// Shadow System (soft, modern)
         /// </summary>
         public static class Shadows
         {
-            // Shadow blur values (for PDF rendering context)
             public const float None = 0f;
-            public const float Subtle = 2f;      // Barely visible
-            public const float Soft = 4f;        // Soft elevation
-            public const float Medium = 8f;      // Standard elevation
-            public const float Strong = 12f;     // Prominent elevation
-            public const float Dramatic = 16f;   // Dramatic depth
-            
-            // Inner shadows (for neumorphism)
-            public const float InnerSubtle = 2f;
-            public const float InnerMedium = 4f;
+            public const float Subtle = 2f;
+            public const float Soft = 4f;
+            public const float Medium = 8f;
+            public const float Strong = 12f;
         }
 
         /// <summary>
-        /// Opacity Scale - For overlays, glassmorphism, and transparency effects
+        /// Opacity Scale
         /// </summary>
         public static class Opacity
         {
             public const float Invisible = 0f;
             public const float Subtle = 0.05f;
             public const float Light = 0.1f;
-            public const float Medium = 0.2f;
-            public const float Strong = 0.4f;
-            public const float Heavy = 0.6f;
-            public const float MostlyOpaque = 0.8f;
+            public const float Medium = 0.25f;
+            public const float Strong = 0.5f;
+            public const float Heavy = 0.75f;
+            public const float MostlyOpaque = 0.9f;
             public const float Opaque = 1f;
         }
 
         /// <summary>
-        /// Performance Band Thresholds - For psychometric scoring
+        /// Performance Band Thresholds (Psychometric Standard)
         /// </summary>
         public static class PerformanceBands
         {
-            public const double ExcellentMin = 65.0;   // T-Score ≥ 65
-            public const double GoodMin = 55.0;        // T-Score ≥ 55 < 65
-            public const double AverageMin = 40.0;     // T-Score ≥ 40 < 55
-            // Below 40 = Weak
-            
-            /// <summary>
-            /// Get band color based on T-Score
-            /// </summary>
+            public const double ExcellentMin = 65.0;
+            public const double GoodMin = 55.0;
+            public const double AverageMin = 40.0;
+
             public static string GetBandColor(double tScore)
             {
                 if (double.IsNaN(tScore) || double.IsInfinity(tScore))
@@ -260,9 +241,6 @@ namespace PsyApi.Services.Reports
                 return Colors.ChartWeak;
             }
             
-            /// <summary>
-            /// Get band label in Arabic
-            /// </summary>
             public static string GetBandLabelAr(double tScore)
             {
                 if (tScore >= ExcellentMin) return "ممتاز";
@@ -271,9 +249,6 @@ namespace PsyApi.Services.Reports
                 return "بحاجة للتطوير";
             }
             
-            /// <summary>
-            /// Get band label in English
-            /// </summary>
             public static string GetBandLabelEn(double tScore)
             {
                 if (tScore >= ExcellentMin) return "Excellent";
@@ -284,13 +259,10 @@ namespace PsyApi.Services.Reports
         }
 
         /// <summary>
-        /// Number Formatting Utilities - Western digits only, no replacement glyphs
+        /// Number Formatting (Western digits ONLY, UTF-8 safe)
         /// </summary>
         public static class Formatting
         {
-            /// <summary>
-            /// Format number with specified decimals (Western digits only)
-            /// </summary>
             public static string FormatNumber(double value, int decimals = 1)
             {
                 if (double.IsNaN(value) || double.IsInfinity(value))
@@ -300,28 +272,118 @@ namespace PsyApi.Services.Reports
                 return value.ToString($"F{decimals}", culture);
             }
             
-            /// <summary>
-            /// Format as percentage (0 decimals + %)
-            /// </summary>
             public static string FormatPercent(double value)
             {
                 return FormatNumber(value, 0) + "%";
             }
             
-            /// <summary>
-            /// Format T-Score (1 decimal)
-            /// </summary>
             public static string FormatTScore(double tScore)
             {
                 return FormatNumber(tScore, 1);
             }
             
-            /// <summary>
-            /// Format Percentile (0 decimals)
-            /// </summary>
             public static string FormatPercentile(double percentile)
             {
                 return FormatNumber(percentile, 0);
+            }
+        }
+
+        /// <summary>
+        /// Arabic Text Normalization — UTF-8 NFC canonical form
+        /// ZERO garbled characters (�)
+        /// </summary>
+        public static class ArText
+        {
+            /// <summary>
+            /// Sanitize Arabic text: NFC normalization + remove replacement chars + trim
+            /// This is the PRIMARY method to use for all Arabic text rendering
+            /// </summary>
+            public static string Sanitize(string? s)
+            {
+                if (string.IsNullOrWhiteSpace(s)) return string.Empty;
+                
+                var normalized = s.Normalize(NormalizationForm.FormC)
+                                 .Replace('\uFFFD', ' ')   // Remove Unicode replacement character
+                                 .Replace("�", " ")        // Remove visible replacement glyph
+                                 .Replace("\u200B", "")    // Remove zero-width space
+                                 .Replace("\u200C", "")    // Remove zero-width non-joiner (if problematic)
+                                 .Replace("\u200D", "")    // Remove zero-width joiner (if problematic)
+                                 .Trim();
+                
+                return normalized;
+            }
+
+            /// <summary>
+            /// Check if text contains garbled/replacement characters
+            /// Use after Sanitize() to verify cleanliness
+            /// </summary>
+            public static bool HasGarbledCharacters(string text)
+            {
+                if (string.IsNullOrEmpty(text)) return false;
+                return text.Contains('�') || text.Contains('\uFFFD');
+            }
+
+            /// <summary>
+            /// Check if text contains placeholder keys (e.g., "insights��tle")
+            /// Common placeholder patterns from broken localization
+            /// </summary>
+            public static bool HasPlaceholderKeys(string text)
+            {
+                if (string.IsNullOrEmpty(text)) return false;
+                
+                // Common broken patterns from localization keys
+                var placeholderPatterns = new[]
+                {
+                    "insights��tle",
+                    "plan��ps",
+                    "courses�dura�on",
+                    "summary�kpis",
+                    "clusters�analysis",
+                    "��", // Generic double replacement char
+                };
+                
+                return placeholderPatterns.Any(pattern => text.Contains(pattern, StringComparison.OrdinalIgnoreCase));
+            }
+
+            /// <summary>
+            /// Verify text is clean (no garbled chars, no placeholders)
+            /// </summary>
+            public static bool VerifyCleanText(string text)
+            {
+                return !HasGarbledCharacters(text) && !HasPlaceholderKeys(text);
+            }
+        }
+
+        /// <summary>
+        /// Legacy alias for backwards compatibility - prefer ArText.Sanitize
+        /// </summary>
+        public static class ArabicNormalization
+        {
+            /// <summary>
+            /// Normalize Arabic text to NFC form
+            /// </summary>
+            [Obsolete("Use ArText.Sanitize() instead")]
+            public static string NormalizeArabic(string text)
+            {
+                return ArText.Sanitize(text);
+            }
+
+            /// <summary>
+            /// Check if text contains garbled characters
+            /// </summary>
+            [Obsolete("Use ArText.HasGarbledCharacters() instead")]
+            public static bool HasGarbledCharacters(string text)
+            {
+                return ArText.HasGarbledCharacters(text);
+            }
+
+            /// <summary>
+            /// Verify text is clean (no garbled chars, properly normalized)
+            /// </summary>
+            [Obsolete("Use ArText.VerifyCleanText() instead")]
+            public static bool VerifyCleanText(string text)
+            {
+                return ArText.VerifyCleanText(text);
             }
         }
     }

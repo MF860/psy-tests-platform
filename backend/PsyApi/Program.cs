@@ -264,6 +264,8 @@ builder.Services.AddScoped<IPdfReportService, UltraHiFiPdfReportService>();
 builder.Services.AddScoped<UltimateArabicPdfReportService>();
 builder.Services.AddScoped<ModernPdfReportService>();
 
+Log.Information("ReportEngine=UltraHiFi v6 (premium)");
+
 // Recommendations
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 

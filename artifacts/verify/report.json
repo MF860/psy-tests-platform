@@ -1,0 +1,13 @@
+{
+  "Sha256": "9fc9dc4bc4c44111851fa247b876b2fb917bc9b562c699dfc3697bbfc3e8142c",
+  "HasGarbled": true,
+  "Pages": 14,
+  "FileSizeKb": 836.80078125,
+  "GeneratedAt": "2025-11-05T00:05:10Z",
+  "WatermarkFound": true,
+  "Previews": [
+    "previews/page-1.png",
+    "previews/page-2.png",
+    "previews/page-3.png"
+  ]
+}

@@ -21,13 +21,13 @@ namespace PsyApi.Services.Reports
         /// <param name="dimensions">قائمة الأبعاد مع T-scores</param>
         /// <param name="size">حجم المخطط (400-600px مثالي)</param>
         /// <param name="showGrid">عرض شبكة الخلفية</param>
-        /// <param name="dpi">DPI quality (300-450 for print quality)</param>
+        /// <param name="dpi">Requested DPI (minimum 600 for MB-2 spec)</param>
         /// <returns>صورة PNG كـ byte array</returns>
         public static byte[] RenderRadarChart(
             IEnumerable<DimensionScore> dimensions,
             int size = 500,
             bool showGrid = true,
-            int dpi = 450)
+            int dpi = 600)
         {
             EnsureArabicFont();
 
@@ -35,14 +35,14 @@ namespace PsyApi.Services.Reports
             if (dimensionsList.Count < 3)
                 throw new ArgumentException("Radar chart needs at least 3 dimensions");
 
-            // Ultra High DPI rendering (450 DPI = 1.5x improvement)
-            var scaleFactor = dpi / 300f; // Base 300 DPI, scale up to 450
-            var actualSize = (int)(size * scaleFactor);
+            var effectiveDpi = Math.Max(600, dpi);
+            var scaleFactor = effectiveDpi / 72f; // 72pt = 1in in PDF space
+            var actualSize = (int)Math.Ceiling(size * scaleFactor);
 
-            using var surface = SKSurface.Create(new SKImageInfo(actualSize, actualSize));
+            using var surface = SKSurface.Create(new SKImageInfo(actualSize, actualSize, SKColorType.Rgba8888, SKAlphaType.Premul));
             var canvas = surface.Canvas;
-            canvas.Scale(scaleFactor);
             canvas.Clear(SKColors.Transparent);
+            canvas.Scale(actualSize / (float)size);
 
             var centerX = size / 2f;
             var centerY = size / 2f;
@@ -63,13 +63,7 @@ namespace PsyApi.Services.Reports
 
             // تحويل إلى PNG بجودة عالية
             using var image = surface.Snapshot();
-            using var resizedBitmap = new SKBitmap(size, size);
-            var pixmap = resizedBitmap.PeekPixels();
-            var samplingOptions = new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear);
-            image.ScalePixels(pixmap, samplingOptions);
-
-            using var finalImage = SKImage.FromBitmap(resizedBitmap);
-            using var data = finalImage.Encode(SKEncodedImageFormat.Png, 100); // PNG at 100% quality
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
             return data.ToArray();
         }
 
@@ -87,7 +81,7 @@ namespace PsyApi.Services.Reports
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
-                Color = ReportTheme.FromHex(ReportTheme.Colors.Border),
+                Color = ReportTheme.FromHex(DesignTokens.Colors.Border).WithAlpha(160),
                 StrokeWidth = 1f
             };
 
@@ -325,9 +319,9 @@ namespace PsyApi.Services.Reports
             using var haloPaint = new SKPaint
             {
                 IsAntialias = true,
-                Color = SKColors.White.WithAlpha(200),
+                Color = SKColors.White.WithAlpha(210),
                 Style = SKPaintStyle.Stroke,
-                StrokeWidth = 4f
+                StrokeWidth = 3f
             };
 
             // Text paint
@@ -415,7 +409,7 @@ namespace PsyApi.Services.Reports
                 IsAntialias = true,
                 Style = SKPaintStyle.Stroke,
                 Color = ReportTheme.FromHex(DesignTokens.Colors.Primary),
-                StrokeWidth = 3f,
+                StrokeWidth = 2.5f,
                 StrokeJoin = SKStrokeJoin.Round
             };
             canvas.DrawPath(path, strokePaint);
@@ -478,7 +472,7 @@ namespace PsyApi.Services.Reports
             {
                 IsAntialias = true,
                 Style = SKPaintStyle.Fill,
-                Color = ReportTheme.FromHex(DesignTokens.Colors.Success).WithAlpha(200)
+                Color = ReportTheme.FromHex(DesignTokens.Colors.Primary).WithAlpha(220)
             };
             
             var maxBgRect = new SKRect(
@@ -515,7 +509,7 @@ namespace PsyApi.Services.Reports
                 {
                     IsAntialias = true,
                     Style = SKPaintStyle.Fill,
-                    Color = ReportTheme.FromHex(DesignTokens.Colors.Danger).WithAlpha(200)
+                    Color = ReportTheme.FromHex(DesignTokens.Colors.Accent).WithAlpha(220)
                 };
                 
                 var minBgRect = new SKRect(
